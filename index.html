@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard – ZŠ Ohradní 49</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #F4F6FB; --surface: #FFFFFF; --surface2: #F8FAFD;
+  --border: #E7ECF5; --border2: #D5DDED;
+  --ink: #161C2E; --ink2: #566079; --ink3: #98A3BB;
+  --accent: #3B82F6; --accent2: #2563EB; --accent-soft: rgba(59,130,246,0.10);
+  --orange: #F97316; --orange-soft: #FFF4ED;
+  --green: #22C55E; --green-soft: #F0FFF4;
+  --red: #EF4444; --red-soft: #FFF5F5;
+  --amber: #F59E0B; --amber-soft: #FFFBEB;
+  --shadow-soft: 0 8px 24px rgba(22, 28, 46, 0.05);
+  --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* Dark mode variables */
+:root.dark {
+  --bg: #0D111D; --surface: #141B2D; --surface2: #1A2338;
+  --border: #27314A; --border2: #33405F;
+  --ink: #ECF2FF; --ink2: #B6C1DA; --ink3: #8391B0;
+  --orange-soft: #302415;
+  --green-soft: #132A1F;
+  --red-soft: #321A1D;
+  --amber-soft: #322A15;
+  --shadow-soft: 0 12px 26px rgba(0,0,0,0.35);
+}
+
+body { font-family: var(--font); background: var(--bg); color: var(--ink); min-height: 100vh; -webkit-font-smoothing: antialiased; }
+
+.nav { background: color-mix(in srgb, var(--surface) 90%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 1.75rem; height: 58px; position: sticky; top: 0; z-index: 100; box-shadow: 0 1px 0 rgba(0,0,0,0.03); }
+.nav-logo { display: flex; align-items: center; gap: 10px; margin-right: 2.5rem; flex-shrink: 0; }
+.nav-logo img { width: 34px; height: 34px; object-fit: cover; border-radius: 10px; border: 1px solid var(--border); background: var(--surface2); }
+.nav-logo-name { font-size: 13px; font-weight: 700; color: var(--ink); white-space: nowrap; }
+.nav-tabs { display: flex; align-items: center; flex: 1; height: 100%; gap: 2px; }
+.ntab { display: flex; align-items: center; height: 58px; padding: 0 16px; font-size: 13px; font-weight: 500; color: var(--ink2); border-bottom: 2px solid transparent; cursor: pointer; transition: color 0.2s, border-color 0.2s; white-space: nowrap; user-select: none; }
+.ntab:hover { color: var(--ink); }
+.ntab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.nav-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+.avatar { width: 34px; height: 34px; border-radius: 50%; background: var(--accent-soft); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: var(--accent2); }
+.nav-name { font-size: 13px; font-weight: 500; color: var(--ink); }
+.nav-bell { width: 34px; height: 34px; border-radius: 10px; background: var(--surface2); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 14px; transition: all 0.2s; }
+.nav-bell:hover { transform: translateY(-1px); box-shadow: var(--shadow-soft); }
+
+.page { display: none; max-width: 1040px; margin: 0 auto; padding: 2rem 1.8rem 4rem; }
+.page.active { display: block; }
+.page-hdr { margin-bottom: 1.55rem; }
+.page-hdr h1 { font-size: 23px; font-weight: 700; color: var(--ink); letter-spacing: -0.03em; }
+.page-hdr p { font-size: 13px; color: var(--ink3); margin-top: 5px; }
+
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 1.35rem; }
+.stat { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 1.1rem 1.25rem; box-shadow: var(--shadow-soft); }
+.stat-lbl { font-size: 11px; font-weight: 600; color: var(--ink3); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 8px; }
+.stat-val { font-size: 24px; font-weight: 700; color: var(--ink); letter-spacing: -0.03em; line-height: 1.1; }
+.stat-sub { font-size: 11px; color: var(--ink3); margin-top: 6px; display: flex; align-items: center; gap: 5px; }
+.stat-dot { width: 6px; height: 6px; border-radius: 50%; }
+
+.grid2 { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 12px; margin-bottom: 12px; }
+
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 1.3rem 1.4rem; box-shadow: var(--shadow-soft); }
+.card-hd { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 1.1rem; gap: 10px; }
+.card-ttl { font-size: 13px; font-weight: 600; color: var(--ink); }
+.card-sub { font-size: 11px; color: var(--ink3); margin-top: 2px; }
+.badge { font-size: 10px; font-weight: 700; padding: 4px 10px; border-radius: 20px; white-space: nowrap; }
+.b-blue { background: var(--accent-soft); color: var(--accent2); }
+.b-orange { background: var(--orange-soft); color: var(--orange); }
+.b-green { background: var(--green-soft); color: #16A34A; }
+
+.lgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.lbtn { display: flex; align-items: center; gap: 10px; padding: 11px 12px; background: var(--surface2); border: 1px solid var(--border); border-radius: 11px; text-decoration: none; cursor: pointer; transition: all 0.2s; position: relative; }
+.lbtn:hover { border-color: var(--accent); background: var(--accent-soft); transform: translateY(-1px); box-shadow: var(--shadow-soft); }
+.lbtn:hover .la { opacity: 1; }
+.li { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+.ln { font-size: 12px; font-weight: 600; color: var(--ink); }
+.ld { font-size: 10px; color: var(--ink3); margin-top: 1px; }
+.la { position: absolute; top: 7px; right: 9px; font-size: 10px; color: var(--accent); opacity: 0; transition: opacity 0.15s; }
+.ladd { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px; background: transparent; border: 1.5px dashed var(--border2); border-radius: 11px; cursor: pointer; transition: all 0.15s; grid-column: 1 / -1; }
+.ladd:hover { border-color: var(--accent); background: var(--accent-soft); }
+.ladd-txt { font-size: 11px; color: var(--ink3); font-weight: 600; }
+.ia { background: #DBEAFE; } .it { background: #EDE9FE; } .ip { background: #FCE7F3; } .idr { background: #D1FAE5; } .im { background: #FEF9C3; }
+
+.toolbar-row { display:flex; gap:8px; margin-bottom: 10px; flex-wrap: wrap; }
+.search-input, .field, .sinput, .ninput, .file-input, .ti, .psel {
+  font-family: var(--font); font-size: 13px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface2); color: var(--ink); outline: none; transition: all 0.15s;
+}
+.search-input:focus, .field:focus, .sinput:focus, .ninput:focus, .file-input:focus, .ti:focus, .psel:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); background: #fff; }
+:root.dark .search-input:focus, :root.dark .field:focus, :root.dark .sinput:focus, :root.dark .ninput:focus, :root.dark .file-input:focus, :root.dark .ti:focus, :root.dark .psel:focus { background: var(--surface2); }
+
+.ti-row { display: flex; gap: 7px; margin-bottom: 12px; }
+.ti { flex: 1; }
+.psel { font-size: 12px; padding-inline: 7px; }
+.tadd, .btn, .sbtn, .mbtn {
+  padding: 10px 14px; background: var(--accent); color: #fff; border: none; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; line-height: 1; box-shadow: 0 1px 4px rgba(59,130,246,0.28); transition: all 0.15s; font-family: var(--font);
+}
+.tadd:hover, .btn:hover, .sbtn.primary:hover, .mbtn.primary:hover { background: var(--accent2); transform: translateY(-1px); }
+.btn.ghost, .sbtn, .mbtn { background: var(--surface2); color: var(--ink); border: 1px solid var(--border); box-shadow:none; }
+.btn.ghost:hover, .sbtn:hover, .mbtn:hover { background: var(--border); }
+.btn.danger, .sbtn.danger, .mbtn.danger { background: var(--red-soft); color: var(--red); border-color: transparent; box-shadow:none; }
+.btn.danger:hover, .sbtn.danger:hover, .mbtn.danger:hover { background: #fecaca; }
+.btn.success, .sbtn.success { background: var(--green-soft); color: #16A34A; border-color: transparent; box-shadow:none; }
+
+.tlist, .nlist, .material-list, .evidence-list { list-style: none; display: flex; flex-direction: column; gap: 6px; max-height: 310px; overflow-y: auto; }
+.titem, .nitem, .mitem, .eitem { display: flex; align-items: center; gap: 9px; padding: 10px 12px; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; transition: all 0.15s; }
+.titem:hover, .nitem:hover, .mitem:hover, .eitem:hover { background: var(--surface); border-color: var(--border2); }
+.titem.done { opacity: 0.45; }
+.titem.done .ttxt { text-decoration: line-through; color: var(--ink3); }
+.tck { width: 18px; height: 18px; border: 1.5px solid var(--accent); border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.tck.checked { background: var(--accent); border-color: var(--accent); }
+.tck.checked::after { content: '✓'; color: #fff; font-size: 10px; font-weight: 700; }
+.ttxt { font-size: 12px; flex: 1; color: var(--ink); font-weight: 500; }
+.tdel, .n-del, .icon-btn { font-size: 12px; color: var(--ink3); cursor: pointer; background: none; border: none; }
+.tdel { opacity: 0; transition: opacity 0.15s; }
+.titem:hover .tdel { opacity: 1; }
+.tprio { font-size: 10px; padding: 2px 7px; border-radius: 20px; font-weight: 700; }
+.ph { background: var(--red-soft); color: var(--red); }
+.pm { background: var(--amber-soft); color: var(--amber); }
+.pl { background: var(--green-soft); color: #16A34A; }
+.tempty { font-size: 12px; color: var(--ink3); text-align: center; padding: 1.5rem 0; font-weight: 500; }
+
+.nrow { display:flex; gap:8px; margin-bottom: 10px; }
+.ninput { flex: 1; min-height: 70px; resize: vertical; }
+.nmeta, .m-meta { font-size: 10px; color: var(--ink3); }
+.ntext, .m-main { font-size: 12px; color: var(--ink); flex: 1; line-height: 1.5; }
+.nsaved { font-size: 10px; color: var(--green); margin-top: 6px; height: 13px; font-weight: 600; }
+
+.table-wrap { overflow-x:auto; }
+.table { width:100%; border-collapse: collapse; }
+.table th { font-size:10px; font-weight:700; color:var(--ink3); letter-spacing:0.07em; text-transform:uppercase; padding:8px 10px; text-align:left; border-bottom:1px solid var(--border); }
+.table td { font-size:12px; padding:9px 10px; border-bottom:1px solid var(--border); color:var(--ink); vertical-align:middle; }
+.table tr:last-child td { border-bottom:none; }
+.table input { width: 100%; min-width: 120px; font-size: 12px; padding: 6px 8px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface2); color: var(--ink); }
+
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(26,32,53,0.35); backdrop-filter: blur(4px); z-index: 200; align-items: center; justify-content: center; }
+.modal-overlay.open { display: flex; }
+.mbox { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 1.75rem; width: 320px; display: flex; flex-direction: column; gap: 11px; box-shadow: 0 8px 40px rgba(26,32,53,0.16); animation: popIn 0.2s cubic-bezier(0.16,1,0.3,1); }
+@keyframes popIn { from { opacity:0; transform: scale(0.94) translateY(8px); } to { opacity:1; transform: scale(1) translateY(0); } }
+.mbox h3 { font-size: 16px; font-weight: 700; color: var(--ink); }
+.mbox input, .mbox select { font-family: var(--font); font-size: 13px; padding: 10px 13px; border: 1px solid var(--border); border-radius: 9px; background: var(--surface2); color: var(--ink); outline: none; width: 100%; }
+.mrow { display: flex; gap: 8px; margin-top: 4px; }
+
+.settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.sfield { margin-bottom: 12px; }
+.sfield label { display: block; font-size: 11px; font-weight: 600; color: var(--ink3); letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 6px; }
+.color-swatches { display: flex; gap: 8px; flex-wrap: wrap; }
+.swatch { width: 32px; height: 32px; border-radius: 8px; cursor: pointer; border: 2px solid transparent; transition: all 0.15s; }
+.swatch:hover { transform: scale(1.08); }
+.swatch.active { border-color: var(--ink); box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--ink); }
+
+.toast { position: fixed; bottom: 2rem; right: 2rem; background: var(--ink); color: #fff; padding: 12px 20px; border-radius: 12px; font-size: 13px; font-weight: 500; opacity: 0; transform: translateY(10px); transition: all 0.3s; z-index: 999; pointer-events: none; }
+.toast.show { opacity: 1; transform: translateY(0); }
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 6px; }
+
+@media (max-width: 840px) {
+  .grid2, .stats, .settings-grid { grid-template-columns: 1fr; }
+  .lgrid { grid-template-columns: 1fr; }
+  .page { padding: 1rem; }
+  .nav { padding: 0 1rem; overflow-x:auto; }
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-logo">
+    <img id="navLogo" src="https://placehold.co/64x64/3B82F6/FFFFFF?text=Z%C5%A0" alt="Logo">
+    <span class="nav-logo-name" id="navSchoolName">ZŠ Ohradní 49</span>
+  </div>
+  <div class="nav-tabs">
+    <div class="ntab active" data-page="dashboard">Dashboard</div>
+    <div class="ntab" data-page="schedule">Rozvrh</div>
+    <div class="ntab" data-page="materials">Materiály</div>
+    <div class="ntab" data-page="evidence">Evidence</div>
+    <div class="ntab" data-page="settings">Nastavení</div>
+  </div>
+  <div class="nav-right">
+    <div class="nav-bell">🔔</div>
+    <div class="avatar" id="navAvatar">U</div>
+    <span class="nav-name" id="navGreet"></span>
+  </div>
+</nav>
+
+<div class="page active" id="page-dashboard">
+  <div class="page-hdr">
+    <h1 id="dashGreet">Dobrý den 👋</h1>
+    <p id="fullDateStr">Vítejte ve vašem učitelském dashboardu</p>
+  </div>
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-lbl">Datum</div>
+      <div class="stat-val" id="dateVal">—</div>
+      <div class="stat-sub"><span class="stat-dot" style="background:#22C55E"></span><span id="dayVal">—</span></div>
+    </div>
+    <div class="stat">
+      <div class="stat-lbl">Úkoly splněny</div>
+      <div class="stat-val" id="doneCount">0 / 0</div>
+      <div class="stat-sub"><span class="stat-dot" style="background:var(--accent)"></span>Dnešní seznam</div>
+    </div>
+    <div class="stat">
+      <div class="stat-lbl">Poznámky</div>
+      <div class="stat-val" id="notesCount">0</div>
+      <div class="stat-sub"><span class="stat-dot" style="background:var(--amber)"></span>Historie poznámek</div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <div class="card-hd">
+        <div><div class="card-ttl">Rychlé odkazy</div><div class="card-sub">Všechny důležité nástroje</div></div>
+        <span class="badge b-blue" id="schoolBadge">Ohradní 49</span>
+      </div>
+      <div class="lgrid" id="linksGrid"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-hd">
+        <div><div class="card-ttl">Dnešní úkoly</div><div class="card-sub" id="taskBadge">0 úkolů</div></div>
+        <span class="badge b-orange">Dnes</span>
+      </div>
+      <div class="toolbar-row">
+        <input class="search-input" id="taskSearch" placeholder="Hledat úkol..." style="flex:1">
+      </div>
+      <div class="ti-row">
+        <input class="ti" id="taskInput" placeholder="Přidat úkol…" maxlength="100">
+        <select class="psel" id="taskPriority">
+          <option value="high">🔴</option><option value="med" selected>🟡</option><option value="low">🟢</option>
+        </select>
+        <button class="tadd" id="taskAddBtn">+</button>
+      </div>
+      <ul class="tlist" id="taskList"></ul>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-hd">
+      <div><div class="card-ttl">Poznámky</div><div class="card-sub">Automatické ukládání konceptu + historie poznámek</div></div>
+      <div class="nsaved" id="notesSaved"></div>
+    </div>
+    <div class="nrow">
+      <textarea class="ninput" id="noteDraft" placeholder="Napište poznámku..."></textarea>
+      <button class="btn" id="saveNoteBtn">Uložit</button>
+    </div>
+    <ul class="nlist" id="notesList"></ul>
+  </div>
+</div>
+
+<div class="page" id="page-schedule">
+  <div class="page-hdr"><h1>Rozvrh 📅</h1><p>Doplň sem svůj rozvrh hodin</p></div>
+  <div class="card" style="text-align:center;padding:3rem">
+    <div style="font-size:48px;margin-bottom:1rem">🏗️</div>
+    <div style="font-size:15px;font-weight:600;color:var(--ink);margin-bottom:8px">Rozvrh hodin</div>
+    <div style="font-size:13px;color:var(--ink3)">Tuto sekci si uprav dle potřeby</div>
+  </div>
+</div>
+
+<div class="page" id="page-materials">
+  <div class="page-hdr"><h1>Materiály 📁</h1><p>Ukládejte odkazy i soubory</p></div>
+  <div class="card">
+    <div class="card-hd">
+      <div><div class="card-ttl">Správa materiálů</div><div class="card-sub">Soubory i URL se ukládají do localStorage</div></div>
+      <span class="badge b-green" id="materialsBadge">0 položek</span>
+    </div>
+    <div class="toolbar-row"><input class="search-input" id="materialsSearch" placeholder="Hledat materiál..." style="flex:1"></div>
+    <div class="toolbar-row">
+      <input type="file" class="file-input" id="materialFile" style="flex:1">
+      <button class="btn" id="addFileBtn">Přidat soubor</button>
+    </div>
+    <div class="toolbar-row">
+      <input class="field" id="materialLinkName" placeholder="Název odkazu" style="flex:1">
+      <input class="field" id="materialLinkUrl" placeholder="https://..." style="flex:1">
+      <button class="btn" id="addLinkMaterialBtn">Přidat odkaz</button>
+    </div>
+    <ul class="material-list" id="materialsList"></ul>
+  </div>
+</div>
+
+<div class="page" id="page-evidence">
+  <div class="page-hdr"><h1>Evidence 💻</h1><p>Přehled vypůjčených zařízení</p></div>
+  <div class="card">
+    <div class="card-hd">
+      <div><div class="card-ttl">Vypůjčená zařízení</div><div class="card-sub">Přidávejte a uzavírejte záznamy</div></div>
+      <span class="badge b-orange" id="evidenceBadge">0 aktivních</span>
+    </div>
+    <div class="toolbar-row"><input class="search-input" id="evidenceSearch" placeholder="Hledat zařízení, ID nebo jméno..." style="flex:1"></div>
+    <div class="toolbar-row">
+      <input class="field" id="evDevice" placeholder="Zařízení" style="flex:1">
+      <input class="field" id="evId" placeholder="ID zařízení" style="flex:1">
+      <input class="field" id="evBorrower" placeholder="Vypůjčil" style="flex:1">
+      <button class="btn" id="addEvidenceBtn">Přidat</button>
+    </div>
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>Zařízení</th><th>ID</th><th>Vypůjčil</th><th>Datum půjčení</th><th>Datum vrácení</th><th>Akce</th></tr></thead>
+        <tbody id="evidenceTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="page" id="page-settings">
+  <div class="page-hdr"><h1>Nastavení ⚙️</h1><p>Upravte si dashboard podle sebe</p></div>
+  <div class="settings-grid">
+    <div class="card">
+      <div class="card-hd"><div><div class="card-ttl">Profil učitele</div><div class="card-sub">Vaše jméno v dashboardu</div></div></div>
+      <div class="sfield"><label>Jméno a příjmení</label><input class="sinput" id="settingName" placeholder="např. Jana Nováková"></div>
+      <div class="sfield"><label>Titul / pozice</label><input class="sinput" id="settingTitle" placeholder="např. Třídní učitelka 4.B"></div>
+      <button class="sbtn primary" onclick="saveProfile()">💾 Uložit profil</button>
+    </div>
+
+    <div class="card">
+      <div class="card-hd"><div><div class="card-ttl">Nastavení školy</div><div class="card-sub">Název v navigaci + logo</div></div></div>
+      <div class="sfield"><label>Název školy (krátký)</label><input class="sinput" id="settingSchoolShort" placeholder="např. ZŠ Ohradní 49"></div>
+      <div class="sfield"><label>Odznak na dashboardu</label><input class="sinput" id="settingBadge" placeholder="např. Ohradní 49"></div>
+      <div class="sfield"><label>Vlastní logo</label><input class="sinput" type="file" id="settingLogoUpload" accept="image/*"></div>
+      <button class="sbtn primary" onclick="saveSchool()">💾 Uložit</button>
+    </div>
+
+    <div class="card">
+      <div class="card-hd"><div><div class="card-ttl">Vzhled</div><div class="card-sub">Barvy a tmavý režim</div></div></div>
+      <div class="sfield"><label>Vyberte barvu</label>
+        <div class="color-swatches" id="colorSwatches">
+          <div class="swatch active" data-color="#3B82F6" style="background:#3B82F6"></div>
+          <div class="swatch" data-color="#8B5CF6" style="background:#8B5CF6"></div>
+          <div class="swatch" data-color="#10B981" style="background:#10B981"></div>
+          <div class="swatch" data-color="#F97316" style="background:#F97316"></div>
+          <div class="swatch" data-color="#EF4444" style="background:#EF4444"></div>
+          <div class="swatch" data-color="#EC4899" style="background:#EC4899"></div>
+          <div class="swatch" data-color="#0EA5E9" style="background:#0EA5E9"></div>
+          <div class="swatch" data-color="#1A2035" style="background:#1A2035"></div>
+        </div>
+      </div>
+      <button class="sbtn" id="darkModeToggle">🌙 Přepnout tmavý režim</button>
+    </div>
+
+    <div class="card">
+      <div class="card-hd"><div><div class="card-ttl">Správa odkazů</div><div class="card-sub">Přejmenování a mazání všech odkazů</div></div></div>
+      <div class="table-wrap">
+        <table class="table">
+          <thead><tr><th>Název</th><th>URL</th><th></th></tr></thead>
+          <tbody id="linksTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card" style="grid-column:1/-1">
+      <div class="card-hd"><div><div class="card-ttl">Export dat</div><div class="card-sub">Úkoly, poznámky, materiály a evidence</div></div></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="sbtn success" onclick="exportData('txt')">📄 Export TXT</button>
+        <button class="sbtn success" onclick="exportData('json')">📦 Export JSON</button>
+        <button class="sbtn success" onclick="exportData('csv')">🧾 Export CSV</button>
+        <button class="sbtn danger" onclick="clearAllData()">🗑️ Smazat všechna data</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="confirmModal">
+  <div class="mbox">
+    <h3 id="confirmTitle">Opravdu smazat?</h3>
+    <p id="confirmText" style="font-size:13px;color:var(--ink2)"></p>
+    <div class="mrow" style="margin-top:8px">
+      <button class="mbtn" id="confirmCancel">Zrušit</button>
+      <button class="mbtn danger" id="confirmOk">Smazat</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== Helpers =====
+function readJSON(key, fallback) { try { return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback)); } catch(e) { return fallback; } }
+function saveJSON(key, value) { try { localStorage.setItem(key, JSON.stringify(value)); } catch(e) {} }
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function nowISODate() { return new Date().toISOString(); }
+function formatDateTime(iso) { var d = new Date(iso); return d.toLocaleString('cs-CZ'); }
+function showToast(msg) {
+  var t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show');
+  setTimeout(function(){ t.classList.remove('show'); }, 2500);
+}
+function shadeColor(hex, pct) {
+  var r = Math.min(255, Math.max(0, parseInt(hex.slice(1,3),16) + pct));
+  var g = Math.min(255, Math.max(0, parseInt(hex.slice(3,5),16) + pct));
+  var b = Math.min(255, Math.max(0, parseInt(hex.slice(5,7),16) + pct));
+  return '#' + [r,g,b].map(function(v){ return v.toString(16).padStart(2,'0'); }).join('');
+}
+function downloadFile(filename, content, mime) {
+  var blob = new Blob([content], {type:mime});
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = filename; a.click();
+  setTimeout(function(){ URL.revokeObjectURL(a.href); }, 500);
+}
+function toCSV(rows) {
+  return rows.map(function(row){ return row.map(function(v){ return '"' + String(v || '').replace(/"/g,'""') + '"'; }).join(','); }).join('\n');
+}
+
+// ===== State =====
+var defaultLinks = [
+  {name:'AmosVision', desc:'Třídní kniha', url:'https://amosvision.cz', icon:'📊', cls:'ia'},
+  {name:'Teams', desc:'Komunikace', url:'https://teams.microsoft.com', icon:'💬', cls:'it'},
+  {name:'Padlet', desc:'Nástěnky', url:'https://padlet.com', icon:'📌', cls:'ip'},
+  {name:'Google Drive', desc:'Materiály', url:'https://drive.google.com', icon:'📁', cls:'idr'},
+  {name:'Email', desc:'Školní pošta', url:'https://mail.google.com', icon:'✉️', cls:'im'}
+];
+
+var settings = readJSON('zs_settings', {});
+var tasks = readJSON('zs_tasks_v3', []);
+var links = readJSON('zs_links_v4', defaultLinks.slice());
+var notes = readJSON('zs_notes_list_v1', []);
+var noteDraft = localStorage.getItem('zs_notes_draft_v1') || '';
+var materials = readJSON('zs_materials_v1', []);
+var evidence = readJSON('zs_evidence_v1', []);
+
+// ===== Date header =====
+var now = new Date();
+var days = ['Neděle','Pondělí','Úterý','Středa','Čtvrtek','Pátek','Sobota'];
+var months = ['ledna','února','března','dubna','května','června','července','srpna','září','října','listopadu','prosince'];
+document.getElementById('dateVal').textContent = now.getDate() + '. ' + months[now.getMonth()] + ' ' + now.getFullYear();
+document.getElementById('dayVal').textContent = days[now.getDay()];
+document.getElementById('fullDateStr').textContent = days[now.getDay()] + ', ' + now.getDate() + '. ' + months[now.getMonth()] + ' ' + now.getFullYear();
+var h = now.getHours();
+var greetWord = h < 10 ? 'Dobré ráno' : h < 14 ? 'Dobré dopoledne' : h < 18 ? 'Dobré odpoledne' : 'Dobrý večer';
+
+// ===== Theme =====
+function applyColor(hex, save) {
+  document.documentElement.style.setProperty('--accent', hex);
+  document.documentElement.style.setProperty('--accent2', shadeColor(hex, -20));
+  var r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+  document.documentElement.style.setProperty('--accent-soft', 'rgba('+r+','+g+','+b+',0.10)');
+  document.querySelectorAll('.swatch').forEach(function(sw){ sw.classList.toggle('active', sw.dataset.color === hex); });
+  if (save) { settings.color = hex; saveJSON('zs_settings', settings); showToast('✅ Barva uložena'); }
+}
+function applyDarkMode() {
+  document.documentElement.classList.toggle('dark', !!settings.darkMode);
+}
+document.getElementById('darkModeToggle').addEventListener('click', function(){
+  settings.darkMode = !settings.darkMode; saveJSON('zs_settings', settings); applyDarkMode();
+  showToast(settings.darkMode ? '🌙 Tmavý režim zapnut' : '☀️ Světlý režim zapnut');
+});
+document.querySelectorAll('.swatch').forEach(function(sw){ sw.addEventListener('click', function(){ applyColor(sw.dataset.color, true); }); });
+
+// ===== Settings/Profile =====
+function applySettings() {
+  var name = settings.name || '';
+  var shortName = name.split(' ')[0] || '';
+  document.getElementById('navGreet').textContent = shortName ? (greetWord + ', ' + shortName + '!') : (greetWord + ' 👋');
+  document.getElementById('dashGreet').textContent = shortName ? ('Dobrý den, ' + shortName + ' 👋') : 'Dobrý den 👋';
+  document.getElementById('navAvatar').textContent = name ? name.charAt(0).toUpperCase() : 'U';
+  document.getElementById('navSchoolName').textContent = settings.schoolShort || 'ZŠ Ohradní 49';
+  document.getElementById('schoolBadge').textContent = settings.badge || 'Ohradní 49';
+  document.getElementById('settingName').value = settings.name || '';
+  document.getElementById('settingTitle').value = settings.title || '';
+  document.getElementById('settingSchoolShort').value = settings.schoolShort || '';
+  document.getElementById('settingBadge').value = settings.badge || '';
+  if (settings.logo) document.getElementById('navLogo').src = settings.logo;
+  if (settings.color) applyColor(settings.color, false);
+  applyDarkMode();
+}
+function saveProfile() {
+  settings.name = document.getElementById('settingName').value.trim();
+  settings.title = document.getElementById('settingTitle').value.trim();
+  saveJSON('zs_settings', settings); applySettings(); showToast('✅ Profil uložen');
+}
+function saveSchool() {
+  settings.schoolShort = document.getElementById('settingSchoolShort').value.trim();
+  settings.badge = document.getElementById('settingBadge').value.trim();
+  saveJSON('zs_settings', settings); applySettings(); showToast('✅ Nastavení školy uloženo');
+}
+document.getElementById('settingLogoUpload').addEventListener('change', function(e){
+  var file = e.target.files[0]; if (!file) return;
+  var fr = new FileReader();
+  fr.onload = function(){ settings.logo = fr.result; saveJSON('zs_settings', settings); applySettings(); showToast('🖼️ Logo uloženo'); };
+  fr.readAsDataURL(file);
+});
+
+// ===== Navigation =====
+document.querySelectorAll('.ntab').forEach(function(tab){
+  tab.addEventListener('click', function(){
+    document.querySelectorAll('.ntab').forEach(function(t){ t.classList.remove('active'); });
+    tab.classList.add('active');
+    var pg = tab.dataset.page;
+    document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
+    document.getElementById('page-' + pg).classList.add('active');
+    if (pg === 'settings') renderLinksTable();
+  });
+});
+
+// ===== Links (including rename/delete all) =====
+function saveLinks() { saveJSON('zs_links_v4', links); }
+function renderLinks() {
+  var grid = document.getElementById('linksGrid');
+  var html = links.map(function(link, i){
+    var colorCls = link.cls || 'ia';
+    return '<a class="lbtn" href="'+esc(link.url)+'" target="_blank" rel="noreferrer" data-index="'+i+'">'
+      +'<div class="li '+colorCls+'">'+esc(link.icon || '🔗')+'</div>'
+      +'<div><div class="ln">'+esc(link.name)+'</div><div class="ld">'+esc(link.desc || link.url)+'</div></div><span class="la">↗</span></a>';
+  }).join('');
+  html += '<div class="ladd" id="addLinkBtn"><span style="font-size:18px;color:var(--ink3)">+</span><span class="ladd-txt">Přidat odkaz</span></div>';
+  grid.innerHTML = html;
+  document.getElementById('addLinkBtn').addEventListener('click', addQuickLink);
+}
+function addQuickLink() {
+  var name = prompt('Název odkazu:'); if (!name) return;
+  var url = prompt('URL odkazu:'); if (!url) return;
+  var desc = prompt('Popis (volitelné):') || '';
+  links.push({name:name.trim(), url:url.startsWith('http') ? url : 'https://' + url, desc:desc.trim(), icon:'🔗', cls:'ia'});
+  saveLinks(); renderLinks(); renderLinksTable(); showToast('✅ Odkaz přidán');
+}
+function renderLinksTable() {
+  var body = document.getElementById('linksTableBody');
+  if (!links.length) { body.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--ink3)">Žádné odkazy</td></tr>'; return; }
+  body.innerHTML = links.map(function(link, i){
+    return '<tr>'
+      +'<td><input data-link-field="name" data-i="'+i+'" value="'+esc(link.name)+'"></td>'
+      +'<td><input data-link-field="url" data-i="'+i+'" value="'+esc(link.url)+'"></td>'
+      +'<td><button class="btn danger" data-link-del="'+i+'">Smazat</button></td>'
+      +'</tr>';
+  }).join('');
+  body.querySelectorAll('input[data-link-field]').forEach(function(inp){
+    inp.addEventListener('change', function(){
+      var idx = parseInt(inp.dataset.i); var field = inp.dataset.linkField;
+      links[idx][field] = inp.value.trim();
+      if (field === 'url' && links[idx].url && !links[idx].url.startsWith('http')) links[idx].url = 'https://' + links[idx].url;
+      saveLinks(); renderLinks(); showToast('✏️ Odkaz upraven');
+    });
+  });
+  body.querySelectorAll('button[data-link-del]').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var idx = parseInt(btn.dataset.linkDel);
+      confirmAction('Smazat odkaz?', 'Odkaz bude odstraněn ze seznamu.', function(){
+        links.splice(idx,1); saveLinks(); renderLinks(); renderLinksTable(); showToast('🗑️ Odkaz smazán');
+      });
+    });
+  });
+}
+
+// ===== Tasks + Search =====
+function saveTasks(){ saveJSON('zs_tasks_v3', tasks); }
+function renderTasks() {
+  var query = (document.getElementById('taskSearch').value || '').trim().toLowerCase();
+  var list = document.getElementById('taskList');
+  var done = tasks.filter(function(t){ return t.done; }).length;
+  document.getElementById('doneCount').textContent = done + ' / ' + tasks.length;
+  document.getElementById('taskBadge').textContent = tasks.length + ' úkol' + (tasks.length===1?'':'ů');
+  var filtered = tasks.filter(function(t){ return !query || t.text.toLowerCase().indexOf(query) >= 0; });
+  if (!filtered.length) { list.innerHTML = '<li class="tempty">Žádné úkoly — skvělé! 🎉</li>'; return; }
+  list.innerHTML = filtered.map(function(t){
+    var idx = tasks.indexOf(t);
+    return '<li class="titem '+(t.done?'done':'')+'">'
+      +'<div class="tck '+(t.done?'checked':'')+'" data-action="check" data-i="'+idx+'"></div>'
+      +'<span class="ttxt">'+esc(t.text)+'</span>'
+      +'<span class="tprio '+(t.priority==='high'?'ph':t.priority==='low'?'pl':'pm')+'">'+(t.priority==='high'?'Vysoká':t.priority==='low'?'Nízká':'Střední')+'</span>'
+      +'<button class="tdel" data-action="del" data-i="'+idx+'">✕</button>'
+      +'</li>';
+  }).join('');
+}
+function addTask() {
+  var inp = document.getElementById('taskInput'); var text = inp.value.trim(); if (!text) return;
+  tasks.unshift({text:text, priority:document.getElementById('taskPriority').value, done:false});
+  saveTasks(); renderTasks(); inp.value=''; inp.focus();
+}
+document.getElementById('taskSearch').addEventListener('input', renderTasks);
+document.getElementById('taskAddBtn').addEventListener('click', addTask);
+document.getElementById('taskInput').addEventListener('keydown', function(e){ if (e.key==='Enter') addTask(); });
+document.getElementById('taskList').addEventListener('click', function(e){
+  var el = e.target.closest('[data-action]'); if (!el) return; var i = parseInt(el.dataset.i);
+  if (el.dataset.action==='check') tasks[i].done = !tasks[i].done;
+  if (el.dataset.action==='del') tasks.splice(i,1);
+  saveTasks(); renderTasks();
+});
+
+// ===== Notes system (history + autosave draft) =====
+function saveNotes(){ saveJSON('zs_notes_list_v1', notes); }
+function renderNotes() {
+  var list = document.getElementById('notesList');
+  document.getElementById('notesCount').textContent = String(notes.length);
+  if (!notes.length) { list.innerHTML = '<li class="tempty">Zatím žádné poznámky.</li>'; return; }
+  list.innerHTML = notes.map(function(n, i){
+    return '<li class="nitem"><div class="ntext">'+esc(n.text)+'</div><div class="nmeta">'+formatDateTime(n.createdAt)+'</div><button class="n-del" data-note-del="'+i+'">🗑️</button></li>';
+  }).join('');
+}
+function addNoteFromDraft() {
+  var draftEl = document.getElementById('noteDraft');
+  var text = draftEl.value.trim(); if (!text) return;
+  notes.unshift({text:text, createdAt: nowISODate()});
+  draftEl.value = ''; localStorage.removeItem('zs_notes_draft_v1');
+  saveNotes(); renderNotes(); showToast('📝 Poznámka uložena');
+}
+var notesTimer;
+document.getElementById('noteDraft').value = noteDraft;
+document.getElementById('noteDraft').addEventListener('input', function(e){
+  clearTimeout(notesTimer); document.getElementById('notesSaved').textContent = '';
+  notesTimer = setTimeout(function(){
+    localStorage.setItem('zs_notes_draft_v1', e.target.value);
+    document.getElementById('notesSaved').textContent = 'Koncept uložen ✓';
+    setTimeout(function(){ document.getElementById('notesSaved').textContent = ''; }, 1500);
+  }, 600);
+});
+document.getElementById('saveNoteBtn').addEventListener('click', addNoteFromDraft);
+document.getElementById('notesList').addEventListener('click', function(e){
+  var btn = e.target.closest('[data-note-del]'); if (!btn) return;
+  var idx = parseInt(btn.dataset.noteDel);
+  notes.splice(idx, 1); saveNotes(); renderNotes();
+});
+
+// ===== Materials (files + links + localStorage + open/delete/search) =====
+function saveMaterials(){ saveJSON('zs_materials_v1', materials); }
+function renderMaterials() {
+  var q = (document.getElementById('materialsSearch').value || '').trim().toLowerCase();
+  var list = document.getElementById('materialsList');
+  var filtered = materials.filter(function(m){ return !q || (m.name + ' ' + (m.url||'')).toLowerCase().indexOf(q) >= 0; });
+  document.getElementById('materialsBadge').textContent = materials.length + ' položek';
+  if (!filtered.length) { list.innerHTML = '<li class="tempty">Žádné materiály.</li>'; return; }
+  list.innerHTML = filtered.map(function(m){
+    var idx = materials.indexOf(m);
+    return '<li class="mitem">'
+      +'<div class="m-main">'+esc(m.name)+'</div>'
+      +'<div class="m-meta">'+(m.type==='file'?'Soubor':'Odkaz')+' · '+formatDateTime(m.createdAt)+'</div>'
+      +'<button class="btn ghost" data-m-open="'+idx+'">Otevřít</button>'
+      +'<button class="btn danger" data-m-del="'+idx+'">Smazat</button>'
+      +'</li>';
+  }).join('');
+}
+function addMaterialLink() {
+  var nameEl = document.getElementById('materialLinkName');
+  var urlEl = document.getElementById('materialLinkUrl');
+  var name = nameEl.value.trim(), url = urlEl.value.trim();
+  if (!name || !url) return;
+  materials.unshift({type:'link', name:name, url: url.startsWith('http') ? url : ('https://' + url), createdAt: nowISODate()});
+  nameEl.value = ''; urlEl.value = ''; saveMaterials(); renderMaterials(); showToast('🔗 Odkaz uložen');
+}
+function addMaterialFile() {
+  var fileInput = document.getElementById('materialFile'); var file = fileInput.files[0]; if (!file) return;
+  var fr = new FileReader();
+  fr.onload = function(){
+    materials.unshift({type:'file', name:file.name, fileData: fr.result, mime: file.type || 'application/octet-stream', createdAt: nowISODate()});
+    saveMaterials(); renderMaterials(); fileInput.value = ''; showToast('📎 Soubor uložen');
+  };
+  fr.readAsDataURL(file);
+}
+document.getElementById('addLinkMaterialBtn').addEventListener('click', addMaterialLink);
+document.getElementById('addFileBtn').addEventListener('click', addMaterialFile);
+document.getElementById('materialsSearch').addEventListener('input', renderMaterials);
+document.getElementById('materialsList').addEventListener('click', function(e){
+  var openBtn = e.target.closest('[data-m-open]');
+  var delBtn = e.target.closest('[data-m-del]');
+  if (openBtn) {
+    var idx = parseInt(openBtn.dataset.mOpen); var item = materials[idx];
+    if (item.type === 'link') window.open(item.url, '_blank', 'noopener');
+    if (item.type === 'file') {
+      var a = document.createElement('a'); a.href = item.fileData; a.download = item.name; a.click();
+    }
+  }
+  if (delBtn) {
+    var di = parseInt(delBtn.dataset.mDel);
+    confirmAction('Smazat materiál?', 'Tato položka bude trvale odstraněna.', function(){
+      materials.splice(di, 1); saveMaterials(); renderMaterials(); showToast('🗑️ Materiál smazán');
+    });
+  }
+});
+
+// ===== Evidence tab =====
+function saveEvidence(){ saveJSON('zs_evidence_v1', evidence); }
+function renderEvidence() {
+  var q = (document.getElementById('evidenceSearch').value || '').trim().toLowerCase();
+  var body = document.getElementById('evidenceTableBody');
+  var filtered = evidence.filter(function(r){
+    return !q || (r.device + ' ' + r.deviceId + ' ' + r.borrower).toLowerCase().indexOf(q) >= 0;
+  });
+  var active = evidence.filter(function(r){ return !r.returnedAt; }).length;
+  document.getElementById('evidenceBadge').textContent = active + ' aktivních';
+  if (!filtered.length) { body.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--ink3)">Žádné záznamy</td></tr>'; return; }
+  body.innerHTML = filtered.map(function(r){
+    var idx = evidence.indexOf(r);
+    return '<tr>'
+      +'<td>'+esc(r.device)+'</td>'
+      +'<td>'+esc(r.deviceId)+'</td>'
+      +'<td>'+esc(r.borrower)+'</td>'
+      +'<td>'+formatDateTime(r.borrowedAt)+'</td>'
+      +'<td>'+(r.returnedAt ? formatDateTime(r.returnedAt) : '<span style="color:var(--red)">Nevráceno</span>')+'</td>'
+      +'<td style="display:flex;gap:6px">'
+      +(r.returnedAt ? '' : '<button class="btn ghost" data-ev-ret="'+idx+'">Vráceno</button>')
+      +'<button class="btn danger" data-ev-del="'+idx+'">Smazat</button></td>'
+      +'</tr>';
+  }).join('');
+}
+function addEvidenceRecord() {
+  var device = document.getElementById('evDevice').value.trim();
+  var deviceId = document.getElementById('evId').value.trim();
+  var borrower = document.getElementById('evBorrower').value.trim();
+  if (!device || !deviceId || !borrower) return;
+  evidence.unshift({device:device, deviceId:deviceId, borrower:borrower, borrowedAt: nowISODate(), returnedAt: ''});
+  ['evDevice','evId','evBorrower'].forEach(function(id){ document.getElementById(id).value = ''; });
+  saveEvidence(); renderEvidence(); showToast('💾 Záznam přidán');
+}
+document.getElementById('addEvidenceBtn').addEventListener('click', addEvidenceRecord);
+document.getElementById('evidenceSearch').addEventListener('input', renderEvidence);
+document.getElementById('evidenceTableBody').addEventListener('click', function(e){
+  var retBtn = e.target.closest('[data-ev-ret]');
+  var delBtn = e.target.closest('[data-ev-del]');
+  if (retBtn) {
+    var idx = parseInt(retBtn.dataset.evRet);
+    evidence[idx].returnedAt = nowISODate(); saveEvidence(); renderEvidence(); showToast('✅ Označeno jako vrácené');
+  }
+  if (delBtn) {
+    var di = parseInt(delBtn.dataset.evDel);
+    confirmAction('Smazat záznam?', 'Záznam bude odstraněn z evidence.', function(){
+      evidence.splice(di, 1); saveEvidence(); renderEvidence(); showToast('🗑️ Záznam smazán');
+    });
+  }
+});
+
+// ===== Export (TXT/JSON/CSV) =====
+function exportData(fmt) {
+  var payload = {
+    exported: nowISODate(),
+    tasks: tasks,
+    notes: notes,
+    materials: materials.map(function(m){ return {type:m.type, name:m.name, url:m.url || '', createdAt:m.createdAt}; }),
+    evidence: evidence
+  };
+
+  if (fmt === 'json') {
+    downloadFile('dashboard-export.json', JSON.stringify(payload, null, 2), 'application/json');
+    showToast('📦 JSON export stažen');
+    return;
+  }
+
+  if (fmt === 'csv') {
+    var evidenceRows = [['Zařízení','ID','Vypůjčil','Datum půjčení','Datum vrácení']].concat(
+      evidence.map(function(r){ return [r.device, r.deviceId, r.borrower, formatDateTime(r.borrowedAt), r.returnedAt ? formatDateTime(r.returnedAt) : '']; })
+    );
+    var materialsRows = [['Typ','Název','URL','Datum přidání']].concat(
+      materials.map(function(m){ return [m.type, m.name, m.url || '', formatDateTime(m.createdAt)]; })
+    );
+    downloadFile('evidence-export.csv', toCSV(evidenceRows), 'text/csv;charset=utf-8');
+    downloadFile('materials-export.csv', toCSV(materialsRows), 'text/csv;charset=utf-8');
+    showToast('🧾 CSV export stažen');
+    return;
+  }
+
+  var lines = ['=== UČITELSKÝ DASHBOARD – EXPORT ===', 'Datum: ' + new Date().toLocaleString('cs-CZ'), '', '--- ÚKOLY ---'];
+  tasks.forEach(function(t){ lines.push((t.done?'[✓] ':'[ ] ')+'['+t.priority.toUpperCase()+'] '+t.text); });
+  lines.push('', '--- POZNÁMKY ---');
+  notes.forEach(function(n){ lines.push('[' + formatDateTime(n.createdAt) + '] ' + n.text); });
+  lines.push('', '--- MATERIÁLY ---');
+  materials.forEach(function(m){ lines.push('[' + m.type + '] ' + m.name + ' | ' + (m.url || 'soubor uložen')); });
+  lines.push('', '--- EVIDENCE ---');
+  evidence.forEach(function(r){ lines.push(r.device + ' (' + r.deviceId + ') - ' + r.borrower + ' | půjčeno: ' + formatDateTime(r.borrowedAt) + ' | vráceno: ' + (r.returnedAt ? formatDateTime(r.returnedAt) : 'ne')); });
+  downloadFile('dashboard-export.txt', lines.join('\n'), 'text/plain;charset=utf-8');
+  showToast('📄 TXT export stažen');
+}
+
+// ===== Clear all =====
+function clearAllData() {
+  confirmAction('Smazat všechna data?', 'Smažou se všechny úkoly, poznámky, odkazy, materiály i evidence.', function(){
+    ['zs_tasks_v3','zs_notes_list_v1','zs_notes_draft_v1','zs_settings','zs_links_v4','zs_materials_v1','zs_evidence_v1'].forEach(function(k){ try { localStorage.removeItem(k); } catch(e){} });
+    location.reload();
+  });
+}
+
+// ===== Confirm modal =====
+var pendingConfirm = null;
+function confirmAction(title, text, cb) {
+  document.getElementById('confirmTitle').textContent = title;
+  document.getElementById('confirmText').textContent = text;
+  pendingConfirm = cb;
+  document.getElementById('confirmModal').classList.add('open');
+}
+document.getElementById('confirmCancel').addEventListener('click', function(){ document.getElementById('confirmModal').classList.remove('open'); pendingConfirm = null; });
+document.getElementById('confirmOk').addEventListener('click', function(){ document.getElementById('confirmModal').classList.remove('open'); if (pendingConfirm) pendingConfirm(); pendingConfirm = null; });
+document.getElementById('confirmModal').addEventListener('click', function(e){ if (e.target === document.getElementById('confirmModal')) { document.getElementById('confirmModal').classList.remove('open'); pendingConfirm = null; } });
+
+// ===== Init =====
+applySettings();
+renderLinks();
+renderLinksTable();
+renderTasks();
+renderNotes();
+renderMaterials();
+renderEvidence();
+</script>
+</body>
+</html>
