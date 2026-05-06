@@ -1,0 +1,17 @@
+{
+  "name": "ZŠ Ohradní 49 — Dashboard",
+  "short_name": "ZŠ Dashboard",
+  "description": "Učitelský dashboard ZŠ a MŠ Praha 4, Ohradní 49",
+  "start_url": "/skolaapp/",
+  "display": "standalone",
+  "background_color": "#F0F2F7",
+  "theme_color": "#3B82F6",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='24' fill='%233B82F6'/%3E%3Ctext x='96' y='130' text-anchor='middle' font-size='100' font-family='sans-serif' fill='white'%3EZ%C5%A0%3C/text%3E%3C/svg%3E",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    }
+  ]
+}
