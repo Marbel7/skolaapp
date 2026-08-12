@@ -571,7 +571,9 @@ body { font-family: var(--font); background: var(--bg); color: var(--ink); min-h
 <div class="toast" id="toast"></div>
 
 
+
 <script>
+
 // ===== FIREBASE KONFIGURACE =====
 const firebaseConfig = {
   apiKey: "AIzaSyAtT42ovv13vkQGGMWTQwpb28XQgfsLkzo",
@@ -587,6 +589,13 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db   = firebase.firestore();
+
+// Nastav LOCAL persistence — přežije reload i restart Safari
+auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(function(err) {
+  console.warn('[AUTH] setPersistence failed (Private Mode?):', err.message);
+  // V Private Mode fallback na SESSION
+});
+console.log('[AUTH] AUTH INIT - Firebase initialized');
 
 // ===== STAV PŘIHLÁŠENÍ =====
 var fbUserId  = null;
@@ -606,39 +615,52 @@ function fbHideLoginOverlay() {
 }
 
 function fbSignIn() {
+  console.log('[AUTH] SIGN IN START');
   var provider = new firebase.auth.GoogleAuthProvider();
   provider.setCustomParameters({ prompt: 'select_account' });
 
+  // Safari/iOS: detekuj zda použít popup nebo redirect
+  // Safari blokuje popupy agresivněji — použij redirect jako primární na mobilu
+  var isSafariMobile = /iP(ad|hone|od)/.test(navigator.userAgent) ||
+    (navigator.userAgent.includes('Safari') && !navigator.userAgent.includes('Chrome') && 'ontouchend' in document);
+
+  if (isSafariMobile) {
+    console.log('[AUTH] SIGN IN - using redirect (Safari mobile)');
+    auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).then(function() {
+      return auth.signInWithRedirect(provider);
+    }).catch(function(err) {
+      console.error('[AUTH] SIGN IN ERROR (redirect):', err.code, err.message);
+      if (typeof showToast === 'function') showToast('⚠️ Chyba přihlášení: ' + err.message);
+    });
+    return;
+  }
+
+  // Desktop: popup
   auth.signInWithPopup(provider).then(function(result) {
-    // Přihlášení proběhlo — onAuthStateChanged se postará o zbytek
-    console.log('Login OK:', result.user.email);
+    console.log('[AUTH] SIGN IN SUCCESS (popup):', result.user.email);
   }).catch(function(err) {
-    console.error('Login error:', err.code, err.message);
+    console.error('[AUTH] SIGN IN ERROR (popup):', err.code, err.message);
     var msg = '';
     switch(err.code) {
       case 'auth/unauthorized-domain':
-        msg = '⚠️ Tato doména není povolena ve Firebase Console. Přidejte marbel7.github.io do Authorized Domains.';
+        msg = '⚠️ Tato doména není povolena ve Firebase Console.';
         break;
       case 'auth/popup-blocked':
-        msg = '⚠️ Prohlížeč zablokoval popup. Povolte popup okna pro tuto stránku.';
-        // Záloha: zkus redirect
+      case 'auth/popup-closed-by-user':
+        console.log('[AUTH] Popup blocked/closed - falling back to redirect');
         auth.signInWithRedirect(provider);
         return;
-      case 'auth/popup-closed-by-user':
-        msg = 'Přihlášení bylo zrušeno.';
-        break;
       case 'auth/cancelled-popup-request':
-        // Ignoruj — uživatel klikl znovu
         return;
       case 'auth/network-request-failed':
-        msg = '⚠️ Chyba sítě. Zkontrolujte připojení k internetu.';
+        msg = '⚠️ Chyba sítě. Zkontrolujte připojení.';
         break;
       default:
         msg = '⚠️ Chyba přihlášení: ' + (err.message || err.code);
     }
-    if(msg) {
+    if (msg) {
       console.error(msg);
-      if(typeof showToast === 'function') showToast(msg);
+      if (typeof showToast === 'function') showToast(msg);
       else alert(msg);
     }
   });
@@ -656,36 +678,89 @@ function fbSignOut() {
 }
 
 // ===== SLEDOVÁNÍ PŘIHLÁŠENÍ =====
+// ── AUTH LIFECYCLE — Mobile-safe ─────────────────────────────────────────
+// Safari/iOS: onAuthStateChanged se poprvé zavolá s null ještě před
+// dokončením inicializace. Čekáme na první volání před zobrazením loginu.
+var _authInitialized = false;
+var _authInitTimer = null;
+
+function fbOnUserSignedIn(user) {
+  console.log('[AUTH] RENDER APP - user:', user.email);
+  _authInitialized = true;
+  if (_authInitTimer) { clearTimeout(_authInitTimer); _authInitTimer = null; }
+
+  fbUserId      = user.uid;
+  fbUserEmail   = user.email;
+  fbSyncEnabled = true;
+  fbHideLoginOverlay();
+  fbSetupListeners();
+
+  var info = document.getElementById('fbUserInfo');
+  if (info) info.textContent = user.displayName || user.email;
+  var signIn  = document.getElementById('fbSignInBtn');
+  var signOut = document.getElementById('fbSignOutBtn');
+  if (signIn)  signIn.style.display  = 'none';
+  if (signOut) signOut.style.display = '';
+
+  var av = document.getElementById('navAvatar');
+  if (av && user.photoURL) {
+    av.innerHTML = '<img src="'+user.photoURL+'" style="width:34px;height:34px;border-radius:50%;object-fit:cover">';
+  } else if (av) {
+    av.textContent = (user.displayName||user.email||'U').charAt(0).toUpperCase();
+  }
+  var gr = document.getElementById('navGreet');
+  if (gr) gr.textContent = 'Dobrý den, ' + (user.displayName ? user.displayName.split(' ')[0] : '') + ' 👋';
+
+  fbLoadAll();
+}
+
+function fbOnUserSignedOut() {
+  console.log('[AUTH] RENDER LOGIN');
+  _authInitialized = true;
+  if (_authInitTimer) { clearTimeout(_authInitTimer); _authInitTimer = null; }
+
+  fbUserId      = null;
+  fbUserEmail   = null;
+  fbSyncEnabled = false;
+  fbShowLoginOverlay();
+}
+
+// 1) Zkontroluj výsledek redirect přihlášení (Safari posílá uživatele přes redirect)
+console.log('[AUTH] AUTH INIT - checking redirect result');
+auth.getRedirectResult().then(function(result) {
+  if (result && result.user) {
+    console.log('[AUTH] SIGN IN SUCCESS (redirect):', result.user.email);
+    // onAuthStateChanged se postará o zbytek
+  }
+}).catch(function(err) {
+  console.error('[AUTH] SIGN IN ERROR (redirect):', err.code, err.message);
+  if (err.code !== 'auth/no-current-user') {
+    var msg = err.code === 'auth/unauthorized-domain'
+      ? '⚠️ Doména není povolena ve Firebase Console.'
+      : '⚠️ Chyba přihlášení: ' + err.message;
+    if (typeof showToast === 'function') showToast(msg);
+  }
+});
+
+// 2) Hlavní auth listener
 auth.onAuthStateChanged(function(user) {
+  console.log('[AUTH] AUTH STATE CHANGED - user:', user ? user.email : 'null', '| initialized:', _authInitialized);
   if (user) {
-    fbUserId      = user.uid;
-    fbUserEmail   = user.email;
-    fbSyncEnabled = true;
-    fbHideLoginOverlay();
-    // Nastav real-time listener okamžitě po přihlášení
-    fbSetupListeners();
-
-    // Update nav
-    var info = document.getElementById('fbUserInfo');
-    if (info) info.textContent = user.displayName || user.email;
-    var signIn  = document.getElementById('fbSignInBtn');
-    var signOut = document.getElementById('fbSignOutBtn');
-    if (signIn)  signIn.style.display  = 'none';
-    if (signOut) signOut.style.display = '';
-
-    // Update avatar
-    var av = document.getElementById('navAvatar');
-    if (av && user.photoURL) {
-      av.innerHTML = '<img src="'+user.photoURL+'" style="width:34px;height:34px;border-radius:50%;object-fit:cover">';
-    } else if (av) {
-      av.textContent = (user.displayName||user.email||'U').charAt(0).toUpperCase();
-    }
-    document.getElementById('navGreet').textContent = 'Dobrý den, ' + (user.displayName ? user.displayName.split(' ')[0] : '') + ' 👋';
-
-    // Načti data z Firebase
-    fbLoadAll();
+    fbOnUserSignedIn(user);
   } else {
-    fbShowLoginOverlay();
+    // Safari: první null může přijít před dokončením inicializace.
+    // Počkáme 800ms — pokud se user neobjeví, pak skutečně odhlášen.
+    if (!_authInitialized) {
+      console.log('[AUTH] AUTH INIT - waiting for Safari...');
+      _authInitTimer = setTimeout(function() {
+        if (!auth.currentUser) {
+          console.log('[AUTH] AUTH INIT done - no user, showing login');
+          fbOnUserSignedOut();
+        }
+      }, 800);
+    } else {
+      fbOnUserSignedOut();
+    }
   }
 });
 
@@ -2056,6 +2131,7 @@ renderTasks();
 renderNotes();
 renderMaterials();
 renderEvidence();
+
 
 </script>
 </html>
