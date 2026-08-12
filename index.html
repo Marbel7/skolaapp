@@ -575,7 +575,9 @@ body { font-family: var(--font); background: var(--bg); color: var(--ink); min-h
 
 
 
+
 <script>
+
 
 
 
@@ -597,6 +599,21 @@ const auth = firebase.auth();
 const db   = firebase.firestore();
 
 // Nastav LOCAL persistence — přežije reload i restart Safari
+
+// ====== DIAGNOSTIKA AUTH — dočasné logy ======
+function _authLog(event, extra) {
+  var cu = auth.currentUser;
+  var ts = new Date().toISOString().slice(11,23);
+  var parts = [
+    '[AUTH-DIAG ' + ts + '] ' + event,
+    '  currentUser.uid:   ' + (cu ? cu.uid.slice(0,8)+'...' : 'null'),
+    '  currentUser.email: ' + (cu ? cu.email : 'null'),
+  ];
+  if (extra) parts.push('  extra: ' + JSON.stringify(extra));
+  console.log(parts.join('\n'));
+}
+// ============================================
+
 // AUTH - popup only, bez redirect, bez umeleho timeru
 // onAuthStateChanged je jediny zdroj pravdy o stavu prihlaseni.
 
@@ -616,23 +633,25 @@ function fbUserDoc(col) {
 
 // Login overlay
 function fbShowLoginOverlay() {
+  _authLog('SHOW_LOGIN_OVERLAY');
   document.getElementById('fbLoginOverlay').style.display = 'flex';
 }
 function fbHideLoginOverlay() {
+  _authLog('HIDE_LOGIN_OVERLAY');
   document.getElementById('fbLoginOverlay').style.display = 'none';
 }
 
 // Sign in - POUZE popup, musi byt volano primo z onclick eventu
 function fbSignIn() {
-  console.log('[AUTH] signInWithPopup start');
+  _authLog('SIGN_IN_START');
   var provider = new firebase.auth.GoogleAuthProvider();
   provider.setCustomParameters({ prompt: 'select_account' });
 
   auth.signInWithPopup(provider).then(function(result) {
-    console.log('[AUTH] popup OK:', result.user.email);
+    _authLog('SIGN_IN_SUCCESS_POPUP', {uid: result.user.uid.slice(0,8), email: result.user.email});
     // onAuthStateChanged aktualizuje UI
   }).catch(function(err) {
-    console.error('[AUTH] popup error:', err.code, err.message);
+    _authLog('SIGN_IN_ERROR', {code: err.code, message: err.message});
     var msg = null;
     switch (err.code) {
       case 'auth/popup-closed-by-user':    break;
@@ -667,13 +686,14 @@ function fbSignOut() {
 // Firebase SDK sam ceka na dokonceni inicializace pred prvnim volanim.
 // Neni potreba zadny timer.
 auth.onAuthStateChanged(function(user) {
-  console.log('[AUTH] state:', user ? user.email : 'null');
+  _authLog('ON_AUTH_STATE_CHANGED', {user_uid: user ? user.uid.slice(0,8) : null, user_email: user ? user.email : null});
   if (user) {
     fbUserId      = user.uid;
     fbUserEmail   = user.email;
     fbSyncEnabled = true;
 
     fbHideLoginOverlay();
+    _authLog('CALLING_fbSetupListeners');
     fbSetupListeners();
 
     var info = document.getElementById('fbUserInfo');
@@ -694,6 +714,7 @@ auth.onAuthStateChanged(function(user) {
     var gr = document.getElementById('navGreet');
     if (gr) gr.textContent = 'Dobry den, ' + (user.displayName ? user.displayName.split(' ')[0] : '') + ' 👋';
 
+    _authLog('CALLING_fbLoadAll');
     fbLoadAll();
   } else {
     fbUserId      = null;
@@ -2070,6 +2091,7 @@ renderTasks();
 renderNotes();
 renderMaterials();
 renderEvidence();
+
 
 
 
