@@ -503,288 +503,267 @@ body { font-family:var(--font); background:var(--bg); color:var(--ink); min-heig
 .zap-note-del:hover { background:var(--red-soft); color:var(--red); }
 
 
-/* ═══════════════════════════════════════════════
-   HAMBURGER SHELL — nový layout bez sidebar
-═══════════════════════════════════════════════ */
+/* ═══════════════════════════════════
+   DASHBOARD 2.0 — NOVÁ ARCHITEKTURA
+══════════════════════════════════ */
 
-/* Override: shell bez sidebar na dashboardu */
-.shell { grid-template-columns: 1fr; }
-.sb { display: none; }
-.main { margin-left: 0; }
+/* Shell: bez sidebar */
+.sb { display:none !important; }
+.main { margin-left:0 !important; }
 
-/* TOPBAR — nový s hamburger */
+/* TOPBAR */
 .topbar {
-  display: flex; align-items: center;
-  justify-content: space-between;
-  padding: 0 16px; height: 52px;
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  position: sticky; top: 0; z-index: 100;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 16px; height:52px;
+  background:var(--surface);
+  border-bottom:1px solid var(--border);
+  position:sticky; top:0; z-index:100;
+  box-shadow:0 1px 0 var(--border);
 }
 .tb-hamburger {
-  width: 36px; height: 36px; border-radius: 10px;
-  background: none; border: none; cursor: pointer;
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center; gap: 4px;
-  transition: background 0.12s;
+  width:40px; height:40px; border-radius:10px;
+  background:none; border:none; cursor:pointer;
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center; gap:5px;
+  transition:background 0.12s; flex-shrink:0;
 }
-.tb-hamburger:hover { background: var(--surface2); }
-.tb-hamburger span {
-  display: block; width: 18px; height: 2px;
-  background: var(--ink); border-radius: 2px;
-  transition: all 0.2s;
-}
-.tb-hamburger.open span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
-.tb-hamburger.open span:nth-child(2) { opacity: 0; }
-.tb-hamburger.open span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+.tb-hamburger:hover { background:var(--surface2); }
+.tb-hamburger span { display:block; width:18px; height:2px; background:var(--ink); border-radius:2px; transition:all 0.2s; }
+.tb-hamburger.open span:nth-child(1) { transform:translateY(7px) rotate(45deg); }
+.tb-hamburger.open span:nth-child(2) { opacity:0; transform:scaleX(0); }
+.tb-hamburger.open span:nth-child(3) { transform:translateY(-7px) rotate(-45deg); }
+.tb-title-area { display:flex; align-items:center; gap:8px; }
+.tb-school-badge { width:28px; height:28px; border-radius:7px; background:var(--accent); color:#fff; font-size:11px; font-weight:800; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.tb-school-name { font-size:14px; font-weight:700; color:var(--ink); }
+.tb-right-actions { display:flex; align-items:center; gap:6px; }
+.tb-icon-btn { width:36px; height:36px; border-radius:9px; background:none; border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; color:var(--ink2); transition:background 0.12s; }
+.tb-icon-btn:hover { background:var(--surface2); }
+.tb-avatar-btn { width:32px; height:32px; border-radius:50%; background:var(--accent); color:#fff; font-size:12px; font-weight:700; display:flex; align-items:center; justify-content:center; cursor:pointer; overflow:hidden; border:none; }
 
-.tb-logo-area { display: flex; align-items: center; gap: 8px; }
-.tb-school-name { font-size: 14px; font-weight: 700; color: var(--ink); }
-.tb-actions { display: flex; align-items: center; gap: 8px; }
-.tb-icon-btn {
-  width: 36px; height: 36px; border-radius: 10px;
-  background: none; border: none; cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  color: var(--ink2); transition: background 0.12s;
-}
-.tb-icon-btn:hover { background: var(--surface2); }
-.tb-avatar {
-  width: 32px; height: 32px; border-radius: 50%;
-  background: var(--accent); color: #fff;
-  font-size: 12px; font-weight: 700;
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer;
-}
-
-/* HAMBURGER MENU DRAWER */
-.hb-overlay {
-  display: none; position: fixed; inset: 0; z-index: 200;
-}
-.hb-overlay.open { display: block; }
-.hb-backdrop {
-  position: absolute; inset: 0;
-  background: rgba(15,23,42,0.4);
-  backdrop-filter: blur(4px);
-}
+/* HAMBURGER DRAWER */
+.hb-overlay { display:none; position:fixed; inset:0; z-index:400; }
+.hb-overlay.open { display:block; }
+.hb-backdrop { position:absolute; inset:0; background:rgba(15,23,42,0.4); backdrop-filter:blur(4px); }
 .hb-drawer {
-  position: absolute; top: 0; left: 0; bottom: 0;
-  width: 260px; background: var(--sb-bg);
-  box-shadow: var(--shadow-lg);
-  transform: translateX(-100%);
-  transition: transform 0.25s cubic-bezier(0.16,1,0.3,1);
-  display: flex; flex-direction: column;
-  overflow-y: auto;
+  position:absolute; top:0; left:0; bottom:0; width:260px;
+  background:var(--sb-bg); box-shadow:var(--shadow-lg);
+  transform:translateX(-100%);
+  transition:transform 0.28s cubic-bezier(0.16,1,0.3,1);
+  display:flex; flex-direction:column; overflow-y:auto;
 }
-.hb-overlay.open .hb-drawer { transform: translateX(0); }
-
-.hb-head {
-  padding: 16px 16px 12px;
-  border-bottom: 1px solid var(--sb-border);
-  display: flex; align-items: center; gap: 10px;
-}
-.hb-school-logo {
-  width: 36px; height: 36px; border-radius: 10px;
-  background: var(--accent); color: #fff;
-  font-size: 14px; font-weight: 800;
-  display: flex; align-items: center; justify-content: center;
-}
-.hb-school-name { font-size: 13px; font-weight: 700; color: var(--sb-ink); }
-.hb-school-sub { font-size: 11px; color: var(--sb-ink2); margin-top: 1px; }
-
-.hb-nav { flex: 1; padding: 8px 8px; }
-.hb-label {
-  font-size: 10px; font-weight: 700;
-  color: var(--sb-ink2); text-transform: uppercase;
-  letter-spacing: 0.08em; padding: 10px 8px 4px;
-}
+.hb-overlay.open .hb-drawer { transform:translateX(0); }
+.hb-head { padding:18px 16px 14px; border-bottom:1px solid var(--sb-border); display:flex; align-items:center; gap:10px; }
+.hb-logo { width:36px; height:36px; border-radius:10px; background:var(--accent); color:#fff; font-size:13px; font-weight:800; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.hb-school { font-size:13px; font-weight:700; color:var(--sb-ink); }
+.hb-sub { font-size:11px; color:var(--sb-ink2); margin-top:1px; }
+.hb-nav { flex:1; padding:8px; }
+.hb-section-label { font-size:10px; font-weight:700; color:var(--sb-ink2); text-transform:uppercase; letter-spacing:0.08em; padding:10px 8px 4px; }
 .hb-item {
-  display: flex; align-items: center; gap: 10px;
-  padding: 9px 12px; border-radius: 8px;
-  cursor: pointer; transition: background 0.1s;
-  color: var(--sb-ink); font-size: 13px; font-weight: 500;
-  margin-bottom: 1px;
+  display:flex; align-items:center; gap:10px;
+  padding:9px 12px; border-radius:8px; cursor:pointer;
+  color:var(--sb-ink); font-size:13px; font-weight:500;
+  transition:background 0.1s; margin-bottom:1px;
 }
-.hb-item:hover { background: var(--sb-hover); }
-.hb-item.on { background: var(--sb-active); color: var(--accent); font-weight: 700; }
-.hb-item svg { width: 16px; height: 16px; flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.hb-item:hover { background:var(--sb-hover); }
+.hb-item.on { background:var(--sb-active); color:var(--accent); font-weight:700; }
+.hb-item svg { width:16px; height:16px; flex-shrink:0; stroke:currentColor; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+.hb-foot { padding:14px 16px; border-top:1px solid var(--sb-border); }
+.hb-user-row { display:flex; align-items:center; gap:8px; }
+.hb-avatar { width:32px; height:32px; border-radius:50%; background:var(--accent); color:#fff; font-size:12px; font-weight:700; display:flex; align-items:center; justify-content:center; overflow:hidden; }
+.hb-user-name { font-size:12px; font-weight:700; color:var(--sb-ink); }
+.hb-user-email { font-size:10px; color:var(--sb-ink2); }
+.hb-signout { margin-top:10px; width:100%; padding:8px; background:none; border:1px solid var(--sb-border); border-radius:8px; cursor:pointer; font-size:11px; color:var(--sb-ink2); font-family:var(--font); transition:all 0.12s; }
+.hb-signout:hover { border-color:var(--red); color:var(--red); }
 
-.hb-foot {
-  padding: 12px 16px;
-  border-top: 1px solid var(--sb-border);
-}
-.hb-user { display: flex; align-items: center; gap: 8px; }
-.hb-user-av {
-  width: 32px; height: 32px; border-radius: 50%;
-  background: var(--accent); color: #fff;
-  font-size: 12px; font-weight: 700;
-  display: flex; align-items: center; justify-content: center;
-}
-.hb-user-name { font-size: 12px; font-weight: 700; color: var(--sb-ink); }
-.hb-user-email { font-size: 10px; color: var(--sb-ink2); }
-
-/* CENTRÁLNÍ MIKROFON */
-.central-mic-wrap {
-  padding: 12px 16px 8px;
-}
-.central-mic-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 14px 16px;
-  display: flex; align-items: center; gap: 12px;
-  cursor: pointer;
-  transition: all 0.15s;
-  position: relative;
-  overflow: hidden;
-}
-.central-mic-card:hover {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--accent-soft);
-}
-.central-mic-card.recording {
-  border-color: var(--red);
-  box-shadow: 0 0 0 3px rgba(239,68,68,0.1);
-  background: rgba(239,68,68,0.02);
-}
-.central-mic-btn {
-  width: 44px; height: 44px; border-radius: 50%;
-  background: var(--accent); color: #fff;
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0; transition: all 0.15s;
-  box-shadow: 0 2px 8px rgba(37,99,235,0.3);
-}
-.central-mic-card.recording .central-mic-btn {
-  background: var(--red);
-  box-shadow: 0 2px 8px rgba(239,68,68,0.4);
-  animation: micPulse 1.5s ease infinite;
-}
-@keyframes micPulse {
-  0%,100% { box-shadow: 0 2px 8px rgba(239,68,68,0.4); }
-  50% { box-shadow: 0 2px 20px rgba(239,68,68,0.6), 0 0 0 8px rgba(239,68,68,0.1); }
-}
-.central-mic-text { flex: 1; }
-.central-mic-label { font-size: 13px; font-weight: 600; color: var(--ink); }
-.central-mic-sub { font-size: 11px; color: var(--ink3); margin-top: 2px; }
-.central-mic-interim {
-  font-size: 12px; color: var(--accent); font-style: italic;
-  margin-top: 3px; min-height: 16px;
+/* DASHBOARD LAYOUT */
+.dash-content {
+  padding:12px 16px;
+  padding-bottom:80px; /* prostor pro bottom bar */
+  max-width:700px;
+  margin:0 auto;
 }
 
-/* DOCK — rychlé odkazy */
-.links-dock {
-  padding: 0 16px 8px;
+/* SEKCE NADPISY */
+.dash-section { margin-bottom:16px; }
+.dash-section-hd {
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:8px;
 }
-.links-dock-inner {
-  display: flex; gap: 6px; overflow-x: auto;
-  padding-bottom: 4px; scrollbar-width: none;
-}
-.links-dock-inner::-webkit-scrollbar { display: none; }
-.dock-chip {
-  display: flex; align-items: center; gap: 7px;
-  padding: 7px 12px; background: var(--surface);
-  border: 1px solid var(--border); border-radius: 10px;
-  cursor: pointer; text-decoration: none;
-  white-space: nowrap; transition: all 0.12s;
-  flex-shrink: 0;
-}
-.dock-chip:hover {
-  border-color: var(--accent);
-  background: var(--accent-soft);
-  transform: translateY(-1px);
-}
-.dock-chip-icon {
-  width: 24px; height: 24px; border-radius: 6px;
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
-}
-.dock-chip-name { font-size: 12px; font-weight: 600; color: var(--ink); }
-.dock-add-btn {
-  display: flex; align-items: center; gap: 5px;
-  padding: 7px 12px; background: none;
-  border: 1px dashed var(--border); border-radius: 10px;
-  cursor: pointer; font-size: 12px; color: var(--ink3);
-  font-family: var(--font); white-space: nowrap; flex-shrink: 0;
-  transition: all 0.12s;
-}
-.dock-add-btn:hover { border-color: var(--accent); color: var(--accent); }
+.dash-section-title { font-size:11px; font-weight:700; color:var(--ink3); text-transform:uppercase; letter-spacing:0.07em; }
+.dash-section-link { font-size:11px; color:var(--accent); font-weight:600; cursor:pointer; background:none; border:none; font-family:var(--font); padding:0; }
 
-/* MYŠLENKY sekce */
-.thoughts-section { padding: 0 16px 12px; }
-.thoughts-header {
-  display: flex; align-items: center;
-  justify-content: space-between; margin-bottom: 8px;
+/* QUICK LINKS DOCK */
+.ql-dock { display:flex; gap:8px; overflow-x:auto; padding-bottom:4px; scrollbar-width:none; -webkit-overflow-scrolling:touch; }
+.ql-dock::-webkit-scrollbar { display:none; }
+.ql-chip {
+  display:flex; flex-direction:column; align-items:center; gap:4px;
+  padding:8px 10px; background:var(--surface);
+  border:1px solid var(--border); border-radius:12px;
+  cursor:pointer; text-decoration:none;
+  flex-shrink:0; min-width:60px;
+  transition:all 0.12s;
 }
-.thoughts-title { font-size: 12px; font-weight: 700; color: var(--ink3); text-transform: uppercase; letter-spacing: 0.06em; }
-.thoughts-input-row { display: flex; gap: 6px; margin-bottom: 8px; }
-.thoughts-input {
-  flex: 1; font-size: 13px; padding: 9px 12px;
-  border: 1px solid var(--border); border-radius: 10px;
-  background: var(--surface); color: var(--ink);
-  font-family: var(--font); outline: none; transition: all 0.12s;
-}
-.thoughts-input:focus {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--accent-soft);
-}
-.thoughts-input::placeholder { color: var(--ink3); font-style: italic; }
-.thoughts-save-btn {
-  padding: 9px 14px; background: var(--surface2);
-  border: 1px solid var(--border); border-radius: 10px;
-  cursor: pointer; font-size: 12px; font-weight: 700;
-  color: var(--ink2); font-family: var(--font);
-  transition: all 0.12s;
-}
-.thoughts-save-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
-.thought-item {
-  display: flex; align-items: flex-start; gap: 8px;
-  padding: 8px 10px; background: var(--surface);
-  border: 1px solid var(--border); border-radius: 8px;
-  margin-bottom: 4px; transition: all 0.1s;
-}
-.thought-item:hover { border-color: var(--border2); }
-.thought-dot {
-  width: 6px; height: 6px; border-radius: 50%;
-  background: var(--accent); flex-shrink: 0; margin-top: 5px;
-}
-.thought-text { flex: 1; font-size: 12px; color: var(--ink); line-height: 1.4; }
-.thought-del {
-  background: none; border: none; cursor: pointer;
-  color: var(--ink3); font-size: 11px; padding: 2px 4px;
-  border-radius: 4px; opacity: 0; transition: all 0.12s;
-}
-.thought-item:hover .thought-del { opacity: 1; }
-.thought-del:hover { background: var(--red-soft); color: var(--red); }
-.thought-time { font-size: 10px; color: var(--ink3); white-space: nowrap; }
+.ql-chip:hover { border-color:var(--accent); background:var(--accent-soft); transform:translateY(-1px); }
+.ql-chip:active { transform:translateY(0); }
+.ql-icon { width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.ql-name { font-size:10px; font-weight:600; color:var(--ink2); white-space:nowrap; max-width:60px; overflow:hidden; text-overflow:ellipsis; }
+.ql-add { border-style:dashed; color:var(--ink3); }
+.ql-add:hover { color:var(--accent); border-color:var(--accent); background:var(--accent-soft); }
 
-/* ÚKOLY sekce v novém layoutu */
-.tasks-section { padding: 0 16px 12px; }
-.section-hd {
-  display: flex; align-items: center;
-  justify-content: space-between; margin-bottom: 8px;
+/* ÚKOLY ACCORDION */
+.task-accordion { background:var(--surface); border:1px solid var(--border); border-radius:14px; overflow:hidden; }
+.task-group-row {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:12px 14px; cursor:pointer;
+  border-bottom:1px solid var(--border);
+  transition:background 0.1s; user-select:none;
 }
-.section-title { font-size: 12px; font-weight: 700; color: var(--ink3); text-transform: uppercase; letter-spacing: 0.06em; }
+.task-group-row:last-child { border-bottom:none; }
+.task-group-row:hover { background:var(--surface2); }
+.task-group-row.open { background:var(--surface2); }
+.tgr-left { display:flex; align-items:center; gap:8px; }
+.tgr-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+.tgr-label { font-size:14px; font-weight:500; color:var(--ink); }
+.tgr-right { display:flex; align-items:center; gap:8px; }
+.tgr-count { font-size:14px; font-weight:700; color:var(--ink2); }
+.tgr-arrow { font-size:10px; color:var(--ink3); transition:transform 0.2s; }
+.tgr-arrow.open { transform:rotate(90deg); }
 
-/* DNEŠNÍ VÝUKA placeholder */
-.dnes-vyuka-wrap { padding: 0 16px 8px; }
-.dnes-vyuka-chips { display: flex; gap: 6px; flex-wrap: wrap; }
-.dnes-chip {
-  padding: 5px 12px; border-radius: 20px;
-  font-size: 11px; font-weight: 700;
-  border: 1px solid var(--border);
-  background: var(--surface); color: var(--ink2);
-  cursor: pointer; transition: all 0.12s;
+/* Rozbalené úkoly */
+.task-group-body { display:none; padding:4px 0; border-top:1px solid var(--border); background:var(--surface); }
+.task-group-body.open { display:block; }
+.titem2 {
+  display:flex; align-items:center; gap:8px;
+  padding:9px 14px; transition:background 0.1s;
 }
-.dnes-chip:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+.titem2:hover { background:var(--surface2); }
+.titem2.done .ttxt2 { text-decoration:line-through; color:var(--ink3); opacity:0.6; }
+.tck2 { width:18px; height:18px; border-radius:5px; border:2px solid var(--border2); cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:all 0.12s; background:#fff; }
+.tck2:hover { border-color:var(--accent); }
+.tck2.checked { background:var(--green); border-color:var(--green); }
+.tck2.checked::after { content:'✓'; color:#fff; font-size:11px; font-weight:800; }
+.ttxt2 { flex:1; font-size:13px; color:var(--ink); min-width:0; }
+.t-star2 { font-size:13px; cursor:pointer; opacity:0; transition:opacity 0.12s; padding:0 2px; background:none; border:none; line-height:1; }
+.titem2:hover .t-star2 { opacity:1; }
+.t-star2.on { opacity:1; }
+.t-more2 { display:flex; align-items:center; gap:4px; opacity:0; transition:opacity 0.12s; }
+.titem2:hover .t-more2 { opacity:1; }
+.t-btn2 { background:none; border:none; cursor:pointer; font-size:11px; color:var(--ink3); padding:3px 5px; border-radius:5px; transition:all 0.1s; }
+.t-btn2:hover { background:var(--surface3); color:var(--ink); }
 
-/* PAGE titles v hamburgeru */
-.page-hdr { padding: 0 0 16px; }
+/* Přidat úkol řádek */
+.task-add-row { display:flex; gap:6px; align-items:center; padding:10px 14px; border-top:1px solid var(--border); }
+.task-add-input { flex:1; border:none; outline:none; font-size:13px; font-family:var(--font); color:var(--ink); background:transparent; }
+.task-add-input::placeholder { color:var(--ink3); }
+.task-date-chip { font-size:11px; color:var(--ink3); padding:4px 8px; border:1px solid var(--border); border-radius:6px; cursor:pointer; background:none; white-space:nowrap; transition:all 0.12s; }
+.task-date-chip:hover { border-color:var(--accent); color:var(--accent); }
+.task-add-btn2 { width:28px; height:28px; border-radius:7px; background:var(--accent); color:#fff; border:none; cursor:pointer; font-size:18px; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:all 0.12s; }
+.task-add-btn2:hover { background:var(--accent-dark, #1d4ed8); }
 
-/* Mobile overrides */
-@media (max-width: 600px) {
-  .central-mic-card { padding: 12px 14px; }
-  .central-mic-btn { width: 40px; height: 40px; }
+/* MYŠLENKY */
+.thought-list { display:flex; flex-direction:column; gap:1px; }
+.thought-row {
+  display:flex; align-items:flex-start; gap:8px;
+  padding:8px 0; border-bottom:1px solid var(--border);
+}
+.thought-row:last-child { border-bottom:none; }
+.thought-bullet { color:var(--accent); font-size:13px; margin-top:1px; flex-shrink:0; }
+.thought-txt { font-size:13px; color:var(--ink); line-height:1.4; flex:1; }
+.thought-capture-row { display:flex; gap:6px; margin-top:8px; }
+.thought-capture-input {
+  flex:1; border:1px solid var(--border); border-radius:10px;
+  padding:9px 12px; font-size:13px; font-family:var(--font);
+  color:var(--ink); background:var(--surface2); outline:none;
+  transition:all 0.12s;
+}
+.thought-capture-input:focus { border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); background:#fff; }
+.thought-capture-input::placeholder { color:var(--ink3); font-style:italic; }
+.thought-capture-btn { padding:9px 14px; background:var(--accent); color:#fff; border:none; border-radius:10px; cursor:pointer; font-size:12px; font-weight:700; font-family:var(--font); transition:all 0.12s; white-space:nowrap; }
+.thought-capture-btn:hover { background:var(--accent-dark, #1d4ed8); }
+
+/* BOTTOM BAR — STICKY MIC */
+.bottom-bar {
+  position:fixed; bottom:0; left:0; right:0; z-index:200;
+  display:flex; align-items:center; justify-content:center;
+  padding:0 20px 20px;
+  background:linear-gradient(transparent, var(--surface) 40%);
+  pointer-events:none;
+}
+.bottom-bar-mic {
+  width:56px; height:56px; border-radius:50%;
+  background:var(--accent);
+  color:#fff;
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; border:none;
+  box-shadow:0 4px 16px rgba(37,99,235,0.35), 0 0 0 4px rgba(37,99,235,0.08);
+  transition:all 0.15s;
+  pointer-events:all;
+  position:relative;
+}
+.bottom-bar-mic:hover { background:var(--accent-dark,#1d4ed8); transform:scale(1.05); }
+.bottom-bar-mic:active { transform:scale(0.97); }
+.bottom-bar-mic.recording {
+  background:var(--red);
+  box-shadow:0 4px 16px rgba(239,68,68,0.4), 0 0 0 4px rgba(239,68,68,0.1);
+  animation:micPulse2 1.4s ease infinite;
+}
+@keyframes micPulse2 {
+  0%,100% { box-shadow:0 4px 16px rgba(239,68,68,0.4), 0 0 0 4px rgba(239,68,68,0.1); }
+  50% { box-shadow:0 4px 24px rgba(239,68,68,0.6), 0 0 0 10px rgba(239,68,68,0.06); }
 }
 
+/* MIC OVERLAY KARTA */
+.mic-overlay-card {
+  display:none; position:fixed;
+  bottom:90px; left:50%; transform:translateX(-50%);
+  z-index:201; width:calc(100% - 32px); max-width:420px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:16px;
+  box-shadow:var(--shadow-lg);
+  padding:16px;
+}
+.mic-overlay-card.open { display:block; animation:slideUp 0.2s ease; }
+@keyframes slideUp { from { opacity:0; transform:translateX(-50%) translateY(10px); } to { opacity:1; transform:translateX(-50%) translateY(0); } }
+.mic-overlay-status { display:flex; align-items:center; gap:8px; margin-bottom:10px; }
+.mic-status-dot { width:8px; height:8px; border-radius:50%; background:var(--red); animation:blink 1s ease infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+.mic-status-label { font-size:11px; font-weight:700; color:var(--ink3); text-transform:uppercase; letter-spacing:0.06em; }
+.mic-transcript { font-size:14px; color:var(--ink); min-height:40px; line-height:1.5; font-style:italic; }
+.mic-actions { display:flex; gap:8px; margin-top:12px; }
+.mic-cancel { flex:1; padding:10px; background:var(--surface2); border:1px solid var(--border); border-radius:10px; cursor:pointer; font-size:13px; font-weight:600; color:var(--ink2); font-family:var(--font); }
+.mic-save { flex:2; padding:10px; background:var(--accent); color:#fff; border:none; border-radius:10px; cursor:pointer; font-size:13px; font-weight:700; font-family:var(--font); }
+
+/* DESKTOP GRID */
+@media (min-width:700px) {
+  .dash-content { padding:20px 24px 40px; max-width:900px; }
+  .dash-desktop-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .bottom-bar { display:none; }
+  .desktop-quick-capture { display:flex; justify-content:flex-end; margin-bottom:16px; }
+  .desktop-mic-btn {
+    display:flex; align-items:center; gap:8px;
+    padding:10px 18px; background:var(--accent);
+    color:#fff; border:none; border-radius:12px;
+    cursor:pointer; font-size:13px; font-weight:700;
+    font-family:var(--font);
+    box-shadow:0 2px 8px rgba(37,99,235,0.25);
+    transition:all 0.12s;
+  }
+  .desktop-mic-btn:hover { background:var(--accent-dark,#1d4ed8); transform:translateY(-1px); }
+  .desktop-mic-btn.recording { background:var(--red); }
+}
+@media (max-width:699px) {
+  .desktop-quick-capture { display:none; }
+  .dash-desktop-grid { display:block; }
+  .dash-desktop-grid .dash-section:first-child { margin-bottom:16px; }
+}
+
+/* PAGE PADDING */
+.page { padding:0; }
+.page.active { display:flex; flex-direction:column; min-height:calc(100vh - 52px); }
+#page-materials.active, #page-evidence.active, #page-dohledy.active, #page-settings.active {
+  padding:16px 16px 60px;
+}
 </style>
 <!-- Firebase SDKs -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -919,144 +898,112 @@ body { font-family:var(--font); background:var(--bg); color:var(--ink); min-heig
   <!-- MAIN -->
   <div class="main">
     <div class="topbar">
-      <!-- Hamburger -->
-      <button class="tb-hamburger" id="tbHamburger" aria-label="Menu">
-        <span></span><span></span><span></span>
-      </button>
-
-      <!-- Logo + název -->
-      <div class="tb-logo-area">
-        <div style="width:28px;height:28px;border-radius:7px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff">ZŠ</div>
-        <span class="tb-school-name" id="navSchoolNameTop">ZŠ Ohradní 49</span>
-      </div>
-
-      <!-- Akce vpravo -->
-      <div class="tb-actions">
-        <button class="tb-icon-btn" id="tbCmdK" title="Cmd+K">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-        </button>
-        <div class="tb-avatar" id="tbAvatar">M</div>
-      </div>
-    </div>
+  <button class="tb-hamburger" id="tbHamburger" aria-label="Otevřít menu">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="tb-title-area">
+    <div class="tb-school-badge" id="navBadge">ZŠ</div>
+    <span class="tb-school-name" id="navSchoolNameTop">ZŠ Ohradní 49</span>
+  </div>
+  <div class="tb-right-actions">
+    <button class="tb-icon-btn" id="tbCmdKBtn" title="Rychlé hledání ⌘K">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    </button>
+    <button class="tb-avatar-btn" id="tbAvatar">M</button>
+  </div>
+</div>
 
 
 
 <!-- DASHBOARD -->
 <div class="page active" id="page-dashboard">
+<div class="dash-content">
 
-  <!-- AI BANNER -->
-  <div class="ai-banner" id="aiBanner" style="margin:0 16px 8px">
-    <div class="ai-banner-icon">⚡</div>
-    <div id="aiBannerText">Načítám přehled dne...</div>
-  </div>
-
-  <!-- CENTRÁLNÍ MIKROFON -->
-  <div class="central-mic-wrap">
-    <div class="central-mic-card" id="centralMicCard">
-      <div class="central-mic-btn" id="centralMicBtn">
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
-          <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
-          <line x1="12" y1="19" x2="12" y2="23"/>
-          <line x1="8" y1="23" x2="16" y2="23"/>
-        </svg>
-      </div>
-      <div class="central-mic-text">
-        <div class="central-mic-label" id="centralMicLabel">Zachyť myšlenku hlasem</div>
-        <div class="central-mic-interim" id="centralMicInterim"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- RYCHLÉ ODKAZY — dock -->
-  <div class="links-dock">
-    <div class="links-dock-inner" id="linksGrid"></div>
-  </div>
-
-  <!-- MYŠLENKY -->
-  <div class="thoughts-section">
-    <div class="thoughts-header">
-      <div class="thoughts-title">Myšlenky</div>
-      <span style="font-size:10px;color:var(--ink3)" id="thoughtsCount">0</span>
-    </div>
-    <div class="thoughts-input-row">
-      <input class="thoughts-input" id="thoughtInput" placeholder="Napadlo mě…" maxlength="300">
-      <button class="thoughts-save-btn" id="thoughtSaveBtn">Uložit</button>
-    </div>
-    <div id="thoughtsList"></div>
-  </div>
-
-  <!-- DNEŠNÍ VÝUKA — připraveno pro budoucí widget -->
-  <div class="dnes-vyuka-wrap" id="dnesVyukaWrap" style="display:none">
-    <div class="thoughts-header" style="margin-bottom:6px">
-      <div class="thoughts-title">Dnešní výuka</div>
-    </div>
-    <div class="dnes-vyuka-chips" id="dnesVyukaChips"></div>
+  <!-- QUICK CAPTURE na desktopu -->
+  <div class="desktop-quick-capture">
+    <button class="desktop-mic-btn" id="desktopMicBtn">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+      Zachytit myšlenku
+    </button>
   </div>
 
   <!-- ÚKOLY -->
-  <div class="tasks-section">
-    <div class="section-hd">
-      <div class="section-title">Úkoly</div>
-      <label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--ink3);cursor:pointer">
-        <input type="checkbox" id="taskShowDone" style="width:12px;height:12px"> Splněné
-      </label>
+  <div class="dash-section">
+    <div class="dash-section-hd">
+      <div class="dash-section-title">Úkoly</div>
+      <button class="dash-section-link" id="tasksAllBtn">Vše ›</button>
     </div>
-
-    <!-- Formulář -->
-    <div style="display:flex;gap:6px;align-items:center;margin-bottom:10px">
-      <input class="ti" id="taskInput" placeholder="Nový úkol — Enter pro přidání…" maxlength="200" style="flex:1">
-      <button id="taskMicBtn" title="Nadiktovat úkol" style="width:34px;height:34px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--ink2);transition:all 0.12s;flex-shrink:0">
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
-      </button>
-      <div class="quick-add-date" id="taskDateDisplay" title="Klikni pro změnu data">📅 Dnes</div>
+    <div class="task-accordion" id="taskAccordion">
+      <!-- renderováno JS -->
+    </div>
+    <div class="task-add-row" style="background:var(--surface);border:1px solid var(--border);border-top:none;border-radius:0 0 14px 14px;">
+      <input class="task-add-input" id="taskInput" placeholder="+ Přidat úkol…" maxlength="200">
+      <div class="task-date-chip" id="taskDateDisplay">📅 Dnes</div>
       <input type="date" id="taskDate" style="display:none">
       <select id="taskPriority" style="display:none"><option value="med">m</option></select>
-      <button class="tadd" id="taskAddBtn">+</button>
+      <button class="task-add-btn2" id="taskAddBtn">+</button>
     </div>
-
-    <div id="taskGroups"></div>
   </div>
 
-  <!-- POZNÁMKY — kompaktní, schované -->
-  <div class="tasks-section" style="border-top:1px solid var(--border);padding-top:12px;margin-top:4px">
-    <div class="section-hd">
-      <div class="section-title">Poznámky</div>
-      <div class="nsaved" id="notesSaved"></div>
+  <!-- DESKTOP GRID: rychlé odkazy + myšlenky -->
+  <div class="dash-desktop-grid">
+
+    <!-- RYCHLÉ ODKAZY -->
+    <div class="dash-section">
+      <div class="dash-section-hd">
+        <div class="dash-section-title">Rychlé odkazy</div>
+        <button class="dash-section-link" id="addLinkBtn">+ Přidat</button>
+      </div>
+      <div class="ql-dock" id="linksGrid"></div>
     </div>
-    <div style="display:flex;gap:6px;margin-bottom:8px">
-      <textarea class="quick-note-input" id="noteDraft" placeholder="Rychlá poznámka — Ctrl+Enter pro uložení…" style="flex:1;height:36px"></textarea>
-      <div style="display:flex;flex-direction:column;gap:4px">
-        <button class="btn" id="saveNoteBtn" style="padding:6px 10px;font-size:12px">Uložit</button>
-        <button id="voiceNoteBtn" title="Hlasová poznámka" style="width:100%;padding:6px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--ink2)">
-          <svg id="voiceMicIcon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
-        </button>
+
+    <!-- MYŠLENKY -->
+    <div class="dash-section">
+      <div class="dash-section-hd">
+        <div class="dash-section-title">Myšlenky</div>
+        <button class="dash-section-link" id="thoughtsAllBtn">Vše ›</button>
+      </div>
+      <div class="thought-list" id="thoughtsList"></div>
+      <div class="thought-capture-row">
+        <input class="thought-capture-input" id="thoughtInput" placeholder="Napadlo mě…" maxlength="300">
+        <button class="thought-capture-btn" id="thoughtSaveBtn">Uložit</button>
       </div>
     </div>
-    <div style="display:flex;gap:6px;margin-bottom:6px">
-      <input class="search-input" id="notesSearch" placeholder="Hledat…" style="flex:1;font-size:12px;padding:6px 10px">
-      <select class="field" id="notesDateFilter" style="font-size:12px;padding:6px 9px">
-        <option value="all">Vše</option><option value="today">Dnes</option>
-        <option value="yesterday">Včera</option><option value="week">Týden</option>
-        <option value="month">Měsíc</option>
-      </select>
-    </div>
-    <div style="font-size:10px;color:var(--ink3);margin-bottom:4px" id="notesFilterInfo"></div>
-    <ul class="nlist" id="notesList" style="max-height:200px"></ul>
+
   </div>
 
-  <!-- SKRYTÉ prvky zachovávající kompatibilitu -->
-  <div style="display:none">
-    <span id="dayVal"></span><span id="dateVal"></span>
-    <div id="notesCount">0</div>
-    <div id="doneCount">0</div>
-    <div id="taskBadge">0</div>
-    <div id="kpiRing"></div>
-    <div id="voiceStatus"><span id="voiceStatusText"></span></div>
+  <!-- DNEŠNÍ VÝUKA — připraveno, skryto -->
+  <div id="dnesVyukaWrap" style="display:none">
+    <div class="dash-section-hd" style="margin-top:16px;margin-bottom:6px">
+      <div class="dash-section-title">Dnešní výuka</div>
+    </div>
+    <div id="dnesVyukaChips" style="display:flex;gap:6px;flex-wrap:wrap"></div>
   </div>
 
 </div>
-<!-- MATERIÁLY -->
+
+<!-- SKRYTÉ kompatibilní prvky -->
+<div style="display:none">
+  <span id="dayVal"></span><span id="dateVal"></span>
+  <div id="notesCount">0</div><div id="doneCount">0</div>
+  <div id="taskBadge">0</div><div id="kpiRing"></div>
+  <div id="voiceStatus"><span id="voiceStatusText"></span></div>
+  <div id="taskGroups"></div>
+  <div id="taskShowDone" style="display:none"></div>
+  <!-- Poznámky — skryté, ale funkční pro Firebase sync -->
+  <div id="notesSaved"></div>
+  <textarea id="noteDraft" style="display:none"></textarea>
+  <button id="saveNoteBtn" style="display:none"></button>
+  <button id="voiceNoteBtn" style="display:none"><svg id="voiceMicIcon" viewBox="0 0 24 24"></svg></button>
+  <input id="notesSearch" style="display:none">
+  <select id="notesDateFilter" style="display:none"><option value="all">Vše</option></select>
+  <div id="notesFilterInfo"></div>
+  <ul id="notesList" style="display:none"></ul>
+  <div id="aiBanner" style="display:none"><div id="aiBannerText"></div></div>
+  <button id="taskMicBtn" style="display:none"></button>
+</div>
+
+</div><!-- MATERIÁLY -->
 <div class="page" id="page-materials">
 
   <!-- VÝCHOZÍ POHLED: karty ročníků -->
@@ -1438,7 +1385,33 @@ body { font-family:var(--font); background:var(--bg); color:var(--ink); min-heig
 </div>
 
 
+
+<!-- BOTTOM BAR -->
+<div class="bottom-bar" id="bottomBarWrap">
+  <button class="bottom-bar-mic" id="bottomMicBtn" title="Zachytit myšlenku">
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+      <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+      <line x1="12" y1="19" x2="12" y2="23"/>
+      <line x1="8" y1="23" x2="16" y2="23"/>
+    </svg>
+  </button>
+</div>
+<!-- MIC OVERLAY -->
+<div class="mic-overlay-card" id="micOverlayCard">
+  <div class="mic-overlay-status">
+    <div class="mic-status-dot" id="micStatusDot"></div>
+    <div class="mic-status-label" id="micStatusLabel">Poslouchám...</div>
+  </div>
+  <div class="mic-transcript" id="micTranscript">Mluvte...</div>
+  <div class="mic-actions">
+    <button class="mic-cancel" id="micCancelBtn">Zrušit</button>
+    <button class="mic-save" id="micSaveBtn">✓ Uložit jako myšlenku</button>
+  </div>
+</div>
+
 <script>
+
 
 
 
@@ -1998,33 +1971,8 @@ document.getElementById('settingLogoUpload').addEventListener('change', function
 
 // ===== Links =====
 function saveLinks() { saveJSON('zs_links_v4', links); }
-function renderLinks() {
-  var grid = document.getElementById('linksGrid');
-  if (!grid) return;
-  var lnks = (links && links.length) ? links : readJSON('zs_links_v4', defaultLinks);
-  var lsLinks = readJSON('zs_links_v4', []);
-  lnks = lnks.map(function(lnk, i) {
-    if ((!lnk.logoData || lnk.logoData.length < 50) && lsLinks[i] && lsLinks[i].logoData && lsLinks[i].logoData.length > 50) {
-      return Object.assign({}, lnk, {logoData: lsLinks[i].logoData});
-    }
-    return lnk;
-  });
-  var clsBg = {'ia':'#DBEAFE','it':'#EDE9FE','ip':'#FCE7F3','idr':'#D1FAE5','im':'#FEF9C3'};
-  if (!lnks.length) {
-    grid.innerHTML = '<button class="dock-add-btn" onclick="addQuickLink()">+ Přidat odkaz</button>';
-    return;
-  }
-  grid.innerHTML = lnks.map(function(lnk) {
-    var bg = lnk.color || clsBg[lnk.cls] || '#EEF0F6';
-    var iconHtml = (lnk.logoData && lnk.logoData.length > 50)
-      ? '<img src="' + lnk.logoData + '" style="width:20px;height:20px;border-radius:4px;object-fit:contain;display:block">'
-      : '<span style="font-size:15px;line-height:1">' + (lnk.icon || '🔗') + '</span>';
-    return '<a class="dock-chip" href="' + esc(lnk.url||'#') + '" target="_blank" rel="noopener">'
-      + '<div class="dock-chip-icon" style="background:' + bg + '">' + iconHtml + '</div>'
-      + '<span class="dock-chip-name">' + esc(lnk.name) + '</span>'
-      + '</a>';
-  }).join('') + '<button class="dock-add-btn" onclick="addQuickLink()">+ Přidat</button>';
-}
+// renderLinks moved to new JS
+
 function addQuickLink() {
   var name = prompt('Název odkazu:'); if (!name) return;
   var url  = prompt('URL odkazu (nebo nech prázdné pokud přidáš více adres):') || '';
@@ -3995,259 +3943,9 @@ function renderAllOverview(){
 
 
 
-// ═══════════════════════════════════════════════
-// HAMBURGER MENU
-// ═══════════════════════════════════════════════
-(function() {
-  function initHamburger() {
-    var btn = document.getElementById('tbHamburger');
-    var overlay = document.getElementById('hbOverlay');
-    var backdrop = document.getElementById('hbBackdrop');
-    if (!btn || !overlay) return;
+// Hamburger moved to new JS
 
-    function openHb() {
-      overlay.classList.add('open');
-      btn.classList.add('open');
-    }
-    function closeHb() {
-      overlay.classList.remove('open');
-      btn.classList.remove('open');
-    }
-
-    btn.addEventListener('click', function() {
-      overlay.classList.contains('open') ? closeHb() : openHb();
-    });
-    if (backdrop) backdrop.addEventListener('click', closeHb);
-
-    // Navigace přes hamburger
-    overlay.querySelectorAll('[data-page]').forEach(function(item) {
-      item.addEventListener('click', function() {
-        var pg = item.dataset.page;
-        // Použij existující sidebar routing
-        var sbItem = document.querySelector('.sb-item[data-page="' + pg + '"]');
-        if (sbItem) {
-          sbItem.click();
-        } else {
-          // Fallback - přepni stránky manuálně
-          document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
-          var target = document.getElementById('page-' + pg);
-          if (target) target.classList.add('active');
-        }
-        // Aktualizuj aktivní stav v hamburgeru
-        overlay.querySelectorAll('.hb-item').forEach(function(i) { i.classList.remove('on'); });
-        item.classList.add('on');
-
-        // Aktualizuj title
-        var titles = {dashboard:'Přehled',materials:'Materiály',evidence:'Evidence',dohledy:'Dohledy',settings:'Nastavení'};
-        var titleEl = document.getElementById('tbTitle');
-        if (titleEl) titleEl.textContent = titles[pg] || pg;
-
-        closeHb();
-      });
-    });
-
-    // Zápisky v hamburgeru
-    var hbZap = document.getElementById('hbZapisky');
-    if (hbZap) hbZap.addEventListener('click', function() {
-      closeHb();
-      if (window.openZapisky) window.openZapisky();
-    });
-
-    // Cmd+K tlačítko v topbaru
-    var cmdK = document.getElementById('tbCmdK');
-    if (cmdK) cmdK.addEventListener('click', function() {
-      var pal = document.getElementById('cmdPalette');
-      if (pal) { pal.style.display = 'flex'; var inp = document.getElementById('cmdInput'); if(inp) inp.focus(); }
-    });
-
-    // Sync avatar a jméno
-    function syncUserUI(user) {
-      if (!user) return;
-      var initials = (user.displayName || 'M').split(' ').map(function(w){return w[0];}).join('').substring(0,2).toUpperCase();
-      var els = ['tbAvatar','hbAvatar'];
-      els.forEach(function(id) {
-        var el = document.getElementById(id);
-        if (!el) return;
-        if (user.photoURL) {
-          el.innerHTML = '<img src="' + user.photoURL + '" style="width:100%;height:100%;border-radius:50%;object-fit:cover">';
-        } else {
-          el.textContent = initials;
-        }
-      });
-      var nameEl = document.getElementById('hbUserName');
-      if (nameEl) nameEl.textContent = user.displayName || '';
-      var emailEl = document.getElementById('hbUserEmail');
-      if (emailEl) emailEl.textContent = user.email || '';
-    }
-
-    // Čekej na Firebase auth
-    var authCheck = setInterval(function() {
-      if (window.auth) {
-        clearInterval(authCheck);
-        window.auth.onAuthStateChanged(syncUserUI);
-      }
-    }, 200);
-  }
-
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initHamburger);
-  else initHamburger();
-})();
-
-// ═══════════════════════════════════════════════
-// CENTRÁLNÍ MIKROFON
-// ═══════════════════════════════════════════════
-(function() {
-  var LS_THOUGHTS = 'zs_thoughts_v1';
-
-  function initCentralMic() {
-    var card = document.getElementById('centralMicCard');
-    var label = document.getElementById('centralMicLabel');
-    var interim = document.getElementById('centralMicInterim');
-    if (!card) return;
-
-    var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      card.style.opacity = '0.5';
-      card.style.cursor = 'not-allowed';
-      if (label) label.textContent = 'Hlasový vstup není dostupný';
-      return;
-    }
-
-    var recognition = new SpeechRecognition();
-    recognition.lang = 'cs-CZ';
-    recognition.continuous = false;
-    recognition.interimResults = true;
-    var isListening = false;
-    var finalText = '';
-
-    recognition.onresult = function(e) {
-      var int = '';
-      for (var i = e.resultIndex; i < e.results.length; i++) {
-        if (e.results[i].isFinal) finalText += e.results[i][0].transcript;
-        else int += e.results[i][0].transcript;
-      }
-      if (interim) interim.textContent = finalText + int;
-    };
-
-    recognition.onend = function() {
-      if (finalText.trim()) {
-        // Ulož jako myšlenku
-        saveThought(finalText.trim());
-        finalText = '';
-        if (interim) interim.textContent = '';
-        showToast('💡 Myšlenka uložena');
-      }
-      stopMic();
-    };
-
-    recognition.onerror = function(e) {
-      stopMic();
-      if (e.error === 'not-allowed') showToast('Povolte přístup k mikrofonu');
-    };
-
-    function startMic() {
-      finalText = '';
-      isListening = true;
-      recognition.start();
-      card.classList.add('recording');
-      if (label) label.textContent = 'Poslouchám — mluvte…';
-      if (interim) interim.textContent = '';
-    }
-
-    function stopMic() {
-      isListening = false;
-      try { recognition.stop(); } catch(e){}
-      card.classList.remove('recording');
-      if (label) label.textContent = 'Zachyť myšlenku hlasem';
-    }
-
-    card.addEventListener('click', function() {
-      isListening ? stopMic() : startMic();
-    });
-  }
-
-  // ═══════════════════════════════════
-  // MYŠLENKY
-  // ═══════════════════════════════════
-  function saveThought(text) {
-    var thoughts = JSON.parse(localStorage.getItem(LS_THOUGHTS) || '[]');
-    thoughts.unshift({ text: text, date: new Date().toISOString() });
-    localStorage.setItem(LS_THOUGHTS, JSON.stringify(thoughts));
-    renderThoughts();
-  }
-
-  function renderThoughts() {
-    var list = document.getElementById('thoughtsList');
-    var countEl = document.getElementById('thoughtsCount');
-    if (!list) return;
-    var thoughts = JSON.parse(localStorage.getItem(LS_THOUGHTS) || '[]');
-    if (countEl) countEl.textContent = thoughts.length || '';
-
-    if (!thoughts.length) {
-      list.innerHTML = '<div style="font-size:12px;color:var(--ink3);padding:4px 0;font-style:italic">Zatím žádné myšlenky</div>';
-      return;
-    }
-
-    // Zobraz posledních 5
-    var shown = thoughts.slice(0, 5);
-    list.innerHTML = shown.map(function(t, i) {
-      var d = new Date(t.date);
-      var timeStr = d.toLocaleTimeString('cs-CZ', {hour:'2-digit', minute:'2-digit'});
-      var dateStr = d.toLocaleDateString('cs-CZ', {day:'numeric', month:'numeric'});
-      var isToday = d.toLocaleDateString('cs-CZ') === new Date().toLocaleDateString('cs-CZ');
-      return '<div class="thought-item">'
-        + '<div class="thought-dot"></div>'
-        + '<div class="thought-text">' + t.text.replace(/</g,'&lt;') + '</div>'
-        + '<div class="thought-time">' + (isToday ? timeStr : dateStr) + '</div>'
-        + '<button class="thought-del" data-thought-del="' + i + '">✕</button>'
-        + '</div>';
-    }).join('');
-
-    if (thoughts.length > 5) {
-      list.innerHTML += '<div style="font-size:11px;color:var(--ink3);text-align:center;padding:4px">+ ' + (thoughts.length - 5) + ' dalších</div>';
-    }
-
-    list.querySelectorAll('[data-thought-del]').forEach(function(btn) {
-      btn.addEventListener('click', function(e) {
-        e.stopPropagation();
-        var idx = parseInt(btn.dataset.thoughtDel);
-        var t2 = JSON.parse(localStorage.getItem(LS_THOUGHTS) || '[]');
-        t2.splice(idx, 1);
-        localStorage.setItem(LS_THOUGHTS, JSON.stringify(t2));
-        renderThoughts();
-      });
-    });
-  }
-
-  function initThoughts() {
-    var input = document.getElementById('thoughtInput');
-    var saveBtn = document.getElementById('thoughtSaveBtn');
-
-    function doSave() {
-      if (!input || !input.value.trim()) return;
-      saveThought(input.value.trim());
-      input.value = '';
-      showToast('💡 Myšlenka uložena');
-    }
-
-    if (saveBtn) saveBtn.addEventListener('click', doSave);
-    if (input) input.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter') { doSave(); e.preventDefault(); }
-    });
-
-    renderThoughts();
-  }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function() {
-      initCentralMic();
-      initThoughts();
-    });
-  } else {
-    initCentralMic();
-    initThoughts();
-  }
-})();
+// Central mic moved to new JS
 
 // ═══════════════════════════════════════════════
 // DNEŠNÍ VÝUKA — připraveno pro budoucí implementaci
@@ -4430,4 +4128,595 @@ function enableInlineTaskEdit(container) {
 
 
 
+// ═══════════════════════════════════════════════
+// HAMBURGER MENU
+// ═══════════════════════════════════════════════
+(function() {
+  function initHamburger() {
+    var hbBtn = document.getElementById('tbHamburger');
+    var overlay = document.getElementById('hbOverlay');
+    var backdrop = document.getElementById('hbBackdrop');
+    if (!hbBtn || !overlay) return;
+
+    function openHb() { overlay.classList.add('open'); hbBtn.classList.add('open'); }
+    function closeHb() { overlay.classList.remove('open'); hbBtn.classList.remove('open'); }
+
+    hbBtn.addEventListener('click', function() {
+      overlay.classList.contains('open') ? closeHb() : openHb();
+    });
+    if (backdrop) backdrop.addEventListener('click', closeHb);
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && overlay.classList.contains('open')) closeHb();
+    });
+
+    // Navigace přes hb-item[data-page]
+    overlay.querySelectorAll('[data-page]').forEach(function(item) {
+      item.addEventListener('click', function() {
+        var pg = item.dataset.page;
+        var sbItem = document.querySelector('.sb-item[data-page="' + pg + '"]');
+        if (sbItem) sbItem.click();
+        else {
+          document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
+          var target = document.getElementById('page-' + pg);
+          if (target) target.classList.add('active');
+        }
+        overlay.querySelectorAll('.hb-item').forEach(function(i) { i.classList.remove('on'); });
+        item.classList.add('on');
+        closeHb();
+      });
+    });
+
+    // Zápisky
+    var hbZap = document.getElementById('hbZapisky');
+    if (hbZap) hbZap.addEventListener('click', function() { closeHb(); if(window.openZapisky) window.openZapisky(); });
+
+    // Úkoly detail
+    var hbUkoly = document.getElementById('hbUkoly');
+    if (hbUkoly) hbUkoly.addEventListener('click', function() {
+      closeHb();
+      // Scrolluj na sekci úkolů nebo otevři detail
+      var acc = document.getElementById('taskAccordion');
+      if (acc) { acc.scrollIntoView({behavior:'smooth'}); }
+    });
+
+    // Cmd+K btn v topbaru
+    var cmdKBtn = document.getElementById('tbCmdKBtn');
+    if (cmdKBtn) cmdKBtn.addEventListener('click', function() {
+      var pal = document.getElementById('cmdPalette');
+      if (pal) { pal.style.display = 'flex'; var inp = document.getElementById('cmdInput'); if(inp) setTimeout(function(){inp.focus();},50); }
+    });
+
+    // Sync user info
+    function syncUser(user) {
+      if (!user) return;
+      var initials = (user.displayName||'M').split(' ').map(function(w){return w[0]||'';}).join('').substring(0,2).toUpperCase();
+      ['tbAvatar','hbAvatar'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        if (user.photoURL) {
+          el.innerHTML = '<img src="'+user.photoURL+'" style="width:100%;height:100%;border-radius:50%;object-fit:cover">';
+          el.style.padding = '0';
+        } else { el.textContent = initials; }
+      });
+      var nameEl = document.getElementById('hbUserName');
+      if (nameEl) nameEl.textContent = user.displayName || '';
+      var emailEl = document.getElementById('hbUserEmail');
+      if (emailEl) emailEl.textContent = user.email || '';
+    }
+    var authCheck = setInterval(function() {
+      if (window.auth) { clearInterval(authCheck); window.auth.onAuthStateChanged(syncUser); }
+    }, 100);
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initHamburger);
+  else initHamburger();
+})();
+
+// ═══════════════════════════════════════════════
+// TASK ACCORDION — kompaktní přehled úkolů
+// ═══════════════════════════════════════════════
+function renderTaskAccordion() {
+  var acc = document.getElementById('taskAccordion');
+  if (!acc) return;
+
+  var now = new Date();
+  var todayStr = now.toLocaleDateString('cs-CZ');
+
+  function getGroup(t) {
+    if (t.done) return 'done';
+    var d = t.createdAt ? new Date(t.createdAt) : now;
+    var ds = d.toLocaleDateString('cs-CZ');
+    if (d < now && ds !== todayStr) return 'late';
+    if (ds === todayStr) return 'today';
+    var weekEnd = new Date(now); weekEnd.setDate(now.getDate() + 7);
+    if (d <= weekEnd) return 'week';
+    return 'later';
+  }
+
+  var groups = {
+    late:  { label:'Po termínu', dot:'#EF4444', items:[] },
+    today: { label:'Dnes',       dot:'#2563EB', items:[] },
+    week:  { label:'Tento týden',dot:'#F59E0B', items:[] },
+    later: { label:'Později',    dot:'#9CA3AF', items:[] },
+  };
+
+  var undone = tasks.filter(function(t) { return !t.done; });
+  undone.forEach(function(t) {
+    var g = getGroup(t);
+    if (groups[g]) groups[g].items.push(t);
+  });
+
+  // AI banner update
+  var late = groups.late.items;
+  var bannerEl = document.getElementById('aiBannerText');
+  if (bannerEl && late.length) {
+    bannerEl.innerHTML = '<span style="color:var(--red);font-weight:700">Po termínu: ' +
+      late.slice(0,2).map(function(t){return '<strong>'+esc(t.text)+'</strong>';}).join(', ') +
+      (late.length > 2 ? ' + '+(late.length-2)+' dalších' : '') + '</span>';
+  }
+
+  var order = ['late','today','week','later'];
+  var html = '';
+  order.forEach(function(gkey) {
+    var g = groups[gkey];
+    var isOpen = (window._accordionOpen||{})[gkey] !== false;
+    if (gkey === 'late' || gkey === 'today') {
+      if (window._accordionOpen === undefined) isOpen = true;
+    } else {
+      if (window._accordionOpen === undefined) isOpen = false;
+    }
+
+    html += '<div class="task-group-row' + (isOpen?' open':'') + '" data-gkey="' + gkey + '">';
+    html += '<div class="tgr-left">';
+    html += '<div class="tgr-dot" style="background:' + g.dot + '"></div>';
+    html += '<div class="tgr-label">' + g.label + '</div>';
+    html += '</div>';
+    html += '<div class="tgr-right">';
+    html += '<div class="tgr-count">' + g.items.length + '</div>';
+    html += '<div class="tgr-arrow' + (isOpen?' open':'') + '">▶</div>';
+    html += '</div></div>';
+
+    html += '<div class="task-group-body' + (isOpen?' open':'') + '" data-gbody="' + gkey + '">';
+    if (!g.items.length) {
+      html += '<div style="padding:10px 14px;font-size:12px;color:var(--ink3);font-style:italic">Žádné úkoly</div>';
+    } else {
+      g.items.forEach(function(t) {
+        var idx = tasks.indexOf(t);
+        var starCls = t.star ? 'on' : '';
+        html += '<div class="titem2' + (t.done?' done':'') + '" data-i="' + idx + '">';
+        html += '<div class="tck2' + (t.done?' checked':'') + '" data-action="check" data-i="' + idx + '"></div>';
+        html += '<span class="ttxt2">' + esc(t.text) + '</span>';
+        html += '<button class="t-star2 ' + starCls + '" data-action="star" data-i="' + idx + '">' + (t.star?'⭐':'☆') + '</button>';
+        html += '<div class="t-more2">';
+        html += '<button class="t-btn2" data-action="tomorrow" data-i="' + idx + '" title="Zítra">→</button>';
+        html += '<button class="t-btn2" data-action="del" data-i="' + idx + '">✕</button>';
+        html += '</div></div>';
+      });
+    }
+    html += '</div>';
+  });
+
+  acc.innerHTML = html;
+
+  // Group toggle
+  acc.querySelectorAll('.task-group-row').forEach(function(row) {
+    row.addEventListener('click', function() {
+      var gkey = row.dataset.gkey;
+      if (!window._accordionOpen) window._accordionOpen = {};
+      var body = acc.querySelector('[data-gbody="' + gkey + '"]');
+      var arrow = row.querySelector('.tgr-arrow');
+      var isNowOpen = body.classList.toggle('open');
+      row.classList.toggle('open', isNowOpen);
+      if (arrow) arrow.classList.toggle('open', isNowOpen);
+      window._accordionOpen[gkey] = isNowOpen;
+    });
+  });
+
+  // Task actions (reuse existujícího listenerů)
+  acc.querySelectorAll('[data-action]').forEach(function(el) {
+    el.addEventListener('click', function(e) {
+      e.stopPropagation();
+      var action = el.dataset.action;
+      var i = parseInt(el.dataset.i);
+      if (isNaN(i)) return;
+      if (action === 'check') {
+        tasks[i].done = !tasks[i].done;
+        if (fbSyncEnabled && tasks[i].id) {
+          db.collection('users').doc(auth.currentUser.uid).collection('tasks').doc(tasks[i].id).update({done:tasks[i].done});
+        } else { saveJSON('zs_tasks_v3', tasks); }
+        renderTaskAccordion();
+        updateKpi();
+      } else if (action === 'star') {
+        tasks[i].star = !tasks[i].star;
+        if (fbSyncEnabled && tasks[i].id) {
+          db.collection('users').doc(auth.currentUser.uid).collection('tasks').doc(tasks[i].id).update({star:tasks[i].star});
+        } else { saveJSON('zs_tasks_v3', tasks); }
+        renderTaskAccordion();
+      } else if (action === 'tomorrow') {
+        var tom = new Date(); tom.setDate(tom.getDate()+1);
+        tasks[i].createdAt = tom.toISOString();
+        if (fbSyncEnabled && tasks[i].id) {
+          db.collection('users').doc(auth.currentUser.uid).collection('tasks').doc(tasks[i].id).update({createdAt:tasks[i].createdAt});
+        } else { saveJSON('zs_tasks_v3', tasks); }
+        renderTaskAccordion();
+        showToast('📅 Přesunuto na zítra');
+      } else if (action === 'del') {
+        var removed = tasks.splice(i, 1)[0];
+        if (fbSyncEnabled && removed && removed.id) {
+          db.collection('users').doc(auth.currentUser.uid).collection('tasks').doc(removed.id).delete();
+        } else { saveJSON('zs_tasks_v3', tasks); }
+        renderTaskAccordion();
+        showToast('Úkol smazán');
+      }
+    });
+  });
+
+  // Inline double-click edit
+  acc.querySelectorAll('.ttxt2').forEach(function(span) {
+    span.addEventListener('dblclick', function() {
+      var item = span.closest('.titem2');
+      var idx = parseInt(item.dataset.i);
+      if (isNaN(idx) || !tasks[idx]) return;
+      var oldText = tasks[idx].text;
+      var input = document.createElement('input');
+      input.value = oldText;
+      input.style.cssText = 'flex:1;border:none;outline:none;font-size:13px;font-family:var(--font);color:var(--ink);background:transparent;';
+      span.replaceWith(input);
+      input.focus(); input.select();
+      function saveEdit() {
+        var newText = input.value.trim();
+        if (newText && newText !== oldText) {
+          tasks[idx].text = newText;
+          if (fbSyncEnabled && tasks[idx].id) {
+            db.collection('users').doc(auth.currentUser.uid).collection('tasks').doc(tasks[idx].id).update({text:newText});
+          } else { saveJSON('zs_tasks_v3', tasks); }
+          showToast('✅ Úkol upraven');
+        }
+        renderTaskAccordion();
+      }
+      input.addEventListener('blur', saveEdit);
+      input.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') { saveEdit(); e.preventDefault(); }
+        if (e.key === 'Escape') { renderTaskAccordion(); }
+      });
+    });
+  });
+}
+
+// Přepis renderTasks aby volal accordion na dashboard
+var _origRenderTasks = window.renderTasks;
+function renderTasks() {
+  var isDash = document.getElementById('page-dashboard') && document.getElementById('page-dashboard').classList.contains('active');
+  if (isDash) {
+    renderTaskAccordion();
+  } else {
+    // Na jiné stránce použij původní renderTasks pro taskGroups
+    var tg = document.getElementById('taskGroups');
+    if (tg && typeof _origRenderTasks === 'function') _origRenderTasks();
+  }
+  updateKpi();
+}
+
+// ═══════════════════════════════════════════════
+// TASK ADD — nový formulář
+// ═══════════════════════════════════════════════
+(function() {
+  function initTaskAdd() {
+    var input = document.getElementById('taskInput');
+    var addBtn = document.getElementById('taskAddBtn');
+    var dateDisplay = document.getElementById('taskDateDisplay');
+    var dateInput = document.getElementById('taskDate');
+
+    if (!input || !addBtn) return;
+
+    // Nastav dnešní datum
+    if (dateInput) {
+      var t = new Date();
+      dateInput.value = t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');
+    }
+
+    // Quick date picker
+    if (dateDisplay) {
+      dateDisplay.addEventListener('click', function(e) {
+        e.stopPropagation();
+        var existing = document.getElementById('quickDateMenu');
+        if (existing) { existing.remove(); return; }
+        var menu = document.createElement('div');
+        menu.id = 'quickDateMenu';
+        menu.style.cssText = 'position:absolute;z-index:300;background:var(--surface);border:1px solid var(--border);border-radius:10px;box-shadow:var(--shadow-lg);padding:4px;min-width:150px;';
+        var today = new Date();
+        var opts = [
+          {l:'📅 Dnes', d:0},
+          {l:'📅 Zítra', d:1},
+          {l:'📅 Po víkendu', d:(today.getDay()>=5 ? 8-today.getDay() : 8-today.getDay())},
+          {l:'📅 Vybrat…', d:-1},
+        ];
+        // Fix po víkendu
+        if (today.getDay()===6) opts[2].d=2;
+        else if (today.getDay()===0) opts[2].d=1;
+        else opts[2].d=6-today.getDay()+2;
+
+        opts.forEach(function(opt) {
+          var btn = document.createElement('button');
+          btn.textContent = opt.l;
+          btn.style.cssText = 'display:block;width:100%;padding:8px 12px;background:none;border:none;cursor:pointer;font-size:13px;font-family:var(--font);color:var(--ink);text-align:left;border-radius:7px;';
+          btn.addEventListener('mouseenter', function(){btn.style.background='var(--surface2)';});
+          btn.addEventListener('mouseleave', function(){btn.style.background='';});
+          btn.addEventListener('click', function() {
+            menu.remove();
+            if (opt.d === -1) { if(dateInput){dateInput.style.display='block';dateInput.focus();} return; }
+            var d = new Date(); d.setDate(d.getDate()+opt.d);
+            var yyyy=d.getFullYear(), mm=String(d.getMonth()+1).padStart(2,'0'), dd=String(d.getDate()).padStart(2,'0');
+            if(dateInput) dateInput.value=yyyy+'-'+mm+'-'+dd;
+            if(dateDisplay) dateDisplay.textContent=opt.d===0?'📅 Dnes':'📅 '+dd+'.'+mm+'.';
+          });
+          menu.appendChild(btn);
+        });
+        dateDisplay.style.position='relative';
+        dateDisplay.appendChild(menu);
+        setTimeout(function(){document.addEventListener('click',function rm(){menu.remove();document.removeEventListener('click',rm);});},10);
+      });
+    }
+
+    if (dateInput) dateInput.addEventListener('change', function() {
+      if (dateInput.value) {
+        var d = new Date(dateInput.value+'T12:00:00');
+        var tds = new Date().toLocaleDateString('cs-CZ');
+        if(dateDisplay) dateDisplay.textContent = d.toLocaleDateString('cs-CZ')===tds?'📅 Dnes':'📅 '+d.toLocaleDateString('cs-CZ');
+      }
+      dateInput.style.display='none';
+    });
+
+    function doAddTask() {
+      if (!input.value.trim()) return;
+      var dateVal = dateInput && dateInput.value ? new Date(dateInput.value+'T12:00:00').toISOString() : new Date().toISOString();
+      var task = {text:input.value.trim(), priority:'med', done:false, star:false, createdAt:dateVal};
+      input.value = '';
+      if(dateDisplay) dateDisplay.textContent = '📅 Dnes';
+      if(dateInput) {var t=new Date(); dateInput.value=t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');}
+
+      if (fbSyncEnabled) {
+        fbAddTask(task);
+      } else {
+        tasks.push(task);
+        saveJSON('zs_tasks_v3', tasks);
+        renderTaskAccordion();
+        updateKpi();
+      }
+      showToast('✅ Úkol přidán');
+    }
+
+    addBtn.addEventListener('click', doAddTask);
+    input.addEventListener('keydown', function(e){ if(e.key==='Enter') doAddTask(); });
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initTaskAdd);
+  else initTaskAdd();
+})();
+
+// ═══════════════════════════════════════════════
+// MYŠLENKY
+// ═══════════════════════════════════════════════
+var ZS_THOUGHTS = 'zs_thoughts_v1';
+
+function saveThought(text) {
+  var t = JSON.parse(localStorage.getItem(ZS_THOUGHTS)||'[]');
+  t.unshift({text:text.trim(), date:new Date().toISOString()});
+  localStorage.setItem(ZS_THOUGHTS, JSON.stringify(t));
+  renderThoughts();
+}
+
+function renderThoughts() {
+  var list = document.getElementById('thoughtsList');
+  if (!list) return;
+  var thoughts = JSON.parse(localStorage.getItem(ZS_THOUGHTS)||'[]');
+  var countEl = document.getElementById('thoughtsCount');
+  if (countEl) countEl.textContent = thoughts.length || '';
+
+  if (!thoughts.length) {
+    list.innerHTML = '<div style="font-size:12px;color:var(--ink3);font-style:italic;padding:4px 0">Zatím žádné myšlenky</div>';
+    return;
+  }
+  // Zobraz posledních 3
+  list.innerHTML = thoughts.slice(0,3).map(function(t,i) {
+    return '<div class="thought-row">'
+      + '<div class="thought-bullet">💡</div>'
+      + '<div class="thought-txt">' + esc(t.text) + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+(function() {
+  function initThoughts() {
+    var input = document.getElementById('thoughtInput');
+    var saveBtn = document.getElementById('thoughtSaveBtn');
+    var allBtn = document.getElementById('thoughtsAllBtn');
+
+    function doSave() {
+      if (!input || !input.value.trim()) return;
+      saveThought(input.value.trim());
+      input.value = '';
+      showToast('💡 Myšlenka uložena');
+    }
+
+    if (saveBtn) saveBtn.addEventListener('click', doSave);
+    if (input) input.addEventListener('keydown', function(e){ if(e.key==='Enter'){ doSave(); e.preventDefault(); } });
+
+    if (allBtn) allBtn.addEventListener('click', function() {
+      if(window.openZapisky) window.openZapisky();
+      else showToast('Zápisky dostupné přes hamburger menu');
+    });
+
+    renderThoughts();
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initThoughts);
+  else initThoughts();
+})();
+
+// ═══════════════════════════════════════════════
+// BOTTOM MIC + DESKTOP MIC
+// ═══════════════════════════════════════════════
+(function() {
+  var isRecording = false;
+  var recognition = null;
+  var finalText = '';
+
+  function initMic() {
+    var bottomBtn = document.getElementById('bottomMicBtn');
+    var desktopBtn = document.getElementById('desktopMicBtn');
+    var card = document.getElementById('micOverlayCard');
+    var transcript = document.getElementById('micTranscript');
+    var statusLabel = document.getElementById('micStatusLabel');
+    var cancelBtn = document.getElementById('micCancelBtn');
+    var saveBtn = document.getElementById('micSaveBtn');
+
+    var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      [bottomBtn, desktopBtn].forEach(function(btn) {
+        if (btn) { btn.style.opacity='0.4'; btn.title='Hlasový vstup není dostupný'; }
+      });
+      return;
+    }
+
+    recognition = new SpeechRecognition();
+    recognition.lang = 'cs-CZ';
+    recognition.continuous = true;
+    recognition.interimResults = true;
+
+    recognition.onresult = function(e) {
+      var interim = '';
+      finalText = '';
+      for (var i = 0; i < e.results.length; i++) {
+        if (e.results[i].isFinal) finalText += e.results[i][0].transcript;
+        else interim += e.results[i][0].transcript;
+      }
+      if (transcript) transcript.textContent = finalText + interim || 'Poslouchám...';
+    };
+
+    recognition.onerror = function(e) {
+      stopRecording();
+      if (e.error === 'not-allowed') showToast('Povolte přístup k mikrofonu v nastavení prohlížeče');
+      else showToast('Chyba mikrofonu: ' + e.error);
+    };
+
+    recognition.onend = function() {
+      if (isRecording) recognition.start(); // continuous
+    };
+
+    function startRecording() {
+      finalText = '';
+      isRecording = true;
+      recognition.start();
+      [bottomBtn, desktopBtn].forEach(function(btn) { if(btn) btn.classList.add('recording'); });
+      if (statusLabel) statusLabel.textContent = 'Nahrávám...';
+      if (transcript) transcript.textContent = 'Mluvte...';
+      if (card) card.classList.add('open');
+    }
+
+    function stopRecording() {
+      isRecording = false;
+      try { recognition.stop(); } catch(e) {}
+      [bottomBtn, desktopBtn].forEach(function(btn) { if(btn) btn.classList.remove('recording'); });
+    }
+
+    function doSave() {
+      var text = (transcript && transcript.textContent !== 'Mluvte...') ? transcript.textContent.trim() : finalText.trim();
+      if (text) {
+        saveThought(text);
+        showToast('💡 Myšlenka uložena');
+      }
+      stopRecording();
+      if (card) card.classList.remove('open');
+    }
+
+    function doCancel() {
+      stopRecording();
+      if (card) card.classList.remove('open');
+    }
+
+    [bottomBtn, desktopBtn].forEach(function(btn) {
+      if (btn) btn.addEventListener('click', function() {
+        isRecording ? doCancel() : startRecording();
+      });
+    });
+
+    if (cancelBtn) cancelBtn.addEventListener('click', doCancel);
+    if (saveBtn) saveBtn.addEventListener('click', doSave);
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initMic);
+  else initMic();
+})();
+
+// ═══════════════════════════════════════════════
+// QUICK LINKS — dock formát
+// ═══════════════════════════════════════════════
+function renderLinks() {
+  var grid = document.getElementById('linksGrid');
+  if (!grid) return;
+  var lnks = (links && links.length) ? links : readJSON('zs_links_v4', defaultLinks);
+  var lsLinks = readJSON('zs_links_v4', []);
+  lnks = lnks.map(function(lnk, i) {
+    if ((!lnk.logoData || lnk.logoData.length < 50) && lsLinks[i] && lsLinks[i].logoData && lsLinks[i].logoData.length > 50) {
+      return Object.assign({}, lnk, {logoData: lsLinks[i].logoData});
+    }
+    return lnk;
+  });
+  var clsBg = {'ia':'#DBEAFE','it':'#EDE9FE','ip':'#FCE7F3','idr':'#D1FAE5','im':'#FEF9C3'};
+  grid.innerHTML = lnks.map(function(lnk) {
+    var bg = lnk.color || clsBg[lnk.cls] || '#EEF0F6';
+    var iconHtml = (lnk.logoData && lnk.logoData.length > 50)
+      ? '<img src="'+lnk.logoData+'" style="width:22px;height:22px;border-radius:5px;object-fit:contain;display:block">'
+      : '<span style="font-size:16px;line-height:1">'+(lnk.icon||'🔗')+'</span>';
+    var name = (lnk.name||'').substring(0,8);
+    return '<a class="ql-chip" href="'+esc(lnk.url||'#')+'" target="_blank" rel="noopener">'
+      + '<div class="ql-icon" style="background:'+bg+'">'+iconHtml+'</div>'
+      + '<span class="ql-name">'+esc(name)+'</span>'
+      + '</a>';
+  }).join('') + '<button class="ql-chip ql-add" onclick="addQuickLink()"><div class="ql-icon">+</div><span class="ql-name">Přidat</span></button>';
+}
+
+// ═══════════════════════════════════════════════
+// INIT na dashboard page
+// ═══════════════════════════════════════════════
+(function() {
+  function initDashboard() {
+    renderTaskAccordion();
+    renderThoughts();
+    renderLinks();
+    // Dnešní výuka
+    var grades = ['6','7','8','9'];
+    var todayISO = new Date().toISOString().slice(0,10);
+    var todayGrades = grades.filter(function(g) {
+      var ls = (JSON.parse(localStorage.getItem('zs_lessons_v1')||'{}'))[g] || [];
+      return ls.some(function(l) { return l.date === todayISO; });
+    });
+    if (todayGrades.length) {
+      var wrap = document.getElementById('dnesVyukaWrap');
+      var chips = document.getElementById('dnesVyukaChips');
+      if (wrap) wrap.style.display = 'block';
+      if (chips) chips.innerHTML = todayGrades.map(function(g) {
+        return '<div class="dnes-chip" onclick="goToGrade(\''+g+'\')">'+g+'. ročník</div>';
+      }).join('');
+    }
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initDashboard);
+  else initDashboard();
+})();
+
+function goToGrade(grade) {
+  window._activeGrade = grade;
+  var sbItem = document.querySelector('.sb-item[data-page="materials"]');
+  if (sbItem) sbItem.click();
+  setTimeout(function() {
+    var card = document.querySelector('.mat-grade-card[data-grade="'+grade+'"]');
+    if (card) card.click();
+  }, 150);
+}
+
+
+
 </script>
+</html>
