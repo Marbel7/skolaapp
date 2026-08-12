@@ -607,9 +607,40 @@ function fbHideLoginOverlay() {
 
 function fbSignIn() {
   var provider = new firebase.auth.GoogleAuthProvider();
-  auth.signInWithPopup(provider).catch(function(err) {
-    console.error('Login error:', err);
-    showToast('⚠️ Chyba přihlášení: ' + err.message);
+  provider.setCustomParameters({ prompt: 'select_account' });
+
+  auth.signInWithPopup(provider).then(function(result) {
+    // Přihlášení proběhlo — onAuthStateChanged se postará o zbytek
+    console.log('Login OK:', result.user.email);
+  }).catch(function(err) {
+    console.error('Login error:', err.code, err.message);
+    var msg = '';
+    switch(err.code) {
+      case 'auth/unauthorized-domain':
+        msg = '⚠️ Tato doména není povolena ve Firebase Console. Přidejte marbel7.github.io do Authorized Domains.';
+        break;
+      case 'auth/popup-blocked':
+        msg = '⚠️ Prohlížeč zablokoval popup. Povolte popup okna pro tuto stránku.';
+        // Záloha: zkus redirect
+        auth.signInWithRedirect(provider);
+        return;
+      case 'auth/popup-closed-by-user':
+        msg = 'Přihlášení bylo zrušeno.';
+        break;
+      case 'auth/cancelled-popup-request':
+        // Ignoruj — uživatel klikl znovu
+        return;
+      case 'auth/network-request-failed':
+        msg = '⚠️ Chyba sítě. Zkontrolujte připojení k internetu.';
+        break;
+      default:
+        msg = '⚠️ Chyba přihlášení: ' + (err.message || err.code);
+    }
+    if(msg) {
+      console.error(msg);
+      if(typeof showToast === 'function') showToast(msg);
+      else alert(msg);
+    }
   });
 }
 function fbSignOut() {
@@ -1015,7 +1046,7 @@ document.querySelectorAll('.ntab').forEach(function(tab){
     if (pg === 'settings') renderLinksTable();
     if (pg === 'dohledy') dohledyInit();
     if (pg === 'dohledy') dohledyInit();
-    if (pg === 'suplovani') suplInit();
+    if (pg === 'suplovani') { /* suplInit not yet implemented */ }
   });
 });
 
@@ -2019,7 +2050,7 @@ applySettings();
 renderLinks();
 calRender();
 dohledyInit();
-suplInit();
+/* suplInit() removed */
 renderLinksTable();
 renderTasks();
 renderNotes();
