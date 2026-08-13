@@ -195,11 +195,6 @@ body { font-family: var(--font); background: var(--bg); color: var(--ink); min-h
 
 <!-- LOGIN OVERLAY -->
 <div id="fbLoginOverlay" style="display:none;position:fixed;inset:0;background:rgba(17,24,39,0.85);backdrop-filter:blur(8px);z-index:999;align-items:center;justify-content:center;flex-direction:column;gap:20px">
-  <!-- DEBUG PANEL - dočasný -->
-  <div id="authDebugPanel" style="position:fixed;top:0;left:0;right:0;max-height:45vh;overflow-y:auto;background:#0f172a;border-bottom:2px solid #2563eb;font-family:monospace;font-size:11px;color:#94a3b8;padding:8px;z-index:1001;display:none">
-    <div style="color:#64748b;margin-bottom:4px">AUTH DEBUG — <span id="dbgTime"></span></div>
-    <div id="authDebugLog"></div>
-  </div>
   <div style="background:#fff;border-radius:20px;padding:2.5rem 2rem;max-width:360px;width:90%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.3)">
     <div style="font-size:48px;margin-bottom:1rem">🏫</div>
     <div style="font-size:22px;font-weight:700;color:#111827;margin-bottom:6px;letter-spacing:-0.02em">ZŠ Dashboard</div>
@@ -607,59 +602,23 @@ const db   = firebase.firestore();
 
 // Nastav LOCAL persistence — přežije reload i restart Safari
 
-// ====== DIAGNOSTIKA AUTH — viditelné logy ======
-var _dbgLines = [];
-function _authLog(event, extra) {
-  try {
-    var cu = auth.currentUser;
-    var ts = new Date().toISOString().slice(11,23);
-    var line = ts + ' ' + event;
-    if (extra) line += ' | ' + JSON.stringify(extra);
-    if (cu) line += ' | cu=' + cu.email;
-    else line += ' | cu=null';
+// ── AUTH ──────────────────────────────────────────────────────────────────────
+// Architektura podle funkčního Rodinného Dashboardu.
+// signInWithPopup voláno přímo ze synchronního onclick handleru.
+// onAuthStateChanged je jediný zdroj pravdy.
+// setPersistence: nenastavujeme — compat SDK defaultně LOCAL (stejné jako Rodinný Dashboard).
 
-    // konzole
-    console.log('[AUTH-DIAG] ' + line);
-
-    // visible panel
-    _dbgLines.push(line);
-    var panel = document.getElementById('authDebugPanel');
-    var log   = document.getElementById('authDebugLog');
-    var ts2   = document.getElementById('dbgTime');
-    if (panel && log) {
-      panel.style.display = 'block';
-      if (ts2) ts2.textContent = new Date().toLocaleTimeString();
-      // Barvy podle události
-      var color = '#94a3b8';
-      if (event.indexOf('SUCCESS') >= 0)     color = '#22c55e';
-      if (event.indexOf('ERROR') >= 0)       color = '#ef4444';
-      if (event.indexOf('NULL') >= 0 || (extra && extra.user_email === null)) color = '#f59e0b';
-      if (event === 'SHOW_LOGIN_OVERLAY')     color = '#ef4444';
-      if (event === 'HIDE_LOGIN_OVERLAY')     color = '#22c55e';
-      var el = document.createElement('div');
-      el.style.cssText = 'color:' + color + ';border-bottom:1px solid #1e293b;padding:2px 0;word-break:break-all';
-      el.textContent = _dbgLines.length + '. ' + line;
-      log.appendChild(el);
-      panel.scrollTop = panel.scrollHeight;
-    }
-  } catch(e) { console.error('_authLog error:', e); }
-}
-
-// Zachytávej globální JS chyby
-window.addEventListener('error', function(ev) {
-  _authLog('JS_ERROR', {msg: ev.message, file: (ev.filename||'').split('/').pop(), line: ev.lineno});
+// getRedirectResult: bezpečnostní pojistka při startu
+auth.getRedirectResult().then(function(result) {
+  if (result && result.user) {
+    console.log('[AUTH] getRedirectResult: user =', result.user.email);
+  }
+}).catch(function(err) {
+  if (err.code !== 'auth/no-current-user') {
+    console.warn('[AUTH] getRedirectResult error:', err.code);
+  }
 });
-window.addEventListener('unhandledrejection', function(ev) {
-  _authLog('UNHANDLED_PROMISE', {reason: String(ev.reason)});
-});
-// ================================================
 
-// AUTH - popup only, bez redirect, bez umeleho timeru
-// onAuthStateChanged je jediny zdroj pravdy o stavu prihlaseni.
-
-// setPersistence je nyni v _persistencePromise pred fbSignIn
-
-// Stav prihlaseni
 var fbUserId      = null;
 var fbUserEmail   = null;
 var fbSyncEnabled = false;
@@ -668,52 +627,35 @@ function fbUserDoc(col) {
   return db.collection('users').doc(fbUserId).collection(col);
 }
 
-// Login overlay
 function fbShowLoginOverlay() {
-  _authLog('SHOW_LOGIN_OVERLAY');
   document.getElementById('fbLoginOverlay').style.display = 'flex';
 }
 function fbHideLoginOverlay() {
-  _authLog('HIDE_LOGIN_OVERLAY');
   document.getElementById('fbLoginOverlay').style.display = 'none';
 }
 
-// Sign in - POUZE popup, musi byt volano primo z onclick eventu
-var _persistencePromise = auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).then(function() {
-  _authLog('PERSISTENCE_READY');
-}).catch(function(err) {
-  _authLog('PERSISTENCE_FAILED', {code: err.code});
-});
-
+// fbSignIn — voláno PŘÍMO ze synchronního onclick handleru
+// Žádný Promise wrapper před signInWithPopup — kritické pro iOS Safari
 function fbSignIn() {
-  _authLog('SIGN_IN_START');
   var provider = new firebase.auth.GoogleAuthProvider();
   provider.setCustomParameters({ prompt: 'select_account' });
-
-  // Počkej na setPersistence, pak spusť popup
-  _persistencePromise.then(function() {
-    _authLog('PERSISTENCE_OK_STARTING_POPUP');
-    return auth.signInWithPopup(provider);
-  }).then(function(result) {
-    _authLog('SIGN_IN_SUCCESS_POPUP', {uid: result.user.uid.slice(0,8), email: result.user.email});
-    // onAuthStateChanged se postará o UI
-  }).catch(function(err) {
-    _authLog('SIGN_IN_ERROR', {code: err.code, message: err.message});
+  auth.signInWithPopup(provider).catch(function(err) {
+    console.error('[AUTH] signInWithPopup error:', err.code, err.message);
     var msg = null;
     switch (err.code) {
       case 'auth/popup-closed-by-user':    break;
       case 'auth/cancelled-popup-request': break;
       case 'auth/popup-blocked':
-        msg = 'Prohlizec zablokoval prihlasovaci okno. (auth/popup-blocked)';
+        msg = 'Prohlížeč zablokoval přihlašovací okno. Povolte popupy pro tuto stránku.';
         break;
       case 'auth/unauthorized-domain':
-        msg = 'Domena neni povolena ve Firebase Console. (auth/unauthorized-domain)';
+        msg = 'Doména není povolena ve Firebase Console.';
         break;
       case 'auth/network-request-failed':
-        msg = 'Chyba site. Zkontrolujte pripojeni.';
+        msg = 'Chyba sítě. Zkontrolujte připojení.';
         break;
       default:
-        msg = err.code + ': ' + err.message;
+        msg = 'Chyba přihlášení: ' + (err.message || err.code);
     }
     if (msg) {
       if (typeof showToast === 'function') showToast('⚠️ ' + msg);
@@ -722,25 +664,19 @@ function fbSignIn() {
   });
 }
 
-// Sign out
 function fbSignOut() {
   auth.signOut().catch(function(err) {
     console.error('[AUTH] signOut error:', err);
   });
 }
 
-// onAuthStateChanged - jediny zdroj pravdy
-// Firebase SDK sam ceka na dokonceni inicializace pred prvnim volanim.
-// Neni potreba zadny timer.
 auth.onAuthStateChanged(function(user) {
-  _authLog('ON_AUTH_STATE_CHANGED', {user_uid: user ? user.uid.slice(0,8) : null, user_email: user ? user.email : null});
   if (user) {
     fbUserId      = user.uid;
     fbUserEmail   = user.email;
     fbSyncEnabled = true;
 
     fbHideLoginOverlay();
-    _authLog('CALLING_fbSetupListeners');
     fbSetupListeners();
 
     var info = document.getElementById('fbUserInfo');
@@ -759,9 +695,8 @@ auth.onAuthStateChanged(function(user) {
       }
     }
     var gr = document.getElementById('navGreet');
-    if (gr) gr.textContent = 'Dobry den, ' + (user.displayName ? user.displayName.split(' ')[0] : '') + ' 👋';
+    if (gr) gr.textContent = 'Dobrý den, ' + (user.displayName ? user.displayName.split(' ')[0] : '') + ' 👋';
 
-    _authLog('CALLING_fbLoadAll');
     fbLoadAll();
   } else {
     fbUserId      = null;
