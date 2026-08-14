@@ -779,6 +779,88 @@ html, body {
   .page { padding: 0.75rem 0.75rem 3rem !important; }
 }
 
+
+/* ━━ HAMBURGER DRAWER FIX — vrstvení a pozadí ━━━━━━━━ */
+
+/* Overlay — solidní, žádný blur (blur způsobuje průhlednost na iOS) */
+.mob-drawer-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55) !important;
+  z-index: 9998 !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+.mob-drawer-overlay.open {
+  display: block !important;
+}
+
+/* Drawer — solidní bílé pozadí, nad vším */
+.mob-drawer {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  bottom: 0 !important;
+  width: 240px !important;
+  background: #ffffff !important;       /* pevná bílá, žádná průhlednost */
+  background-color: #ffffff !important;
+  z-index: 9999 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow-y: auto !important;
+  transform: translateX(-100%);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  border-right: 1px solid #E7ECF5 !important;
+  box-shadow: 4px 0 32px rgba(0, 0, 0, 0.18) !important;
+  isolation: isolate !important;        /* nový stacking context */
+}
+.mob-drawer.open {
+  transform: translateX(0) !important;
+}
+
+/* Nav má z-index: 100 — drawer musí být nad ním */
+/* Zároveň zamkneme scroll při otevřeném menu */
+body.drawer-open {
+  overflow: hidden !important;
+  position: fixed !important;
+  width: 100% !important;
+}
+
+/* Drawer položky — pevné, nepřekrývající se */
+.mob-drawer-nav {
+  padding: 8px !important;
+  flex: 1 !important;
+  overflow-y: auto !important;
+}
+.mob-drawer-item {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  padding: 11px 12px !important;
+  border-radius: 9px !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  color: #566079 !important;
+  cursor: pointer !important;
+  transition: background 0.12s !important;
+  margin-bottom: 2px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  position: static !important;         /* žádné absolutní pozicování */
+}
+.mob-drawer-item:hover {
+  background: #F8FAFD !important;
+  color: #161C2E !important;
+}
+.mob-drawer-item.active {
+  background: rgba(59, 130, 246, 0.08) !important;
+  color: #2563EB !important;
+  font-weight: 600 !important;
+}
+
+/* ━━ KONEC HAMBURGER DRAWER FIX ━━━━━━━━━━━━━━━━━━━━━━ */
+
 </style>
 <!-- Firebase SDKs -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -2714,8 +2796,8 @@ renderEvidence();
   var title   = document.getElementById('mobPageTitle');
   var pageNames = {dashboard:'Dashboard', materials:'Materiály', evidence:'Evidence', dohledy:'Dohledy', settings:'Nastavení'};
 
-  function openDrawer()  { if(drawer) drawer.classList.add('open');   if(overlay) overlay.classList.add('open'); }
-  function closeDrawer() { if(drawer) drawer.classList.remove('open'); if(overlay) overlay.classList.remove('open'); }
+  function openDrawer()  { if(drawer) drawer.classList.add('open');   if(overlay) overlay.classList.add('open'); document.body.classList.add('drawer-open'); }
+  function closeDrawer() { if(drawer) drawer.classList.remove('open'); if(overlay) overlay.classList.remove('open'); document.body.classList.remove('drawer-open'); }
 
   if (hbBtn)   hbBtn.addEventListener('click', openDrawer);
   if (closeBtn) closeBtn.addEventListener('click', closeDrawer);
