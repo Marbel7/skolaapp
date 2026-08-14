@@ -471,6 +471,183 @@ body { font-family: var(--font); background: var(--bg); color: var(--ink); min-h
   .ntab { padding: 0 8px !important; font-size: 11px !important; }
   .card { padding: 0.75rem !important; }
 }
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   MOBILE NAV FIX — cílená oprava 390px
+   Žádné funkční změny
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+/* Zabraň globálnímu horizontal overflow */
+html, body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+.page {
+  overflow-x: hidden;
+  box-sizing: border-box;
+}
+
+@media (max-width: 600px) {
+  /* ── Nav — kompaktní, scroll bez overflow ── */
+  .nav {
+    height: 48px !important;
+    min-height: 48px !important;
+    padding: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    overflow: hidden !important;
+    gap: 0 !important;
+  }
+
+  /* Logo — pevná šířka vlevo */
+  .nav-logo {
+    flex-shrink: 0 !important;
+    margin-right: 0 !important;
+    padding: 0 10px !important;
+    gap: 6px !important;
+  }
+  .nav-logo img {
+    width: 24px !important;
+    height: 24px !important;
+    border-radius: 7px !important;
+  }
+  .nav-logo-name {
+    display: none !important;
+  }
+
+  /* Taby — scrollovatelný region, flex-nowrap */
+  .nav-tabs {
+    flex: 1 !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    scrollbar-width: none !important;
+    -webkit-overflow-scrolling: touch !important;
+    display: flex !important;
+    align-items: center !important;
+    height: 48px !important;
+    gap: 0 !important;
+    flex-wrap: nowrap !important;
+    min-width: 0 !important;
+  }
+  .nav-tabs::-webkit-scrollbar { display: none !important; }
+
+  /* Jednotlivý tab */
+  .ntab {
+    height: 48px !important;
+    padding: 0 11px !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+  }
+
+  /* Nav right — minimální, jen avatar */
+  .nav-right {
+    flex-shrink: 0 !important;
+    padding: 0 8px !important;
+    gap: 6px !important;
+    display: flex !important;
+    align-items: center !important;
+  }
+  .nav-bell { display: none !important; }
+  .nav-name { display: none !important; }
+  .avatar {
+    width: 28px !important;
+    height: 28px !important;
+    font-size: 11px !important;
+  }
+
+  /* Page-hdr: bez zbytečného prostoru */
+  .page-hdr {
+    margin-bottom: 0.75rem !important;
+  }
+
+  /* Stats: 2 sloupce, kompaktní */
+  .stats {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 6px !important;
+    margin-bottom: 0.75rem !important;
+  }
+  .stat {
+    padding: 0.6rem 0.75rem !important;
+    border-radius: 12px !important;
+  }
+  .stat-val {
+    font-size: 16px !important;
+    font-weight: 800 !important;
+  }
+  .stat-lbl { font-size: 9px !important; margin-bottom: 3px !important; }
+  .stat-sub { font-size: 9px !important; }
+
+  /* Grid: 1 sloupec */
+  .grid2 {
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+  }
+
+  /* Cards: uvnitř viewportu */
+  .card {
+    border-radius: 12px !important;
+    padding: 0.8rem 0.875rem !important;
+    box-sizing: border-box !important;
+    max-width: 100% !important;
+  }
+
+  /* Tabulka: scroll uvnitř karty */
+  .table-wrap {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    max-width: 100% !important;
+  }
+
+  /* Quick links: 1 sloupec */
+  .lgrid {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 4px !important;
+  }
+  .lbtn {
+    padding: 7px 9px !important;
+    border-radius: 9px !important;
+  }
+
+  /* Task input row: nepřetékat */
+  .ti-row {
+    flex-wrap: nowrap !important;
+    gap: 5px !important;
+  }
+  .ti {
+    min-width: 0 !important;
+    flex: 1 !important;
+  }
+  .tadd, .btn, .sbtn {
+    padding: 7px 11px !important;
+    font-size: 12px !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+  }
+
+  /* Search/toolbar */
+  .toolbar-row {
+    gap: 5px !important;
+    flex-wrap: wrap !important;
+  }
+  .search-input {
+    flex: 1 !important;
+    min-width: 0 !important;
+    font-size: 13px !important;
+  }
+
+  /* Poznámky textarea: menší */
+  .nrow { gap: 5px !important; }
+  .ninput { min-height: 46px !important; }
+
+  /* Page padding */
+  .page {
+    padding: 0.75rem 0.75rem 3rem !important;
+  }
+}
+
 </style>
 <!-- Firebase SDKs -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -523,10 +700,7 @@ body { font-family: var(--font); background: var(--bg); color: var(--ink); min-h
 
 <!-- DASHBOARD -->
 <div class="page active" id="page-dashboard">
-  <div class="page-hdr">
-    <h1 id="dashGreet">Dobrý den 👋</h1>
-    <p id="fullDateStr">Vítejte ve vašem učitelském dashboardu</p>
-  </div>
+  <div class="page-hdr" style="display:none"><h1 id="dashGreet"></h1><p id="fullDateStr"></p></div>
   <div class="stats">
     <div class="stat">
       <div class="stat-lbl">Datum</div>
