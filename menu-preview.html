@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>SkolaApp — moderní hamburger preview</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#f7f7fa}
+iframe{width:100%;height:100%;border:0;display:block}
+</style>
+</head>
+<body>
+<iframe id="app" src="index.html"></iframe>
+<script>
+const frame=document.getElementById('app');
+frame.addEventListener('load',()=>{
+  const d=frame.contentDocument;
+  if(!d) return;
+  const style=d.createElement('style');
+  style.textContent=`
+/* ==========================================================
+   SKOLAAPP — HAMBURGER MENU MODERN PREVIEW
+   Pouze vizualni vrstva. Funkce, Firebase a navigace zustavaji.
+   ========================================================== */
+@media(max-width:600px){
+  .mob-drawer-overlay{
+    background:rgba(15,18,32,.48)!important;
+    backdrop-filter:blur(7px)!important;
+    -webkit-backdrop-filter:blur(7px)!important;
+    z-index:9998!important;
+  }
+  .mob-drawer{
+    top:env(safe-area-inset-top)!important;
+    bottom:0!important;
+    left:0!important;
+    width:min(86vw,360px)!important;
+    max-width:360px!important;
+    background:#fff!important;
+    border:0!important;
+    border-right:1px solid rgba(31,36,55,.08)!important;
+    border-radius:0 24px 24px 0!important;
+    box-shadow:18px 0 55px rgba(17,24,39,.18)!important;
+    overflow:hidden!important;
+    padding:0!important;
+  }
+  .mob-drawer-hd{
+    min-height:86px!important;
+    padding:18px 18px 14px!important;
+    border-bottom:1px solid #ececf2!important;
+    gap:12px!important;
+    background:linear-gradient(180deg,#fff 0%,#fbfbfd 100%)!important;
+  }
+  .mob-drawer-hd img{
+    width:42px!important;height:42px!important;border-radius:13px!important;
+    box-shadow:0 4px 12px rgba(59,130,246,.18)!important;
+    flex-shrink:0!important;
+  }
+  .mob-drawer-hd span{
+    display:block!important;
+    font-size:15px!important;
+    line-height:1.2!important;
+    letter-spacing:-.01em!important;
+  }
+  .mob-drawer-hd span:after{
+    content:'Skolni dashboard';
+    display:block;
+    margin-top:4px;
+    font-size:11px;
+    font-weight:500;
+    color:#9a9daf;
+    letter-spacing:.01em;
+  }
+  .mob-drawer-close{
+    width:38px!important;height:38px!important;
+    margin-left:auto!important;
+    border-radius:12px!important;
+    background:#f3f3f7!important;
+    color:#6d7182!important;
+    font-size:17px!important;
+    line-height:1!important;
+    display:flex!important;align-items:center!important;justify-content:center!important;
+  }
+  .mob-drawer-nav{
+    padding:14px 12px!important;
+    overflow-y:auto!important;
+    overscroll-behavior:contain!important;
+  }
+  .mob-drawer-item{
+    min-height:58px!important;
+    padding:8px 12px!important;
+    margin:3px 0!important;
+    border-radius:15px!important;
+    gap:12px!important;
+    font-size:15px!important;
+    font-weight:600!important;
+    color:#4f556a!important;
+    position:relative!important;
+    transition:background .18s ease,color .18s ease,transform .18s ease!important;
+  }
+  .mob-drawer-item:before{
+    content:'';
+    width:38px;height:38px;
+    flex:0 0 38px;
+    border-radius:12px;
+    background:#f3f4f8;
+    box-shadow:inset 0 0 0 1px rgba(32,32,51,.04);
+  }
+  .mob-drawer-item[data-page="dashboard"]:before{background:#eef1ff}
+  .mob-drawer-item[data-page="materials"]:before{background:#eef8f3}
+  .mob-drawer-item[data-page="evidence"]:before{background:#fff5e9}
+  .mob-drawer-item[data-page="dohledy"]:before{background:#f4efff}
+  .mob-drawer-item[data-page="settings"]:before{background:#eef3f8}
+  .mob-drawer-item.active{
+    background:#f1efff!important;
+    color:#6257dc!important;
+    font-weight:700!important;
+    box-shadow:inset 0 0 0 1px rgba(108,92,231,.07)!important;
+  }
+  .mob-drawer-item.active:after{
+    content:'';
+    position:absolute;
+    left:0;top:10px;bottom:10px;
+    width:3px;border-radius:0 4px 4px 0;
+    background:#6c5ce7;
+  }
+  .mob-drawer-item:hover{background:#f7f7fa!important;color:#202033!important}
+  .mob-drawer-item:active{transform:scale(.985)!important}
+  .mob-drawer-foot{
+    padding:12px!important;
+    border-top:1px solid #ececf2!important;
+    background:#fbfbfd!important;
+  }
+  #fbSignOutBtnMob{
+    min-height:44px!important;
+    border:1px solid #e7e7ee!important;
+    border-radius:13px!important;
+    background:#fff!important;
+    color:#656a7b!important;
+    font-weight:600!important;
+  }
+  body.drawer-open{overflow:hidden!important}
+}
+`;
+  d.head.appendChild(style);
+});
+</script>
+</body>
+</html>
