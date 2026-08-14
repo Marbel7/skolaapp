@@ -28,9 +28,12 @@ jobs:
           if marker in s:
               raise SystemExit(0)
           tag = '<script src="mobile-enhancement.js"></script>\n'
-          pos = s.lower().rfind('</body>')
+          lower = s.lower()
+          pos = lower.rfind('</body>')
           if pos < 0:
-              raise SystemExit('No closing body tag found')
+              pos = lower.rfind('</html>')
+          if pos < 0:
+              raise SystemExit('No closing html tag found')
           p.write_text(s[:pos] + tag + s[pos:], encoding='utf-8')
           PY
 
