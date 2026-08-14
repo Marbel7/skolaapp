@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#F7F7FA">
+<title>SkolaApp — mobilní aplikace</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#f7f7fa}iframe{width:100%;height:100%;border:0}
+</style>
+</head>
+<body>
+<iframe id="app" allow="microphone" src="index.html"></iframe>
+<script>
+const f=document.getElementById('app');
+f.addEventListener('load',()=>{
+ const d=f.contentDocument;
+ const css=d.createElement('style');
+ css.textContent=`
+ @media(max-width:700px){
+ body{padding-bottom:94px!important;overflow-x:hidden!important}
+ .nav-tabs,.nav-name,.nav-bell{display:none!important}
+ .nav{height:58px!important;padding:0 16px!important}
+ .page{max-width:none!important;padding:20px 14px 28px!important}
+ .stats{grid-template-columns:repeat(3,1fr)!important;gap:8px!important}
+ .grid2{grid-template-columns:1fr!important}.card{border-radius:14px!important}
+ .ma-bar{position:fixed;left:10px;right:10px;bottom:calc(8px + env(safe-area-inset-bottom));height:70px;background:rgba(255,255,255,.96);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);border:1px solid #e8e8f0;border-radius:23px;box-shadow:0 12px 38px rgba(32,32,51,.14);z-index:9990;display:grid;grid-template-columns:1fr 1fr 1.2fr 1fr 1fr;align-items:end;padding:0 5px 6px}
+ .ma-btn{height:52px;border:0;background:transparent;color:#7c8198;font:600 10px Inter,-apple-system,BlinkMacSystemFont,sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px}.ma-btn svg{width:21px;height:21px;stroke:currentColor}.ma-btn.active{color:#6c5ce7}
+ .ma-mid{height:76px;display:flex;justify-content:center;align-items:flex-start}.ma-mic{margin-top:-19px;width:62px;height:62px;border:0;border-radius:21px;background:#6c5ce7;color:#fff;box-shadow:0 10px 24px rgba(108,92,231,.32);display:flex;align-items:center;justify-content:center;position:relative}.ma-mic svg{width:27px;height:27px}.ma-label{position:absolute;top:65px;color:#6c5ce7;font:700 10px Inter,sans-serif;white-space:nowrap}
+ .ma-overlay{position:fixed;inset:0;background:rgba(20,20,35,.46);backdrop-filter:blur(8px);z-index:10000;display:none;align-items:flex-end}.ma-overlay.open{display:flex}.ma-sheet{width:100%;box-sizing:border-box;background:#fff;border-radius:28px 28px 0 0;padding:10px 18px calc(18px + env(safe-area-inset-bottom));box-shadow:0 -18px 60px rgba(0,0,0,.2)}
+ .ma-grab{width:38px;height:4px;background:#dad ae5;border-radius:9px;margin:0 auto 15px}.ma-title{font:700 20px Inter,-apple-system,sans-serif;color:#202033}.ma-sub{font:13px Inter,-apple-system,sans-serif;color:#7c8198;margin:4px 0 15px}
+ .ma-mode{display:grid;grid-template-columns:1fr 1fr;gap:7px;background:#f4f4f8;padding:4px;border-radius:13px;margin-bottom:11px}.ma-mode button{height:38px;border:0;border-radius:10px;background:transparent;color:#7c8198;font:700 12px Inter,sans-serif}.ma-mode .on{background:#fff;color:#6c5ce7;box-shadow:0 1px 5px rgba(32,32,51,.08)}
+ .ma-voice{display:flex;align-items:center;gap:11px;padding:11px 12px;border:1px solid #e8e8f0;border-radius:14px;background:#fcfcfe}.ma-voice.recording{border-color:#d9d1ff;background:#f7f5ff}.ma-vicon{width:38px;height:38px;border-radius:12px;background:#f0eeff;color:#6c5ce7;display:flex;align-items:center;justify-content:center}.ma-voice.recording .ma-vicon{background:#6c5ce7;color:#fff}.ma-copy strong{display:block;font:700 12px Inter,sans-serif;color:#202033}.ma-copy span{font:11px Inter,sans-serif;color:#7c8198}
+ .ma-live{display:none;color:#6c5ce7;font:700 11px Inter,sans-serif;margin:8px 0}.ma-live.on{display:block}.ma-text{width:100%;min-height:100px;box-sizing:border-box;border:1px solid #e8e8f0;border-radius:15px;padding:13px;font:500 16px/1.45 Inter,sans-serif;outline:0;resize:none}.ma-text:focus{border-color:#6c5ce7;box-shadow:0 0 0 3px #f0eeff}.ma-actions{display:grid;grid-template-columns:1fr 1.6fr;gap:8px;margin-top:10px}.ma-actions button{height:48px;border-radius:13px;border:1px solid #e8e8f0;font:700 14px Inter,sans-serif}.ma-save{background:#6c5ce7;color:#fff;border-color:#6c5ce7!important}.ma-msg{display:none;margin-top:9px;padding:9px 11px;border-radius:11px;background:#fff7e9;color:#9a671a;font:500 10px/1.35 Inter,sans-serif}.ma-msg.on{display:block}.ma-hint{font:10px Inter,sans-serif;color:#a8abbe;text-align:center;margin-top:9px}
+ }
+ @media(min-width:701px){.ma-bar,.ma-overlay{display:none!important}}
+ `;
+ d.head.appendChild(css);
+ const mic='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="8" y="3" width="8" height="12" rx="4"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3M8 21h8"/></svg>';
+ const icon=(p)=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9">${p}</svg>`;
+ const bar=d.createElement('div');bar.className='ma-bar';bar.innerHTML=`<button class="ma-btn active" data-page="dashboard">${icon('<path d="M3 10.5 12 3l9 7.5"/><path d="M5.5 9.5V21h13V9.5"/><path d="M9.5 21v-6h5v6"/>')}<span>Přehled</span></button><button class="ma-btn" data-page="materials">${icon('<path d="M4 4h16v16H4z"/><path d="M8 8h8M8 12h8M8 16h5"/>')}<span>Materiály</span></button><div class="ma-mid"><button class="ma-mic" id="ma-open">${mic}<span class="ma-label">Zachytit</span></button></div><button class="ma-btn" data-page="evidence">${icon('<path d="M6 3h12v18H6z"/><path d="M9 7h6M9 11h6M9 15h4"/>')}<span>Evidence</span></button><button class="ma-btn" data-page="settings">${icon('<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-1.8 1.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5v.2h-2.6v-.2a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1-1.8-1.8.1-.1A1.7 1.7 0 0 0 8 15a1.7 1.7 0 0 0-1.5-1H6v-2.6h.2a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1 1.8-1.8.1.1a1.7 1.7 0 0 0 1.9.3 1.7 1.7 0 0 0 1-1.5V5h2.6v.2a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1 1.8 1.8-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.5 1h.2V14h-.2a1.7 1.7 0 0 0-1.5 1z"/>')}<span>Nastavení</span></button>`;d.body.appendChild(bar);
+ const ov=d.createElement('div');ov.className='ma-overlay';ov.innerHTML=`<div class="ma-sheet"><div class="ma-grab"></div><div class="ma-title">Rychlé zachycení</div><div class="ma-sub">Řekni nebo napiš, co si nechceš nechat utéct.</div><div class="ma-mode"><button class="on" id="ma-task">Úkol</button><button id="ma-thought">Myšlenka</button></div><div class="ma-voice" id="ma-voice"><div class="ma-vicon">${mic}</div><div class="ma-copy"><strong id="ma-vtitle">Namluvit</strong><span id="ma-vcopy">Klepni a řekni to vlastními slovy</span></div></div><div class="ma-live" id="ma-live">● Poslouchám… přepis se tvoří průběžně</div><textarea class="ma-text" id="ma-text" placeholder="Např. zkontrolovat rozvrh 6.B…"></textarea><div class="ma-actions"><button id="ma-cancel">Zrušit</button><button class="ma-save" id="ma-save">Uložit</button></div><div class="ma-msg" id="ma-msg"></div><div class="ma-hint">Po zastavení se řeč převede na upravitelný text.</div></div>`;d.body.appendChild(ov);
+ const text=ov.querySelector('#ma-text'),voice=ov.querySelector('#ma-voice'),live=ov.querySelector('#ma-live'),msg=ov.querySelector('#ma-msg');let mode='task',rec=null,listening=false,final='';
+ const setMode=m=>{mode=m;ov.querySelector('#ma-task').classList.toggle('on',m==='task');ov.querySelector('#ma-thought').classList.toggle('on',m==='thought');text.placeholder=m==='task'?'Např. zkontrolovat rozvrh 6.B…':'Např. nápad na poradu, co nesmím zapomenout…'};
+ ov.querySelector('#ma-task').onclick=()=>setMode('task');ov.querySelector('#ma-thought').onclick=()=>setMode('thought');
+ function stop(){if(rec){try{rec.stop()}catch(e){}}rec=null;listening=false;voice.classList.remove('recording');live.classList.remove('on');ov.querySelector('#ma-vtitle').textContent='Namluvit';ov.querySelector('#ma-vcopy').textContent='Klepni a řekni to vlastními slovy'}
+ function start(){const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){msg.textContent='Tento prohlížeč nepodporuje hlasový přepis. Otevři stránku přímo v Safari a povol mikrofon.';msg.classList.add('on');return}msg.classList.remove('on');rec=new SR();rec.lang='cs-CZ';rec.continuous=true;rec.interimResults=true;final=text.value.trim();if(final)final+=' ';rec.onstart=()=>{listening=true;voice.classList.add('recording');live.classList.add('on');ov.querySelector('#ma-vtitle').textContent='Poslouchám…';ov.querySelector('#ma-vcopy').textContent='Klepni znovu pro zastavení'};rec.onresult=e=>{let i='';for(let n=e.resultIndex;n<e.results.length;n++){if(e.results[n].isFinal)final+=e.results[n][0].transcript+' ';else i+=e.results[n][0].transcript}text.value=(final+i).trim()};rec.onerror=e=>{stop();msg.textContent=e.error==='not-allowed'||e.error==='service-not-allowed'?'Mikrofon nebyl povolen. Povol mikrofon pro tento web.':'Hlasový vstup skončil s chybou: '+e.error;msg.classList.add('on')};rec.onend=()=>{if(listening)stop()};try{rec.start()}catch(e){stop();msg.textContent='Hlasový vstup se nepodařilo spustit. Zkus to znovu.';msg.classList.add('on')}}
+ voice.onclick=()=>listening?stop():start();bar.querySelector('#ma-open').onclick=()=>{ov.classList.add('open');setTimeout(()=>text.focus(),80)};
+ ov.querySelector('#ma-cancel').onclick=()=>{stop();ov.classList.remove('open');text.value='';final='';msg.classList.remove('on')};ov.addEventListener('click',e=>{if(e.target===ov)ov.querySelector('#ma-cancel').click()});
+ ov.querySelector('#ma-save').onclick=()=>{const v=text.value.trim();if(!v)return;const input=mode==='task'?d.getElementById('taskInput'):d.getElementById('noteDraft');const btn=mode==='task'?d.getElementById('taskAddBtn'):d.getElementById('saveNoteBtn');if(input&&btn){input.value=v;btn.click()}ov.querySelector('#ma-cancel').click()};
+ bar.querySelectorAll('[data-page]').forEach(b=>b.onclick=()=>{bar.querySelectorAll('.ma-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');const t=d.querySelector('.ntab[data-page="'+b.dataset.page+'"]');if(t)t.click()});
+});
+</script>
+</body>
+</html>
