@@ -182,6 +182,295 @@ body { font-family: var(--font); background: var(--bg); color: var(--ink); min-h
 .mat-folder-items { display:none; padding-left:8px; }
 .mat-folder-items.open { display:block; }
 .link-logo-img { width:24px; height:24px; border-radius:6px; object-fit:contain; }
+
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   UI MODERNIZACE — mobile-first CSS pass
+   Mění pouze vizuální vrstvu
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+/* ── TOKENY (doplnění) ─────────────────── */
+:root {
+  --r-xs:  6px;
+  --r-sm:  10px;
+  --r:     14px;
+  --r-lg:  18px;
+  --shadow-xs: 0 1px 3px rgba(22,28,46,.05);
+  --shadow-sm: 0 2px 8px rgba(22,28,46,.07);
+  --shadow-md: 0 6px 20px rgba(22,28,46,.09);
+}
+
+/* ── NAV — kompaktnější, modernější ────── */
+.nav {
+  height: 52px !important;
+  padding: 0 1rem !important;
+  background: rgba(255,255,255,0.92) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  box-shadow: 0 1px 0 var(--border) !important;
+}
+.nav-logo { margin-right: 1.25rem !important; }
+.nav-logo img { width: 28px !important; height: 28px !important; border-radius: 8px !important; }
+.nav-logo-name { font-size: 13px !important; font-weight: 700 !important; }
+
+/* Nav taby — subtilnější, kompaktní */
+.ntab {
+  height: 52px !important;
+  padding: 0 12px !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+}
+.ntab.active {
+  color: var(--accent) !important;
+  border-bottom-color: var(--accent) !important;
+  font-weight: 600 !important;
+}
+
+/* Nav right — schovat na mobilu co nepotřebujeme */
+.nav-bell { display: none; }
+.nav-name { display: none; }
+
+/* ── STRÁNKA ────────────────────────────── */
+.page {
+  padding: 1.25rem 1rem 3rem !important;
+  max-width: 1040px !important;
+}
+
+/* ── STAT CARDS — kompaktní 2-col grid ─── */
+.stats {
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 8px !important;
+  margin-bottom: 1rem !important;
+}
+.stat {
+  border-radius: var(--r) !important;
+  padding: 0.75rem 1rem !important;
+  box-shadow: var(--shadow-xs) !important;
+}
+.stat-lbl {
+  font-size: 10px !important;
+  margin-bottom: 4px !important;
+  letter-spacing: 0.06em !important;
+}
+.stat-val {
+  font-size: 20px !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.02em !important;
+}
+.stat-sub { font-size: 10px !important; margin-top: 3px !important; }
+
+/* ── GRID ───────────────────────────────── */
+.grid2 { gap: 10px !important; margin-bottom: 10px !important; }
+
+/* ── CARD ───────────────────────────────── */
+.card {
+  border-radius: var(--r) !important;
+  padding: 1rem 1.1rem !important;
+  box-shadow: var(--shadow-xs) !important;
+  border-color: var(--border) !important;
+}
+.card-hd { margin-bottom: 0.85rem !important; }
+.card-ttl { font-size: 12px !important; font-weight: 700 !important; letter-spacing: 0.04em !important; text-transform: uppercase !important; color: var(--ink3) !important; }
+.card-sub { font-size: 11px !important; }
+
+/* ── RYCHLÉ ODKAZY — kompaktní řádky ────── */
+.lgrid {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 5px !important;
+}
+.lbtn {
+  padding: 8px 10px !important;
+  border-radius: var(--r-sm) !important;
+  gap: 9px !important;
+  transition: background 0.12s, border-color 0.12s !important;
+  transform: none !important;
+}
+.lbtn:hover {
+  transform: none !important;
+  box-shadow: none !important;
+  border-color: var(--accent) !important;
+  background: var(--accent-soft) !important;
+}
+.li {
+  width: 26px !important;
+  height: 26px !important;
+  border-radius: 7px !important;
+  font-size: 13px !important;
+  flex-shrink: 0 !important;
+}
+.link-logo-img {
+  width: 26px !important;
+  height: 26px !important;
+  border-radius: 7px !important;
+  object-fit: contain !important;
+}
+.ln { font-size: 12px !important; font-weight: 600 !important; }
+.ld { font-size: 10px !important; }
+.ladd {
+  padding: 7px 10px !important;
+  border-radius: var(--r-sm) !important;
+  gap: 5px !important;
+}
+.ladd-txt { font-size: 11px !important; }
+
+/* ── TASK INPUT ROW ─────────────────────── */
+.ti-row { gap: 6px !important; margin-bottom: 8px !important; }
+.ti, .search-input, .field, .sinput, .ninput, .file-input, .psel {
+  font-size: 13px !important;
+  padding: 8px 11px !important;
+  border-radius: var(--r-sm) !important;
+  border-color: var(--border) !important;
+}
+.ti:focus, .search-input:focus, .field:focus, .ninput:focus {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 3px var(--accent-soft) !important;
+}
+
+/* ── TLAČÍTKA ───────────────────────────── */
+.tadd, .btn, .sbtn, .mbtn {
+  padding: 8px 13px !important;
+  border-radius: var(--r-sm) !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  box-shadow: none !important;
+  transition: all 0.12s !important;
+}
+.tadd:hover, .btn:hover { transform: none !important; }
+
+/* ── TASK ITEMS ─────────────────────────── */
+.tlist, .nlist, .material-list, .evidence-list {
+  gap: 4px !important;
+  max-height: 280px !important;
+}
+.titem, .nitem, .mitem, .eitem {
+  padding: 8px 10px !important;
+  border-radius: var(--r-sm) !important;
+  gap: 8px !important;
+}
+.tck {
+  width: 17px !important;
+  height: 17px !important;
+  border-radius: 5px !important;
+  border-width: 1.5px !important;
+  flex-shrink: 0 !important;
+}
+.tck.checked::after { font-size: 10px !important; }
+.ttxt { font-size: 13px !important; line-height: 1.4 !important; }
+.tprio { font-size: 10px !important; padding: 2px 6px !important; border-radius: 20px !important; font-weight: 700 !important; flex-shrink: 0 !important; }
+.tempty { font-size: 12px !important; padding: 1rem 0 !important; }
+
+/* ── POZNÁMKY ───────────────────────────── */
+.nrow { gap: 6px !important; margin-bottom: 8px !important; }
+.ninput { min-height: 56px !important; resize: none !important; }
+.nsaved { font-size: 10px !important; margin-top: 4px !important; }
+.ntext, .m-main { font-size: 12px !important; line-height: 1.45 !important; }
+.nmeta, .m-meta { font-size: 10px !important; }
+.toolbar-row { gap: 6px !important; margin-bottom: 8px !important; }
+
+/* ── BADGE ──────────────────────────────── */
+.badge { font-size: 10px !important; padding: 3px 8px !important; border-radius: 20px !important; }
+
+/* ── TOAST — bottom center ──────────────── */
+.toast {
+  bottom: 1.5rem !important;
+  right: auto !important;
+  left: 50% !important;
+  transform: translateX(-50%) translateY(6px) !important;
+  border-radius: var(--r-sm) !important;
+  font-size: 13px !important;
+  padding: 10px 18px !important;
+  white-space: nowrap !important;
+  max-width: 90vw !important;
+}
+.toast.show { transform: translateX(-50%) translateY(0) !important; }
+
+/* ── DARK MODE tokeny ───────────────────── */
+:root.dark {
+  --shadow-xs: 0 1px 3px rgba(0,0,0,0.2);
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.25);
+}
+:root.dark .nav {
+  background: rgba(20,27,45,0.92) !important;
+}
+
+/* ══════════════════════════════════════════
+   MOBILE OVERRIDES — 390px / 768px
+══════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  /* Nav: horizontální scroll, bez overflow celé stránky */
+  .nav {
+    height: 50px !important;
+    padding: 0 0.75rem !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    scrollbar-width: none !important;
+  }
+  .nav::-webkit-scrollbar { display: none !important; }
+  .nav-logo { margin-right: 0.75rem !important; flex-shrink: 0 !important; }
+  .nav-logo img { width: 26px !important; height: 26px !important; }
+  .nav-logo-name { display: none !important; }
+  .nav-tabs { flex-shrink: 0 !important; gap: 1px !important; }
+  .ntab { padding: 0 10px !important; font-size: 12px !important; height: 50px !important; white-space: nowrap !important; }
+  .nav-right { flex-shrink: 0 !important; gap: 6px !important; }
+
+  /* Stránka */
+  .page { padding: 0.875rem 0.875rem 4rem !important; }
+
+  /* Stats: 2 sloupce na mobilu */
+  .stats {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 6px !important;
+  }
+  .stat { padding: 0.65rem 0.75rem !important; }
+  .stat-val { font-size: 17px !important; }
+  .stat-lbl { font-size: 9px !important; }
+  .stat-sub { font-size: 9px !important; }
+
+  /* Grid: 1 sloupec na mobilu */
+  .grid2 { grid-template-columns: 1fr !important; gap: 8px !important; }
+  .settings-grid { grid-template-columns: 1fr !important; }
+
+  /* Card */
+  .card { padding: 0.875rem 0.875rem !important; border-radius: var(--r-sm) !important; }
+  .card-hd { margin-bottom: 0.75rem !important; }
+
+  /* Rychlé odkazy — 1 sloupec, kompaktní */
+  .lgrid { grid-template-columns: 1fr !important; }
+  .lbtn { padding: 7px 9px !important; }
+  .ladd { grid-column: 1 !important; }
+
+  /* Tasks */
+  .ti-row { flex-wrap: nowrap !important; }
+  .ti { min-width: 0 !important; }
+  .titem { padding: 7px 9px !important; }
+  .ttxt { font-size: 12px !important; }
+
+  /* Tlačítka — žádný transform na mobilu */
+  .tadd, .btn, .sbtn, .mbtn { padding: 7px 12px !important; font-size: 12px !important; }
+
+  /* Toolbar row — wrap */
+  .toolbar-row { flex-wrap: wrap !important; }
+  .search-input { min-width: 0 !important; flex: 1 !important; }
+
+  /* Poznámky */
+  .nrow { flex-wrap: nowrap !important; }
+  .ninput { min-height: 48px !important; }
+
+  /* Table */
+  .table-wrap { overflow-x: auto !important; -webkit-overflow-scrolling: touch !important; }
+
+  /* No horizontal overflow */
+  body { overflow-x: hidden !important; }
+  .page { overflow-x: hidden !important; }
+}
+
+@media (max-width: 480px) {
+  .stat-val { font-size: 16px !important; }
+  .ntab { padding: 0 8px !important; font-size: 11px !important; }
+  .card { padding: 0.75rem !important; }
+}
 </style>
 <!-- Firebase SDKs -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
