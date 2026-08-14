@@ -1,18 +1,95 @@
-<!doctype html><html lang="cs"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SkolaApp preview</title><style>html,body{margin:0;height:100%;overflow:hidden}iframe{width:100%;height:100%;border:0}</style></head><body><iframe id="app" src="index.html"></iframe><script>
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#F7F7FA">
+<title>SkolaApp — mobilní shell preview</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#f7f7fa}
+iframe{width:100%;height:100%;border:0}
+</style>
+</head>
+<body>
+<iframe id="app" src="index.html"></iframe>
+<script>
 const frame=document.getElementById('app');
 frame.addEventListener('load',()=>{
   const d=frame.contentDocument;
-  const s=d.createElement('style');s.textContent=`
-@media(max-width:600px){body{padding-bottom:88px!important}.sc-bottom{position:fixed;left:12px;right:12px;bottom:calc(10px + env(safe-area-inset-bottom));height:68px;background:rgba(255,255,255,.92);backdrop-filter:blur(20px);border:1px solid #E8E8F0;border-radius:24px;box-shadow:0 12px 36px rgba(32,32,51,.14);z-index:9990;display:flex;align-items:center;justify-content:space-around}.sc-btn{border:0;background:none;color:#7C8198;font:600 11px Inter,-apple-system,sans-serif;display:flex;flex-direction:column;align-items:center;gap:4px;min-width:64px}.sc-btn svg{width:22px;height:22px}.sc-fab{width:58px;height:58px;border-radius:20px;background:#6C5CE7;color:#fff;box-shadow:0 8px 22px rgba(108,92,231,.35);margin-top:-24px}.sc-fab svg{width:25px;height:25px}.sc-capture{position:fixed;inset:0;background:rgba(20,20,35,.42);backdrop-filter:blur(8px);z-index:10000;display:none;align-items:flex-end;justify-content:center}.sc-capture.open{display:flex}.sc-sheet{width:100%;max-width:560px;background:#fff;border-radius:28px 28px 0 0;padding:20px 18px calc(20px + env(safe-area-inset-bottom));box-shadow:0 -16px 50px rgba(0,0,0,.18)}.sc-title{font:700 18px Inter,-apple-system,sans-serif;color:#202033;margin-bottom:4px}.sc-sub{font:400 13px Inter,-apple-system,sans-serif;color:#7C8198;margin-bottom:14px}.sc-text{width:100%;min-height:86px;border:1px solid #E8E8F0;border-radius:16px;padding:13px;box-sizing:border-box;font:500 16px Inter,-apple-system,sans-serif;resize:none;outline:none}.sc-actions{display:flex;gap:8px;margin-top:10px}.sc-actions button{flex:1;height:46px;border-radius:13px;border:1px solid #E8E8F0;font:600 14px Inter,-apple-system,sans-serif}.sc-save{background:#6C5CE7;color:#fff;border-color:#6C5CE7!important}.sc-mode{display:flex;gap:8px;margin-bottom:12px}.sc-mode button{height:36px;padding:0 14px;border-radius:999px;border:1px solid #E8E8F0;background:#F4F4F8;color:#7C8198;font:600 12px Inter,-apple-system,sans-serif}.sc-mode button.active{background:#F0EEFF;color:#6C5CE7;border-color:#D9D4FF}}
-@media(min-width:601px){.sc-bottom,.sc-capture{display:none!important}}`;
+  const s=d.createElement('style');
+  s.textContent=`
+  @media(max-width:700px){
+    :root{--m-primary:#6C5CE7;--m-primary-soft:#F0EEFF;--m-bg:#F7F7FA;--m-surface:#fff;--m-border:#E8E8F0;--m-ink:#202033;--m-muted:#7C8198}
+    body{padding:0 0 calc(92px + env(safe-area-inset-bottom))!important;background:var(--m-bg)!important;overflow-x:hidden!important}
+    .nav{height:58px!important;padding:0 16px!important;position:sticky!important;top:0!important;z-index:9980!important;border-bottom:1px solid var(--m-border)!important;background:rgba(255,255,255,.9)!important;backdrop-filter:blur(18px)!important;-webkit-backdrop-filter:blur(18px)!important}
+    .nav-logo{margin-right:0!important;gap:9px!important}.nav-logo img{width:30px!important;height:30px!important;border-radius:9px!important}.nav-logo-name{font-size:13px!important}
+    .nav-tabs{display:none!important}.nav-right{margin-left:auto!important;gap:7px!important}.nav-name{display:none!important}.nav-bell{width:34px!important;height:34px!important}
+    .page{max-width:none!important;padding:20px 14px 28px!important}.page-hdr{margin-bottom:16px!important}.page-hdr h1{font-size:22px!important}.page-hdr p{font-size:12px!important}
+    .stats{grid-template-columns:repeat(3,1fr)!important;gap:8px!important;margin-bottom:10px!important}.stat{padding:11px 9px!important;border-radius:13px!important}.stat-val{font-size:20px!important}.stat-lbl{font-size:9px!important;letter-spacing:.04em!important}.stat-sub{font-size:9px!important}
+    .grid2{grid-template-columns:1fr!important;gap:10px!important}.card{border-radius:14px!important;padding:14px!important}.card-hd{margin-bottom:12px!important}
+    .lgrid{grid-template-columns:1fr 1fr!important}.toolbar-row{gap:7px!important}.search-input{min-width:0!important;width:100%!important}
+    .ti-row{gap:6px!important}.ti{min-width:0!important}.tadd{padding:8px 11px!important}
+    .sc-topbar{position:fixed;left:12px;right:12px;top:66px;height:38px;z-index:9970;display:flex;align-items:center;justify-content:center;pointer-events:none}
+    .sc-context{display:none}
+    .sc-bottom{position:fixed;left:10px;right:10px;bottom:calc(8px + env(safe-area-inset-bottom));height:70px;background:rgba(255,255,255,.94);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);border:1px solid rgba(232,232,240,.95);border-radius:23px;box-shadow:0 12px 38px rgba(32,32,51,.14);z-index:9990;display:grid;grid-template-columns:1fr 1fr 1.1fr 1fr 1fr;align-items:end;padding:0 5px 6px}
+    .sc-btn{position:relative;height:52px;border:0;background:transparent;color:var(--m-muted);font:600 10px Inter,-apple-system,BlinkMacSystemFont,sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px;min-width:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
+    .sc-btn svg{width:21px;height:21px;stroke:currentColor}.sc-btn.active{color:var(--m-primary)}.sc-btn.active:after{content:'';width:4px;height:4px;border-radius:50%;background:var(--m-primary);position:absolute;bottom:-2px}
+    .sc-fab-wrap{height:76px;display:flex;justify-content:center;align-items:flex-start}
+    .sc-fab{margin-top:-19px!important;width:62px!important;height:62px!important;border-radius:21px!important;background:var(--m-primary)!important;color:#fff!important;box-shadow:0 10px 24px rgba(108,92,231,.32)!important;display:flex!important;align-items:center!important;justify-content:center!important;gap:0!important}
+    .sc-fab svg{width:27px!important;height:27px!important}.sc-fab-label{position:absolute;bottom:1px;color:var(--m-primary);font:700 10px Inter,-apple-system,BlinkMacSystemFont,sans-serif;white-space:nowrap}
+    .sc-capture{position:fixed;inset:0;background:rgba(20,20,35,.42);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);z-index:10000;display:none;align-items:flex-end;justify-content:center;opacity:0;transition:opacity .18s ease}
+    .sc-capture.open{display:flex;opacity:1}.sc-sheet{width:100%;max-width:560px;background:var(--m-surface);border-radius:28px 28px 0 0;padding:10px 18px calc(18px + env(safe-area-inset-bottom));box-shadow:0 -18px 60px rgba(0,0,0,.2);transform:translateY(8px);transition:transform .2s ease}.sc-capture.open .sc-sheet{transform:translateY(0)}
+    .sc-grab{width:38px;height:4px;background:#DADAE5;border-radius:9px;margin:0 auto 15px}.sc-title{font:700 20px Inter,-apple-system,sans-serif;color:var(--m-ink);margin-bottom:3px;letter-spacing:-.02em}.sc-sub{font:400 13px Inter,-apple-system,sans-serif;color:var(--m-muted);margin-bottom:15px}
+    .sc-mode{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:11px;background:#F4F4F8;padding:4px;border-radius:13px}.sc-mode button{height:38px;border:0;border-radius:10px;background:transparent;color:var(--m-muted);font:700 12px Inter,-apple-system,sans-serif}.sc-mode button.active{background:#fff;color:var(--m-primary);box-shadow:0 1px 5px rgba(32,32,51,.08)}
+    .sc-voice{display:flex;align-items:center;gap:11px;padding:11px 12px;border:1px solid var(--m-border);border-radius:14px;margin-bottom:10px;background:#FCFCFE}.sc-voice-icon{width:38px;height:38px;border-radius:12px;background:var(--m-primary-soft);color:var(--m-primary);display:flex;align-items:center;justify-content:center;flex:0 0 auto}.sc-voice-copy strong{display:block;font:700 12px Inter,-apple-system,sans-serif;color:var(--m-ink)}.sc-voice-copy span{display:block;font:400 11px Inter,-apple-system,sans-serif;color:var(--m-muted);margin-top:2px}
+    .sc-text{width:100%;min-height:92px;max-height:180px;border:1px solid var(--m-border);border-radius:15px;padding:13px;box-sizing:border-box;font:500 16px/1.45 Inter,-apple-system,sans-serif;resize:none;outline:none;color:var(--m-ink);background:#fff}.sc-text:focus{border-color:var(--m-primary);box-shadow:0 0 0 3px var(--m-primary-soft)}
+    .sc-actions{display:grid;grid-template-columns:1fr 1.6fr;gap:8px;margin-top:10px}.sc-actions button{height:48px;border-radius:13px;border:1px solid var(--m-border);font:700 14px Inter,-apple-system,sans-serif}.sc-save{background:var(--m-primary);color:#fff;border-color:var(--m-primary)!important}
+    .sc-hint{font:400 10px Inter,-apple-system,sans-serif;color:#A8ABBE;text-align:center;margin-top:9px}
+  }
+  @media(min-width:701px){.sc-bottom,.sc-capture,.sc-topbar{display:none!important}}
+  `;
   d.head.appendChild(s);
-  const n=d.createElement('nav');n.className='sc-bottom';n.innerHTML=`<button class="sc-btn" data-p="dashboard">Přehled</button><button class="sc-btn" data-p="materials">Materiály</button><button class="sc-btn sc-fab" id="sc-mic" aria-label="Rychlé zachycení">🎙</button><button class="sc-btn" data-p="evidence">Evidence</button><button class="sc-btn" data-p="settings">Nastavení</button>`;d.body.appendChild(n);
-  const ov=d.createElement('div');ov.className='sc-capture';ov.innerHTML=`<div class="sc-sheet"><div class="sc-title">Rychlé zachycení</div><div class="sc-sub">Řekni nebo napiš, co si nechceš nechat utéct.</div><div class="sc-mode"><button class="active" id="sc-task">Úkol</button><button id="sc-note">Myšlenka</button></div><textarea class="sc-text" id="sc-text" placeholder="Např. zkontrolovat rozvrh 6.B…"></textarea><div class="sc-actions"><button id="sc-cancel">Zrušit</button><button class="sc-save" id="sc-save">Uložit</button></div></div>`;d.body.appendChild(ov);
+
+  const svg={
+    home:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M3 10.5 12 3l9 7.5"/><path d="M5.5 9.5V21h13V9.5"/><path d="M9.5 21v-6h5v6"/></svg>',
+    material:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 4h16v16H4z"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>',
+    evidence:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M6 3h12v18H6z"/><path d="M9 7h6M9 11h6M9 15h4"/></svg>',
+    settings:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 3.5l1.1 2.6 2.8.7 2.4-1.2 1.4 1.4-1.2 2.4.7 2.8 2.6 1.1v2l-2.6 1.1-.7 2.8 1.2 2.4-1.4 1.4-2.4-1.2-2.8.7-1.1 2.6h-2l-1.1-2.6-2.8-.7-2.4 1.2-1.4-1.4 1.2-2.4-.7-2.8L.5 14.5v-2l2.6-1.1.7-2.8-1.2-2.4L4 4.8l2.4 1.2 2.8-.7 1.1-2.6z"/></svg>',
+    mic:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="8" y="3" width="8" height="12" rx="4"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3M8 21h8"/></svg>',
+    x:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 6 12 12M18 6 6 18"/></svg>'
+  };
+
+  const nav=d.createElement('nav');nav.className='sc-bottom';
+  nav.innerHTML=`
+    <button class="sc-btn active" data-p="dashboard">${svg.home}<span>Přehled</span></button>
+    <button class="sc-btn" data-p="materials">${svg.material}<span>Materiály</span></button>
+    <div class="sc-fab-wrap"><button class="sc-btn sc-fab" id="sc-mic" aria-label="Rychlé zachycení">${svg.mic}<span class="sc-fab-label">Zachytit</span></button></div>
+    <button class="sc-btn" data-p="evidence">${svg.evidence}<span>Evidence</span></button>
+    <button class="sc-btn" data-p="settings">${svg.settings}<span>Nastavení</span></button>`;
+  d.body.appendChild(nav);
+
+  const ov=d.createElement('div');ov.className='sc-capture';ov.innerHTML=`
+    <div class="sc-sheet" role="dialog" aria-modal="true" aria-label="Rychlé zachycení">
+      <div class="sc-grab"></div>
+      <div class="sc-title">Rychlé zachycení</div>
+      <div class="sc-sub">Jedna myšlenka, jeden úkol. Bez hledání správné sekce.</div>
+      <div class="sc-mode"><button class="active" id="sc-task">Úkol</button><button id="sc-note">Myšlenka</button></div>
+      <div class="sc-voice"><div class="sc-voice-icon">${svg.mic}</div><div class="sc-voice-copy"><strong>Klepni a mluv</strong><span>Hlasový vstup připravíme jako další krok</span></div></div>
+      <textarea class="sc-text" id="sc-text" placeholder="Např. zkontrolovat rozvrh 6.B…" autocomplete="off"></textarea>
+      <div class="sc-actions"><button id="sc-cancel">Zrušit</button><button class="sc-save" id="sc-save">Uložit</button></div>
+      <div class="sc-hint">Uložený obsah se objeví ve své běžné sekci.</div>
+    </div>`;
+  d.body.appendChild(ov);
+
   const text=ov.querySelector('#sc-text');let mode='task';
-  ov.querySelector('#sc-task').onclick=()=>{mode='task';ov.querySelector('#sc-task').classList.add('active');ov.querySelector('#sc-note').classList.remove('active');text.placeholder='Např. zkontrolovat rozvrh 6.B…';text.focus()};
-  ov.querySelector('#sc-note').onclick=()=>{mode='note';ov.querySelector('#sc-note').classList.add('active');ov.querySelector('#sc-task').classList.remove('active');text.placeholder='Např. nápad na poradu, co nesmím zapomenout…';text.focus()};
-  ov.querySelector('#sc-cancel').onclick=()=>ov.classList.remove('open');
-  ov.querySelector('#sc-save').onclick=()=>{const v=text.value.trim();if(!v)return;if(mode==='task'){const inp=d.getElementById('taskInput');inp.value=v;d.getElementById('taskAddBtn').click();}else{const inp=d.getElementById('noteDraft');inp.value=v;d.getElementById('saveNoteBtn').click();}text.value='';ov.classList.remove('open')};
-  n.querySelector('#sc-mic').onclick=()=>{ov.classList.add('open');text.focus()};
-  n.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{const t=d.querySelector('.ntab[data-page="'+b.dataset.p+'"]');if(t)t.click()});
-});</script></body></html>
+  const setMode=(next)=>{mode=next;const task=ov.querySelector('#sc-task'),note=ov.querySelector('#sc-note');task.classList.toggle('active',mode==='task');note.classList.toggle('active',mode==='note');text.placeholder=mode==='task'?'Např. zkontrolovat rozvrh 6.B…':'Např. nápad na poradu, co nesmím zapomenout…';setTimeout(()=>text.focus(),40)};
+  ov.querySelector('#sc-task').onclick=()=>setMode('task');ov.querySelector('#sc-note').onclick=()=>setMode('note');
+  const close=()=>{ov.classList.remove('open');setTimeout(()=>{text.value=''},180)};
+  ov.querySelector('#sc-cancel').onclick=close;ov.addEventListener('click',e=>{if(e.target===ov)close()});
+  ov.querySelector('#sc-save').onclick=()=>{const v=text.value.trim();if(!v){text.focus();return}if(mode==='task'){const inp=d.getElementById('taskInput'),btn=d.getElementById('taskAddBtn');if(inp&&btn){inp.value=v;btn.click()}}else{const inp=d.getElementById('noteDraft'),btn=d.getElementById('saveNoteBtn');if(inp&&btn){inp.value=v;btn.click()}}close()};
+  nav.querySelector('#sc-mic').onclick=()=>{ov.classList.add('open');setMode(mode)};
+  nav.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{nav.querySelectorAll('.sc-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');const t=d.querySelector('.ntab[data-page="'+b.dataset.p+'"]');if(t)t.click()});
+});
+</script>
+</body>
+</html>
