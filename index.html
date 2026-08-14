@@ -648,6 +648,137 @@ html, body {
   }
 }
 
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   MOBILE UI FIX — hamburger + linky + typo
+   Desktop (>600px) beze změny
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+/* ── Typografie — lepší kontrast sekundárních textů ── */
+.card-sub, .stat-sub, .ld, .nmeta, .m-meta, .tempty,
+.nav-name, .nsaved, .ladd-txt {
+  color: #6B7280;
+}
+.card-ttl, .stat-lbl, .badge, .tprio { color: #374151; }
+.ttxt, .ntext, .ln { color: #111827; }
+
+/* ── Mob header — výchozí skrytý ── */
+.mob-hd {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 10px;
+}
+.mob-hb {
+  background: none; border: none; cursor: pointer;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 4px; padding: 8px; flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+.mob-hb span {
+  display: block; width: 18px; height: 2px;
+  background: var(--ink); border-radius: 2px;
+  transition: all 0.22s;
+}
+.mob-hd-title {
+  flex: 1; text-align: center;
+  font-size: 14px; font-weight: 700; color: var(--ink);
+}
+.mob-hd-right {
+  display: flex; align-items: center; gap: 6px; flex-shrink: 0;
+}
+
+/* ── Drawer ── */
+.mob-drawer-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.35); z-index: 300;
+  backdrop-filter: blur(2px);
+}
+.mob-drawer-overlay.open { display: block; }
+.mob-drawer {
+  position: fixed; top: 0; left: 0; bottom: 0;
+  width: 240px; background: var(--surface);
+  border-right: 1px solid var(--border);
+  box-shadow: 4px 0 24px rgba(0,0,0,0.08);
+  z-index: 301; display: flex; flex-direction: column;
+  transform: translateX(-100%);
+  transition: transform 0.25s cubic-bezier(0.16,1,0.3,1);
+}
+.mob-drawer.open { transform: translateX(0); }
+.mob-drawer-hd {
+  display: flex; align-items: center; gap: 10px;
+  padding: 16px 14px; border-bottom: 1px solid var(--border);
+}
+.mob-drawer-close {
+  margin-left: auto; background: none; border: none;
+  cursor: pointer; font-size: 16px; color: var(--ink3);
+  padding: 4px 6px; border-radius: 6px;
+}
+.mob-drawer-nav { padding: 8px; flex: 1; }
+.mob-drawer-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 11px 12px; border-radius: 9px;
+  font-size: 13px; font-weight: 500; color: var(--ink2);
+  cursor: pointer; transition: background 0.12s;
+  margin-bottom: 2px;
+}
+.mob-drawer-item:hover { background: var(--surface2); color: var(--ink); }
+.mob-drawer-item.active {
+  background: var(--accent-soft); color: var(--accent);
+  font-weight: 600;
+}
+.mob-drawer-foot { padding: 12px; border-top: 1px solid var(--border); }
+
+@media (max-width: 600px) {
+  /* ── Skryj desktopový nav obsah ── */
+  .nav-logo,
+  .nav-tabs,
+  .nav-right { display: none !important; }
+
+  /* ── Zobraz mob header ── */
+  .mob-hd { display: flex !important; }
+
+  /* Nav container — nízký, čistý */
+  .nav {
+    height: 50px !important;
+    padding: 0 4px 0 2px !important;
+    overflow: visible !important;
+  }
+
+  /* ── Rychlé odkazy — kompaktní 64px výška ── */
+  .lbtn {
+    padding: 8px 10px !important;
+    min-height: 44px !important;
+    max-height: 64px !important;
+    border-radius: 10px !important;
+    gap: 8px !important;
+  }
+  .lgrid { gap: 4px !important; }
+  .li, .link-logo-img {
+    width: 26px !important; height: 26px !important;
+    border-radius: 7px !important; flex-shrink: 0 !important;
+  }
+  .ln { font-size: 12px !important; }
+  .ld { font-size: 10px !important; }
+
+  /* ── Karty — menší padding a mezery ── */
+  .card {
+    padding: 0.8rem 0.875rem !important;
+    border-radius: 12px !important;
+    margin-bottom: 8px !important;
+  }
+  .card-hd { margin-bottom: 0.7rem !important; }
+  .grid2 {
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+    margin-bottom: 8px !important;
+  }
+  .stats { margin-bottom: 8px !important; }
+  .page { padding: 0.75rem 0.75rem 3rem !important; }
+}
+
 </style>
 <!-- Firebase SDKs -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -674,6 +805,37 @@ html, body {
 </div>
 
 <nav class="nav">
+  <!-- Mobilní header (viditelný pouze na mobilu ≤600px) -->
+  <div class="mob-hd" id="mobHd">
+    <button class="mob-hb" id="mobHbBtn" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+    <span class="mob-hd-title" id="mobPageTitle">Dashboard</span>
+    <div class="mob-hd-right">
+      <div id="fbSyncDotMob" style="width:7px;height:7px;border-radius:50%;background:#22C55E;transition:background 0.3s;flex-shrink:0"></div>
+      <div class="avatar" id="navAvatarMob">U</div>
+    </div>
+  </div>
+  <!-- Mobilní drawer overlay -->
+  <div class="mob-drawer-overlay" id="mobDrawerOverlay"></div>
+  <!-- Mobilní drawer -->
+  <div class="mob-drawer" id="mobDrawer">
+    <div class="mob-drawer-hd">
+      <img id="navLogoMob" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%233B82F6'/%3E%3Ctext x='32' y='42' text-anchor='middle' font-size='32' font-family='sans-serif' fill='white'%3EZ%C5%A0%3C/text%3E%3C/svg%3E" alt="Logo" style="width:28px;height:28px;border-radius:8px">
+      <span style="font-size:13px;font-weight:700;color:var(--ink)">ZŠ Ohradní 49</span>
+      <button class="mob-drawer-close" id="mobDrawerClose">✕</button>
+    </div>
+    <div class="mob-drawer-nav">
+      <div class="mob-drawer-item active" data-page="dashboard">🏠 Dashboard</div>
+      <div class="mob-drawer-item" data-page="materials">📚 Materiály</div>
+      <div class="mob-drawer-item" data-page="evidence">📋 Evidence</div>
+      <div class="mob-drawer-item" data-page="dohledy">👁 Dohledy</div>
+      <div class="mob-drawer-item" data-page="settings">⚙️ Nastavení</div>
+    </div>
+    <div class="mob-drawer-foot">
+      <button id="fbSignOutBtnMob" onclick="fbSignOut()" style="display:none;width:100%;padding:9px;background:none;border:1px solid var(--border);border-radius:9px;color:var(--ink2);cursor:pointer;font-size:12px;font-family:var(--font);">Odhlásit se</button>
+    </div>
+  </div>
   <div class="nav-logo">
     <img id="navLogo" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%233B82F6'/%3E%3Ctext x='32' y='42' text-anchor='middle' font-size='32' font-family='sans-serif' fill='white'%3EZ%C5%A0%3C/text%3E%3C/svg%3E" alt="Logo ZŠ Ohradní 49">
     <span class="nav-logo-name" id="navSchoolName">ZŠ Ohradní 49</span>
@@ -2541,6 +2703,66 @@ renderEvidence();
 
 
 
+
+
+// ── MOBILE HAMBURGER DRAWER ──────────────────────────────────────────────
+(function() {
+  var hbBtn   = document.getElementById('mobHbBtn');
+  var drawer  = document.getElementById('mobDrawer');
+  var overlay = document.getElementById('mobDrawerOverlay');
+  var closeBtn = document.getElementById('mobDrawerClose');
+  var title   = document.getElementById('mobPageTitle');
+  var pageNames = {dashboard:'Dashboard', materials:'Materiály', evidence:'Evidence', dohledy:'Dohledy', settings:'Nastavení'};
+
+  function openDrawer()  { if(drawer) drawer.classList.add('open');   if(overlay) overlay.classList.add('open'); }
+  function closeDrawer() { if(drawer) drawer.classList.remove('open'); if(overlay) overlay.classList.remove('open'); }
+
+  if (hbBtn)   hbBtn.addEventListener('click', openDrawer);
+  if (closeBtn) closeBtn.addEventListener('click', closeDrawer);
+  if (overlay) overlay.addEventListener('click', closeDrawer);
+
+  // Navigace přes drawer — volá existující ntab klik
+  document.querySelectorAll('.mob-drawer-item[data-page]').forEach(function(item) {
+    item.addEventListener('click', function() {
+      var pg = item.getAttribute('data-page');
+      // Zavolej existující tab logiku
+      var existingTab = document.querySelector('.ntab[data-page="' + pg + '"]');
+      if (existingTab) existingTab.click();
+      // Aktualizuj aktivní stav v draweru
+      document.querySelectorAll('.mob-drawer-item').forEach(function(i) { i.classList.remove('active'); });
+      item.classList.add('active');
+      // Aktualizuj title v mob headeru
+      if (title) title.textContent = pageNames[pg] || pg;
+      closeDrawer();
+    });
+  });
+
+  // Sync avataru a stavu přihlášení
+  function syncMobUI(user) {
+    var av = document.getElementById('navAvatarMob');
+    var signOutMob = document.getElementById('fbSignOutBtnMob');
+    if (!av) return;
+    if (user) {
+      var initials = (user.displayName || user.email || 'U').charAt(0).toUpperCase();
+      if (user.photoURL) {
+        av.innerHTML = '<img src="' + user.photoURL + '" style="width:100%;height:100%;border-radius:50%;object-fit:cover">';
+      } else {
+        av.textContent = initials;
+      }
+      if (signOutMob) signOutMob.style.display = 'block';
+    } else {
+      av.textContent = 'U';
+    }
+  }
+
+  // Čekej na Firebase auth
+  var chk = setInterval(function() {
+    if (window.auth) {
+      clearInterval(chk);
+      window.auth.onAuthStateChanged(syncMobUI);
+    }
+  }, 100);
+})();
 
 </script>
 </html>
