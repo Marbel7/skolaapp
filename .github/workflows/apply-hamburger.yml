@@ -21,8 +21,21 @@ jobs:
           from pathlib import Path
           p = Path('index.html')
           s = p.read_text(encoding='utf-8')
+
+          # Always make the native mobile shell available on the main page.
+          if 'mobile-enhancement.js' not in s:
+              tag = '<script src="mobile-enhancement.js"></script>\n'
+              lower = s.lower()
+              pos = lower.rfind('</body>')
+              if pos < 0:
+                  pos = lower.rfind('</html>')
+              if pos < 0:
+                  raise SystemExit('No closing html tag found')
+              s = s[:pos] + tag + s[pos:]
+
           marker = 'HAMBURGER MENU — modern drawer v2'
           if marker in s:
+              p.write_text(s, encoding='utf-8')
               raise SystemExit(0)
 
           replacements = {
