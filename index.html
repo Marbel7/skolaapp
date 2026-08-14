@@ -823,8 +823,7 @@ html, body {
 /* Zároveň zamkneme scroll při otevřeném menu */
 body.drawer-open {
   overflow: hidden !important;
-  position: fixed !important;
-  width: 100% !important;
+  /* position: fixed odstraněno — způsobovalo scroll jump */
 }
 
 /* Drawer položky — pevné, nepřekrývající se */
@@ -863,14 +862,28 @@ body.drawer-open {
 
 
 /* ━━ DRAWER ROOT FIX — drawer je nyní mimo nav, má vlastní stacking context ━━ */
-.mob-drawer-overlay,
-.mob-drawer {
-  /* Jistota že nejsme omezeni žádným parent stacking contextem */
-  -webkit-transform: translateZ(0);
-}
+/* mob-drawer isolation handled by z-index only */
 .mob-drawer {
   background: #fff !important;
   background-color: #fff !important;
+}
+
+
+/* ━━ DRAWER INIT FIX — výchozí stav VŽDY zavřený ━━━━━━━━━━━━━━━━━━━━━━━
+   Přebíjí všechny předchozí transform definice.
+   Drawer se otevře POUZE přidáním class .open přes JS klik.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.mob-drawer {
+  transform: translateX(-100%) !important;
+}
+.mob-drawer.open {
+  transform: translateX(0) !important;
+}
+.mob-drawer-overlay {
+  display: none !important;
+}
+.mob-drawer-overlay.open {
+  display: block !important;
 }
 
 </style>
