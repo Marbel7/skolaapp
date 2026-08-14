@@ -861,6 +861,18 @@ body.drawer-open {
 
 /* ━━ KONEC HAMBURGER DRAWER FIX ━━━━━━━━━━━━━━━━━━━━━━ */
 
+
+/* ━━ DRAWER ROOT FIX — drawer je nyní mimo nav, má vlastní stacking context ━━ */
+.mob-drawer-overlay,
+.mob-drawer {
+  /* Jistota že nejsme omezeni žádným parent stacking contextem */
+  -webkit-transform: translateZ(0);
+}
+.mob-drawer {
+  background: #fff !important;
+  background-color: #fff !important;
+}
+
 </style>
 <!-- Firebase SDKs -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -898,26 +910,7 @@ body.drawer-open {
       <div class="avatar" id="navAvatarMob">U</div>
     </div>
   </div>
-  <!-- Mobilní drawer overlay -->
-  <div class="mob-drawer-overlay" id="mobDrawerOverlay"></div>
-  <!-- Mobilní drawer -->
-  <div class="mob-drawer" id="mobDrawer">
-    <div class="mob-drawer-hd">
-      <img id="navLogoMob" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%233B82F6'/%3E%3Ctext x='32' y='42' text-anchor='middle' font-size='32' font-family='sans-serif' fill='white'%3EZ%C5%A0%3C/text%3E%3C/svg%3E" alt="Logo" style="width:28px;height:28px;border-radius:8px">
-      <span style="font-size:13px;font-weight:700;color:var(--ink)">ZŠ Ohradní 49</span>
-      <button class="mob-drawer-close" id="mobDrawerClose">✕</button>
-    </div>
-    <div class="mob-drawer-nav">
-      <div class="mob-drawer-item active" data-page="dashboard">🏠 Dashboard</div>
-      <div class="mob-drawer-item" data-page="materials">📚 Materiály</div>
-      <div class="mob-drawer-item" data-page="evidence">📋 Evidence</div>
-      <div class="mob-drawer-item" data-page="dohledy">👁 Dohledy</div>
-      <div class="mob-drawer-item" data-page="settings">⚙️ Nastavení</div>
-    </div>
-    <div class="mob-drawer-foot">
-      <button id="fbSignOutBtnMob" onclick="fbSignOut()" style="display:none;width:100%;padding:9px;background:none;border:1px solid var(--border);border-radius:9px;color:var(--ink2);cursor:pointer;font-size:12px;font-family:var(--font);">Odhlásit se</button>
-    </div>
-  </div>
+
   <div class="nav-logo">
     <img id="navLogo" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%233B82F6'/%3E%3Ctext x='32' y='42' text-anchor='middle' font-size='32' font-family='sans-serif' fill='white'%3EZ%C5%A0%3C/text%3E%3C/svg%3E" alt="Logo ZŠ Ohradní 49">
     <span class="nav-logo-name" id="navSchoolName">ZŠ Ohradní 49</span>
@@ -941,6 +934,26 @@ body.drawer-open {
     <span class="nav-name" id="navGreet"></span>
   </div>
 </nav>
+  <!-- Mobilní drawer overlay -->
+  <div class="mob-drawer-overlay" id="mobDrawerOverlay"></div>
+  <!-- Mobilní drawer -->
+  <div class="mob-drawer" id="mobDrawer">
+    <div class="mob-drawer-hd">
+      <img id="navLogoMob" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%233B82F6'/%3E%3Ctext x='32' y='42' text-anchor='middle' font-size='32' font-family='sans-serif' fill='white'%3EZ%C5%A0%3C/text%3E%3C/svg%3E" alt="Logo" style="width:28px;height:28px;border-radius:8px">
+      <span style="font-size:13px;font-weight:700;color:var(--ink)">ZŠ Ohradní 49</span>
+      <button class="mob-drawer-close" id="mobDrawerClose">✕</button>
+    </div>
+    <div class="mob-drawer-nav">
+      <div class="mob-drawer-item active" data-page="dashboard">🏠 Dashboard</div>
+      <div class="mob-drawer-item" data-page="materials">📚 Materiály</div>
+      <div class="mob-drawer-item" data-page="evidence">📋 Evidence</div>
+      <div class="mob-drawer-item" data-page="dohledy">👁 Dohledy</div>
+      <div class="mob-drawer-item" data-page="settings">⚙️ Nastavení</div>
+    </div>
+    <div class="mob-drawer-foot">
+      <button id="fbSignOutBtnMob" onclick="fbSignOut()" style="display:none;width:100%;padding:9px;background:none;border:1px solid var(--border);border-radius:9px;color:var(--ink2);cursor:pointer;font-size:12px;font-family:var(--font);">Odhlásit se</button>
+    </div>
+  </div>
 
 <!-- DASHBOARD -->
 <div class="page active" id="page-dashboard">
