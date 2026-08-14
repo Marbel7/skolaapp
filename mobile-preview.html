@@ -19,7 +19,7 @@ frame.addEventListener('load',()=>{
   const s=d.createElement('style');
   s.textContent=`
   @media(max-width:700px){
-    :root{--m-primary:#6C5CE7;--m-primary-soft:#F0EEFF;--m-bg:#F7F7FA;--m-surface:#fff;--m-border:#E8E8F0;--m-ink:#202033;--m-muted:#7C8198}
+    :root{--m-primary:#6C5CE7;--m-primary-soft:#F0EEFF;--m-bg:#F7F7FA;--m-surface:#fff;--m-border:#E8E8F0;--m-ink:#202033;--m-muted:#7C8198;--m-red:#E45B6B}
     body{padding:0 0 calc(92px + env(safe-area-inset-bottom))!important;background:var(--m-bg)!important;overflow-x:hidden!important}
     .nav{height:58px!important;padding:0 16px!important;position:sticky!important;top:0!important;z-index:9980!important;border-bottom:1px solid var(--m-border)!important;background:rgba(255,255,255,.9)!important;backdrop-filter:blur(18px)!important;-webkit-backdrop-filter:blur(18px)!important}
     .nav-logo{margin-right:0!important;gap:9px!important}.nav-logo img{width:30px!important;height:30px!important;border-radius:9px!important}.nav-logo-name{font-size:13px!important}
@@ -29,24 +29,23 @@ frame.addEventListener('load',()=>{
     .grid2{grid-template-columns:1fr!important;gap:10px!important}.card{border-radius:14px!important;padding:14px!important}.card-hd{margin-bottom:12px!important}
     .lgrid{grid-template-columns:1fr 1fr!important}.toolbar-row{gap:7px!important}.search-input{min-width:0!important;width:100%!important}
     .ti-row{gap:6px!important}.ti{min-width:0!important}.tadd{padding:8px 11px!important}
-    .sc-topbar{position:fixed;left:12px;right:12px;top:66px;height:38px;z-index:9970;display:flex;align-items:center;justify-content:center;pointer-events:none}
-    .sc-context{display:none}
-    .sc-bottom{position:fixed;left:10px;right:10px;bottom:calc(8px + env(safe-area-inset-bottom));height:70px;background:rgba(255,255,255,.94);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);border:1px solid rgba(232,232,240,.95);border-radius:23px;box-shadow:0 12px 38px rgba(32,32,51,.14);z-index:9990;display:grid;grid-template-columns:1fr 1fr 1.1fr 1fr 1fr;align-items:end;padding:0 5px 6px}
+    .sc-bottom{position:fixed;left:10px;right:10px;bottom:calc(8px + env(safe-area-inset-bottom));height:70px;background:rgba(255,255,255,.94);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);border:1px solid rgba(232,232,240,.95);border-radius:23px;box-shadow:0 12px 38px rgba(32,32,51,.14);z-index:9990;display:grid;grid-template-columns:1fr 1fr 1.15fr 1fr 1fr;align-items:end;padding:0 5px 6px}
     .sc-btn{position:relative;height:52px;border:0;background:transparent;color:var(--m-muted);font:600 10px Inter,-apple-system,BlinkMacSystemFont,sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px;min-width:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
     .sc-btn svg{width:21px;height:21px;stroke:currentColor}.sc-btn.active{color:var(--m-primary)}.sc-btn.active:after{content:'';width:4px;height:4px;border-radius:50%;background:var(--m-primary);position:absolute;bottom:-2px}
     .sc-fab-wrap{height:76px;display:flex;justify-content:center;align-items:flex-start}
     .sc-fab{margin-top:-19px!important;width:62px!important;height:62px!important;border-radius:21px!important;background:var(--m-primary)!important;color:#fff!important;box-shadow:0 10px 24px rgba(108,92,231,.32)!important;display:flex!important;align-items:center!important;justify-content:center!important;gap:0!important}
     .sc-fab svg{width:27px!important;height:27px!important}.sc-fab-label{position:absolute;bottom:1px;color:var(--m-primary);font:700 10px Inter,-apple-system,BlinkMacSystemFont,sans-serif;white-space:nowrap}
-    .sc-capture{position:fixed;inset:0;background:rgba(20,20,35,.42);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);z-index:10000;display:none;align-items:flex-end;justify-content:center;opacity:0;transition:opacity .18s ease}
+    .sc-capture{position:fixed;inset:0;background:rgba(20,20,35,.46);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);z-index:10000;display:none;align-items:flex-end;justify-content:center;opacity:0;transition:opacity .18s ease}
     .sc-capture.open{display:flex;opacity:1}.sc-sheet{width:100%;max-width:560px;background:var(--m-surface);border-radius:28px 28px 0 0;padding:10px 18px calc(18px + env(safe-area-inset-bottom));box-shadow:0 -18px 60px rgba(0,0,0,.2);transform:translateY(8px);transition:transform .2s ease}.sc-capture.open .sc-sheet{transform:translateY(0)}
     .sc-grab{width:38px;height:4px;background:#DADAE5;border-radius:9px;margin:0 auto 15px}.sc-title{font:700 20px Inter,-apple-system,sans-serif;color:var(--m-ink);margin-bottom:3px;letter-spacing:-.02em}.sc-sub{font:400 13px Inter,-apple-system,sans-serif;color:var(--m-muted);margin-bottom:15px}
     .sc-mode{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:11px;background:#F4F4F8;padding:4px;border-radius:13px}.sc-mode button{height:38px;border:0;border-radius:10px;background:transparent;color:var(--m-muted);font:700 12px Inter,-apple-system,sans-serif}.sc-mode button.active{background:#fff;color:var(--m-primary);box-shadow:0 1px 5px rgba(32,32,51,.08)}
-    .sc-voice{display:flex;align-items:center;gap:11px;padding:11px 12px;border:1px solid var(--m-border);border-radius:14px;margin-bottom:10px;background:#FCFCFE}.sc-voice-icon{width:38px;height:38px;border-radius:12px;background:var(--m-primary-soft);color:var(--m-primary);display:flex;align-items:center;justify-content:center;flex:0 0 auto}.sc-voice-copy strong{display:block;font:700 12px Inter,-apple-system,sans-serif;color:var(--m-ink)}.sc-voice-copy span{display:block;font:400 11px Inter,-apple-system,sans-serif;color:var(--m-muted);margin-top:2px}
-    .sc-text{width:100%;min-height:92px;max-height:180px;border:1px solid var(--m-border);border-radius:15px;padding:13px;box-sizing:border-box;font:500 16px/1.45 Inter,-apple-system,sans-serif;resize:none;outline:none;color:var(--m-ink);background:#fff}.sc-text:focus{border-color:var(--m-primary);box-shadow:0 0 0 3px var(--m-primary-soft)}
-    .sc-actions{display:grid;grid-template-columns:1fr 1.6fr;gap:8px;margin-top:10px}.sc-actions button{height:48px;border-radius:13px;border:1px solid var(--m-border);font:700 14px Inter,-apple-system,sans-serif}.sc-save{background:var(--m-primary);color:#fff;border-color:var(--m-primary)!important}
-    .sc-hint{font:400 10px Inter,-apple-system,sans-serif;color:#A8ABBE;text-align:center;margin-top:9px}
+    .sc-voice{display:flex;align-items:center;gap:11px;padding:11px 12px;border:1px solid var(--m-border);border-radius:14px;margin-bottom:10px;background:#FCFCFE;cursor:pointer;transition:.18s}.sc-voice:active{transform:scale(.99)}.sc-voice.recording{border-color:#E7DFFF;background:#F7F5FF}.sc-voice-icon{width:38px;height:38px;border-radius:12px;background:var(--m-primary-soft);color:var(--m-primary);display:flex;align-items:center;justify-content:center;flex:0 0 auto}.sc-voice.recording .sc-voice-icon{background:var(--m-primary);color:#fff;animation:micPulse 1.35s infinite}.sc-voice-copy strong{display:block;font:700 12px Inter,-apple-system,sans-serif;color:var(--m-ink)}.sc-voice-copy span{display:block;font:400 11px Inter,-apple-system,sans-serif;color:var(--m-muted);margin-top:2px}.sc-record-time{margin-left:auto;font:700 11px ui-monospace,SFMono-Regular,monospace;color:var(--m-primary);display:none}.sc-voice.recording .sc-record-time{display:block}@keyframes micPulse{0%,100%{box-shadow:0 0 0 0 rgba(108,92,231,.18)}50%{box-shadow:0 0 0 8px rgba(108,92,231,.06)}}
+    .sc-live{display:none;align-items:center;gap:7px;margin:-2px 0 8px;color:var(--m-primary);font:700 11px Inter,-apple-system,sans-serif}.sc-live.on{display:flex}.sc-live-dot{width:7px;height:7px;border-radius:50%;background:var(--m-primary);animation:liveDot 1s infinite}@keyframes liveDot{50%{opacity:.35}}
+    .sc-text{width:100%;min-height:96px;max-height:190px;border:1px solid var(--m-border);border-radius:15px;padding:13px;box-sizing:border-box;font:500 16px/1.45 Inter,-apple-system,sans-serif;resize:none;outline:none;color:var(--m-ink);background:#fff}.sc-text:focus{border-color:var(--m-primary);box-shadow:0 0 0 3px var(--m-primary-soft)}
+    .sc-actions{display:grid;grid-template-columns:1fr 1.6fr;gap:8px;margin-top:10px}.sc-actions button{height:48px;border-radius:13px;border:1px solid var(--m-border);font:700 14px Inter,-apple-system,sans-serif}.sc-save{background:var(--m-primary);color:#fff;border-color:var(--m-primary)!important}.sc-save:disabled{opacity:.42}.sc-hint{font:400 10px Inter,-apple-system,sans-serif;color:#A8ABBE;text-align:center;margin-top:9px}
+    .sc-permission{display:none;margin-top:9px;padding:9px 11px;border-radius:11px;background:#FFF7E9;color:#9A671A;font:500 10px/1.35 Inter,-apple-system,sans-serif}.sc-permission.on{display:block}
   }
-  @media(min-width:701px){.sc-bottom,.sc-capture,.sc-topbar{display:none!important}}
+  @media(min-width:701px){.sc-bottom,.sc-capture{display:none!important}}
   `;
   d.head.appendChild(s);
 
@@ -54,9 +53,8 @@ frame.addEventListener('load',()=>{
     home:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M3 10.5 12 3l9 7.5"/><path d="M5.5 9.5V21h13V9.5"/><path d="M9.5 21v-6h5v6"/></svg>',
     material:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 4h16v16H4z"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>',
     evidence:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M6 3h12v18H6z"/><path d="M9 7h6M9 11h6M9 15h4"/></svg>',
-    settings:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 3.5l1.1 2.6 2.8.7 2.4-1.2 1.4 1.4-1.2 2.4.7 2.8 2.6 1.1v2l-2.6 1.1-.7 2.8 1.2 2.4-1.4 1.4-2.4-1.2-2.8.7-1.1 2.6h-2l-1.1-2.6-2.8-.7-2.4 1.2-1.4-1.4 1.2-2.4-.7-2.8L.5 14.5v-2l2.6-1.1.7-2.8-1.2-2.4L4 4.8l2.4 1.2 2.8-.7 1.1-2.6z"/></svg>',
-    mic:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="8" y="3" width="8" height="12" rx="4"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3M8 21h8"/></svg>',
-    x:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 6 12 12M18 6 6 18"/></svg>'
+    settings:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 3.5l1.1 2.6 2.8.7 2.4-1.2 1.4 1.4-1.2 2.4.7 2.8 2.6 1.1v2l-2.6 1.1-.7 2.8 1.2 2.4-1.4 1.4-2.4-1.2-2.8.7-1.1 2.6h-2l-1.1-2.6-2.8-.7-2.4 1.2-1.4-1.4 1.2-2.4-.7-2.8L.5 14.5v-2l2.6-1.1.7-2.8 1.2-2.4L4 4.8l2.4 1.2 2.8-.7 1.1-2.6z"/></svg>',
+    mic:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="8" y="3" width="8" height="12" rx="4"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3M8 21h8"/></svg>'
   };
 
   const nav=d.createElement('nav');nav.className='sc-bottom';
@@ -72,21 +70,55 @@ frame.addEventListener('load',()=>{
     <div class="sc-sheet" role="dialog" aria-modal="true" aria-label="Rychlé zachycení">
       <div class="sc-grab"></div>
       <div class="sc-title">Rychlé zachycení</div>
-      <div class="sc-sub">Jedna myšlenka, jeden úkol. Bez hledání správné sekce.</div>
+      <div class="sc-sub">Řekni nebo napiš, co si nechceš nechat utéct.</div>
       <div class="sc-mode"><button class="active" id="sc-task">Úkol</button><button id="sc-note">Myšlenka</button></div>
-      <div class="sc-voice"><div class="sc-voice-icon">${svg.mic}</div><div class="sc-voice-copy"><strong>Klepni a mluv</strong><span>Hlasový vstup připravíme jako další krok</span></div></div>
+      <div class="sc-voice" id="sc-voice" role="button" tabindex="0" aria-label="Spustit hlasové zadávání"><div class="sc-voice-icon">${svg.mic}</div><div class="sc-voice-copy"><strong id="sc-voice-title">Namluvit</strong><span id="sc-voice-copy">Klepni a řekni to vlastními slovy</span></div><span class="sc-record-time" id="sc-record-time">0:00</span></div>
+      <div class="sc-live" id="sc-live"><span class="sc-live-dot"></span><span>Poslouchám… přepis se tvoří průběžně</span></div>
       <textarea class="sc-text" id="sc-text" placeholder="Např. zkontrolovat rozvrh 6.B…" autocomplete="off"></textarea>
-      <div class="sc-actions"><button id="sc-cancel">Zrušit</button><button class="sc-save" id="sc-save">Uložit</button></div>
-      <div class="sc-hint">Uložený obsah se objeví ve své běžné sekci.</div>
+      <div class="sc-actions"><button id="sc-cancel">Zrušit</button><button class="sc-save" id="sc-save" disabled>Uložit</button></div>
+      <div class="sc-permission" id="sc-permission"></div>
+      <div class="sc-hint">Hlas se po zastavení převede na upravitelný text. Nic se neuloží bez tvého potvrzení.</div>
     </div>`;
   d.body.appendChild(ov);
 
-  const text=ov.querySelector('#sc-text');let mode='task';
-  const setMode=(next)=>{mode=next;const task=ov.querySelector('#sc-task'),note=ov.querySelector('#sc-note');task.classList.toggle('active',mode==='task');note.classList.toggle('active',mode==='note');text.placeholder=mode==='task'?'Např. zkontrolovat rozvrh 6.B…':'Např. nápad na poradu, co nesmím zapomenout…';setTimeout(()=>text.focus(),40)};
-  ov.querySelector('#sc-task').onclick=()=>setMode('task');ov.querySelector('#sc-note').onclick=()=>setMode('note');
-  const close=()=>{ov.classList.remove('open');setTimeout(()=>{text.value=''},180)};
-  ov.querySelector('#sc-cancel').onclick=close;ov.addEventListener('click',e=>{if(e.target===ov)close()});
-  ov.querySelector('#sc-save').onclick=()=>{const v=text.value.trim();if(!v){text.focus();return}if(mode==='task'){const inp=d.getElementById('taskInput'),btn=d.getElementById('taskAddBtn');if(inp&&btn){inp.value=v;btn.click()}}else{const inp=d.getElementById('noteDraft'),btn=d.getElementById('saveNoteBtn');if(inp&&btn){inp.value=v;btn.click()}}close()};
+  const text=ov.querySelector('#sc-text');
+  const voice=ov.querySelector('#sc-voice');
+  const voiceTitle=ov.querySelector('#sc-voice-title');
+  const voiceCopy=ov.querySelector('#sc-voice-copy');
+  const live=ov.querySelector('#sc-live');
+  const timer=ov.querySelector('#sc-record-time');
+  const permission=ov.querySelector('#sc-permission');
+  const save=ov.querySelector('#sc-save');
+  let mode='task', recognition=null, recording=false, startedAt=0, timerId=null, finalTranscript='';
+
+  const setSave=()=>{save.disabled=!text.value.trim()};
+  const setMode=(next)=>{mode=next;const task=ov.querySelector('#sc-task'),note=ov.querySelector('#sc-note');task.classList.toggle('active',mode==='task');note.classList.toggle('active',mode==='note');text.placeholder=mode==='task'?'Např. zkontrolovat rozvrh 6.B…':'Např. nápad na poradu, co nesmím zapomenout…';if(!recording)setTimeout(()=>text.focus(),40)};
+  ov.querySelector('#sc-task').onclick=()=>setMode('task');
+  ov.querySelector('#sc-note').onclick=()=>setMode('note');
+  text.addEventListener('input',setSave);
+
+  function formatTime(ms){const sec=Math.floor(ms/1000);return Math.floor(sec/60)+':'+String(sec%60).padStart(2,'0')}
+  function setRecordingUI(on){recording=on;voice.classList.toggle('recording',on);live.classList.toggle('on',on);voiceTitle.textContent=on?'Poslouchám…':'Namluvit';voiceCopy.textContent=on?'Klepni znovu a zastav nahrávání':'Klepni a řekni to vlastními slovy';if(on){startedAt=Date.now();timer.textContent='0:00';timerId=setInterval(()=>timer.textContent=formatTime(Date.now()-startedAt),250)}else{clearInterval(timerId);timerId=null}}
+  function stopRecognition(){if(recognition){try{recognition.stop()}catch(e){}}}
+  function startRecognition(){
+    const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+    if(!SR){permission.textContent='Tento prohlížeč nepodporuje živý hlasový přepis. Použij klávesnici, nebo otevři aplikaci v Safari/Chrome s podporou diktování.';permission.classList.add('on');return}
+    permission.classList.remove('on');
+    recognition=new SR(); recognition.lang='cs-CZ'; recognition.continuous=true; recognition.interimResults=true;
+    finalTranscript=text.value.trim(); if(finalTranscript) finalTranscript+=' ';
+    recognition.onstart=()=>setRecordingUI(true);
+    recognition.onresult=(event)=>{let interim='';for(let i=event.resultIndex;i<event.results.length;i++){const r=event.results[i];if(r.isFinal)finalTranscript+=r[0].transcript+' ';else interim+=r[0].transcript}text.value=(finalTranscript+interim).trim();setSave()};
+    recognition.onerror=(event)=>{setRecordingUI(false);if(event.error==='not-allowed'||event.error==='service-not-allowed'){permission.textContent='Přístup k mikrofonu nebyl povolen. Povol mikrofon pro tento web a zkus to znovu.';permission.classList.add('on')}else if(event.error!=='aborted'){permission.textContent='Hlasový vstup se nepodařilo spustit. Text můžeš dál zadat ručně.';permission.classList.add('on')}setSave()};
+    recognition.onend=()=>{if(recording){setRecordingUI(false)}setSave()};
+    try{recognition.start()}catch(e){setRecordingUI(false);permission.textContent='Hlasový vstup se právě nepodařilo spustit. Zkus to prosím ještě jednou.';permission.classList.add('on')}
+  }
+  voice.onclick=()=>{if(recording){stopRecognition();setRecordingUI(false);setSave()}else startRecognition()};
+  voice.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();voice.click()}};
+
+  const close=()=>{stopRecognition();setRecordingUI(false);ov.classList.remove('open');setTimeout(()=>{text.value='';finalTranscript='';permission.classList.remove('on');setSave()},180)};
+  ov.querySelector('#sc-cancel').onclick=close;
+  ov.addEventListener('click',e=>{if(e.target===ov)close()});
+  ov.querySelector('#sc-save').onclick=()=>{const v=text.value.trim();if(!v){text.focus();return}stopRecognition();setRecordingUI(false);if(mode==='task'){const inp=d.getElementById('taskInput'),btn=d.getElementById('taskAddBtn');if(inp&&btn){inp.value=v;btn.click()}}else{const inp=d.getElementById('noteDraft'),btn=d.getElementById('saveNoteBtn');if(inp&&btn){inp.value=v;btn.click()}}close()};
   nav.querySelector('#sc-mic').onclick=()=>{ov.classList.add('open');setMode(mode)};
   nav.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{nav.querySelectorAll('.sc-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');const t=d.querySelector('.ntab[data-page="'+b.dataset.p+'"]');if(t)t.click()});
 });
