@@ -15,15 +15,14 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Apply visual-only hamburger redesign
+      - name: Inject native mobile shell
         run: |
           python3 - <<'PY'
           from pathlib import Path
           p = Path('index.html')
           s = p.read_text(encoding='utf-8')
-
-          # Always make the native mobile shell available on the main page.
-          if 'mobile-enhancement.js' not in s:
+          marker = 'mobile-enhancement.js'
+          if marker not in s:
               tag = '<script src="mobile-enhancement.js"></script>\n'
               lower = s.lower()
               pos = lower.rfind('</body>')
@@ -32,163 +31,17 @@ jobs:
               if pos < 0:
                   raise SystemExit('No closing html tag found')
               s = s[:pos] + tag + s[pos:]
-
-          marker = 'HAMBURGER MENU — modern drawer v2'
-          if marker in s:
               p.write_text(s, encoding='utf-8')
-              raise SystemExit(0)
-
-          replacements = {
-            '<div class="mob-drawer-item active" data-page="dashboard">🏠 Dashboard</div>': '''<div class="mob-drawer-item active" data-page="dashboard"><span class="mob-menu-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></svg></span><span class="mob-menu-label">Dashboard</span></div>''',
-            '<div class="mob-drawer-item" data-page="materials">📚 Materiály</div>': '''<div class="mob-drawer-item" data-page="materials"><span class="mob-menu-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 5.5A2.5 2.5 0 0 1 7.5 3H20v15H7.5A2.5 2.5 0 0 0 5 20.5z"/><path d="M5 5.5v15M9 7h7M9 11h7"/></svg></span><span class="mob-menu-label">Materiály</span></div>''',
-            '<div class="mob-drawer-item" data-page="evidence">📋 Evidence</div>': '''<div class="mob-drawer-item" data-page="evidence"><span class="mob-menu-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 11h6M8 15h8M8 18h4"/></svg></span><span class="mob-menu-label">Evidence</span></div>''',
-            '<div class="mob-drawer-item" data-page="dohledy">👁 Dohledy</div>': '''<div class="mob-drawer-item" data-page="dohledy"><span class="mob-menu-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2.8 12s3.4-5.7 9.2-5.7 9.2 5.7 9.2 5.7-3.4 5.7-9.2 5.7S2.8 12 2.8 12Z"/><circle cx="12" cy="12" r="2.6"/></svg></span><span class="mob-menu-label">Dohledy</span></div>''',
-            '<div class="mob-drawer-item" data-page="settings">⚙️ Nastavení</div>': '''<div class="mob-drawer-item" data-page="settings"><span class="mob-menu-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m12 3 1.7 2.1 2.7-.1.8 2.6 2.3 1.3-1.1 2.4 1.1 2.4-2.3 1.3-.8 2.6-2.7-.1L12 21l-1.7-2.1-2.7.1-.8-2.6-2.3-1.3 1.1-2.4-1.1-2.4 2.3-1.3.8-2.6 2.7.1z"/><circle cx="12" cy="12" r="3"/></svg></span><span class="mob-menu-label">Nastavení</span></div>'''
-          }
-          for old, new in replacements.items():
-              if old not in s:
-                  raise SystemExit(f'Missing expected menu item: {old}')
-              s = s.replace(old, new, 1)
-
-          css = r'''
-
-/* ================================================================
-   HAMBURGER MENU — modern drawer v2
-   Visual-only pass. Existing JS, Firebase and data-page hooks stay intact.
-================================================================ */
-@media (max-width: 600px) {
-  .mob-drawer {
-    width: min(330px, calc(100vw - 34px)) !important;
-    max-width: 330px !important;
-    background: #FFFFFF !important;
-    border: 0 !important;
-    border-radius: 0 26px 26px 0 !important;
-    box-shadow: 18px 0 55px rgba(32,32,51,.18) !important;
-    overflow: hidden !important;
-  }
-  .mob-drawer-hd {
-    min-height: 112px !important;
-    padding: 22px 20px !important;
-    gap: 13px !important;
-    background: linear-gradient(180deg,#FFFFFF 0%,#FAF9FF 100%) !important;
-    border-bottom: 1px solid #ECECF4 !important;
-  }
-  #navLogoMob {
-    width: 50px !important;
-    height: 50px !important;
-    border-radius: 16px !important;
-    box-shadow: 0 7px 18px rgba(108,92,231,.18) !important;
-  }
-  .mob-drawer-hd > span {
-    display: flex !important;
-    flex-direction: column !important;
-    justify-content: center !important;
-    gap: 3px !important;
-    font-size: 16px !important;
-    line-height: 1.2 !important;
-    font-weight: 750 !important;
-    letter-spacing: -.025em !important;
-  }
-  .mob-drawer-hd > span::after {
-    content: 'Školní dashboard' !important;
-    display: block !important;
-    font-size: 11px !important;
-    line-height: 1.3 !important;
-    font-weight: 500 !important;
-    color: #A8ABBE !important;
-  }
-  .mob-drawer-close {
-    width: 40px !important;
-    height: 40px !important;
-    margin-left: auto !important;
-    padding: 0 !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    border: 0 !important;
-    border-radius: 13px !important;
-    background: #F4F4F8 !important;
-    color: #747A91 !important;
-    font-size: 19px !important;
-  }
-  .mob-drawer-nav {
-    padding: 16px 12px 22px !important;
-    overflow-y: auto !important;
-  }
-  .mob-drawer-item {
-    min-height: 62px !important;
-    width: 100% !important;
-    padding: 8px 12px !important;
-    margin: 4px 0 !important;
-    gap: 13px !important;
-    border-radius: 16px !important;
-    font-size: 15px !important;
-    line-height: 1 !important;
-    font-weight: 600 !important;
-    color: #626A82 !important;
-    background: transparent !important;
-    position: relative !important;
-    transition: background .16s ease, color .16s ease, transform .16s ease !important;
-  }
-  .mob-menu-icon {
-    width: 42px !important;
-    height: 42px !important;
-    flex: 0 0 42px !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    border-radius: 13px !important;
-    background: #F4F4F8 !important;
-    color: #747A91 !important;
-    transition: background .16s ease, color .16s ease, transform .16s ease !important;
-  }
-  .mob-menu-icon svg {
-    width: 21px !important;
-    height: 21px !important;
-    fill: none !important;
-    stroke: currentColor !important;
-    stroke-width: 1.7 !important;
-    stroke-linecap: round !important;
-    stroke-linejoin: round !important;
-  }
-  .mob-menu-label { display: block !important; flex: 1 !important; }
-  .mob-drawer-item.active {
-    background: #F0EEFF !important;
-    color: #6C5CE7 !important;
-    font-weight: 700 !important;
-  }
-  .mob-drawer-item.active .mob-menu-icon {
-    background: #6C5CE7 !important;
-    color: #FFFFFF !important;
-    box-shadow: 0 5px 14px rgba(108,92,231,.22) !important;
-  }
-  .mob-drawer-item:not(.active):hover,
-  .mob-drawer-item:not(.active):focus-visible {
-    background: #F8F8FB !important;
-    color: #202033 !important;
-  }
-  .mob-drawer-item:not(.active):hover .mob-menu-icon { background: #ECECF3 !important; color: #555D74 !important; }
-  .mob-drawer-foot {
-    padding: 14px 12px !important;
-    border-top: 1px solid #ECECF4 !important;
-    background: #FCFCFE !important;
-  }
-}
-'''
-          if '</style>' not in s:
-              raise SystemExit('No style closing tag found')
-          s = s.replace('</style>', css + '\n</style>', 1)
-          p.write_text(s, encoding='utf-8')
           PY
 
-      - name: Commit visual update
+      - name: Commit mobile shell
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add index.html
           if git diff --cached --quiet; then
-            echo "No changes to commit"
+            echo "Mobile shell already active"
             exit 0
           fi
-          git commit -m "chore: modernize mobile hamburger menu"
+          git commit -m "feat: enable native mobile quick capture"
           git push
