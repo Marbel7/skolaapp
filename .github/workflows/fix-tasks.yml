@@ -1,0 +1,160 @@
+name: Fix task interactions
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: "!contains(github.event.head_commit.message, 'fix: make tasks interactive')"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Patch task sync and interactions
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+
+          if 'TASK_INTERACTION_FIX_V1' in s:
+              print('Task fix already present')
+              raise SystemExit(0)
+
+          old_fb = '''function fbToggleTask(taskId, done) {
+  if (!fbSyncEnabled) return;
+  fbUserDoc('tasks').doc(taskId).update({done: done});
+}
+
+function fbDeleteTask(taskId) {
+  if (!fbSyncEnabled) return;
+  fbUserDoc('tasks').doc(taskId).delete();
+}'''
+
+          new_fb = '''/* TASK_INTERACTION_FIX_V1 */
+var fbPendingTaskToggles = Object.create(null);
+var fbPendingTaskDeletes = Object.create(null);
+
+function fbToggleTask(taskId, done) {
+  if (!fbSyncEnabled || !taskId) return Promise.resolve();
+  return fbUserDoc('tasks').doc(taskId).update({done: done});
+}
+
+function fbDeleteTask(taskId) {
+  if (!fbSyncEnabled || !taskId) return Promise.resolve();
+  return fbUserDoc('tasks').doc(taskId).delete();
+}'''
+          if old_fb not in s:
+              raise SystemExit('Expected Firebase task functions not found')
+          s = s.replace(old_fb, new_fb, 1)
+
+          old_listener = '''    tasks = snap.docs.map(function(d){
+      var data = d.data();
+      // Ensure createdAt exists
+      if (!data.createdAt) data.createdAt = new Date().toISOString();
+      return Object.assign({id:d.id}, data);
+    });'''
+          new_listener = '''    tasks = snap.docs.map(function(d){
+      var data = d.data();
+      // Ensure createdAt exists
+      if (!data.createdAt) data.createdAt = new Date().toISOString();
+      // Keep optimistic UI state while a write is in flight.
+      if (fbPendingTaskToggles[d.id]) data.done = fbPendingTaskToggles[d.id];
+      return Object.assign({id:d.id}, data);
+    }).filter(function(t){
+      // Do not resurrect an item that was optimistically deleted until the write settles.
+      return !fbPendingTaskDeletes[t.id];
+    });'''
+          if old_listener not in s:
+              raise SystemExit('Expected task realtime listener not found')
+          s = s.replace(old_listener, new_listener, 1)
+
+          old_handler = '''document.getElementById('taskList').addEventListener('click', function(e){
+  var el = e.target.closest('[data-action]'); if (!el) return;
+  var i = parseInt(el.dataset.i);
+  if (el.dataset.action==='check') tasks[i].done = !tasks[i].done;
+  if (el.dataset.action==='del')   tasks.splice(i,1);
+  saveTasks(); renderTasks(); calRender();
+});'''
+          new_handler = '''document.getElementById('taskList').addEventListener('click', function(e){
+  var el = e.target.closest('[data-action]'); if (!el) return;
+  var i = parseInt(el.dataset.i, 10);
+  if (!Number.isInteger(i) || !tasks[i]) return;
+  var task = tasks[i];
+  var action = el.dataset.action;
+
+  if (action === 'check') {
+    var previousDone = !!task.done;
+    var nextDone = !previousDone;
+    task.done = nextDone;
+    renderTasks();
+    calRender();
+
+    if (fbSyncEnabled && task.id) {
+      var taskId = task.id;
+      fbPendingTaskToggles[taskId] = nextDone;
+      fbToggleTask(taskId, nextDone).then(function(){
+        delete fbPendingTaskToggles[taskId];
+      }).catch(function(err){
+        delete fbPendingTaskToggles[taskId];
+        var current = tasks.find(function(t){ return t.id === taskId; });
+        if (current) current.done = previousDone;
+        renderTasks();
+        calRender();
+        showToast('⚠️ Nepodařilo se uložit úkol');
+        console.error('Task toggle failed:', err);
+      });
+    } else {
+      saveTasks();
+    }
+    return;
+  }
+
+  if (action === 'del') {
+    var removed = tasks.splice(i, 1)[0];
+    renderTasks();
+    calRender();
+
+    if (fbSyncEnabled && removed && removed.id) {
+      var deleteId = removed.id;
+      fbPendingTaskDeletes[deleteId] = true;
+      fbDeleteTask(deleteId).then(function(){
+        delete fbPendingTaskDeletes[deleteId];
+      }).catch(function(err){
+        delete fbPendingTaskDeletes[deleteId];
+        tasks.push(removed);
+        tasks.sort(function(a,b){ return String(b.createdAt || '').localeCompare(String(a.createdAt || '')); });
+        renderTasks();
+        calRender();
+        showToast('⚠️ Nepodařilo se smazat úkol');
+        console.error('Task delete failed:', err);
+      });
+    } else {
+      saveTasks();
+    }
+  }
+});'''
+          if old_handler not in s:
+              raise SystemExit('Expected task click handler not found')
+          s = s.replace(old_handler, new_handler, 1)
+
+          p.write_text(s, encoding='utf-8')
+          print('Task interaction fix applied')
+          PY
+
+      - name: Commit and remove one-time fixer
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git rm .github/workflows/fix-tasks.yml
+          git commit -m "fix: make tasks interactive"
+          git push
