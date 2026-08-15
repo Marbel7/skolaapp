@@ -1,0 +1,66 @@
+name: Fix task completion UI
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  fix-task-ui:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Patch task checkbox and completed state
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+
+          old = '''      +'<div class="tck '+(t.done?'checked':'')+'" data-action="check" data-i="'+idx+'"></div>'\n      +'<span class="ttxt">'+esc(t.text)+'</span>' '''
+          new = '''      +'<button type="button" class="tck '+(t.done?'checked':'')+'" data-action="check" data-i="'+idx+'" aria-label="'+(t.done?'Označit jako nesplněné':'Označit jako splněné')+'" aria-pressed="'+(t.done?'true':'false')+'"></button>'\n      +'<span class="ttxt" data-action="check" data-i="'+idx+'">'+esc(t.text)+'</span>' '''
+          if old not in s:
+              raise SystemExit('renderTasks target not found')
+          s = s.replace(old, new, 1)
+
+          old_css = '''.titem.done { opacity: 0.45; }\n.titem.done .ttxt { text-decoration: line-through; color: var(--ink3); }\n.tck { width: 18px; height: 18px; border: 1.5px solid var(--border2); border-radius: 5px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }'''
+          new_css = '''.titem.done { opacity: 1; background: var(--surface2); }\n.titem.done .ttxt { text-decoration: line-through; text-decoration-thickness: 1.5px; text-decoration-color: var(--ink3); color: var(--ink3); }\n.tck { appearance: none; -webkit-appearance: none; width: 18px; height: 18px; padding: 0; margin: 0; border: 1.5px solid var(--border2); border-radius: 5px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background .15s, border-color .15s, transform .1s; background: transparent; flex: 0 0 18px; }\n.tck:hover { border-color: var(--primary); }\n.tck:active { transform: scale(.92); }\n.tck:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }'''
+          if old_css not in s:
+              raise SystemExit('task CSS target not found')
+          s = s.replace(old_css, new_css, 1)
+
+          old_mobile = '''.tck {\n  width: 17px !important;\n  height: 17px !important;\n  border-radius: 5px !important;\n  border-width: 1.5px !important;\n  flex-shrink: 0 !important;\n}'''
+          new_mobile = '''.tck {\n  width: 18px !important;\n  height: 18px !important;\n  padding: 0 !important;\n  margin: 0 !important;\n  border-radius: 5px !important;\n  border-width: 1.5px !important;\n  flex: 0 0 18px !important;\n}'''
+          if old_mobile in s:
+              s = s.replace(old_mobile, new_mobile, 1)
+
+          marker = '/* TASK_CHECK_UI_FIX_V2 */'
+          if marker not in s:
+              insert = '''\n\n/* TASK_CHECK_UI_FIX_V2 */\n/* The task text is also an intentional toggle target; the delete button remains isolated. */\n.titem .ttxt[data-action="check"] { cursor: pointer; }\n@media (max-width: 700px) {\n  .titem .ttxt[data-action="check"] { -webkit-tap-highlight-color: transparent; }\n}\n'''
+              s = s.replace('</style>', insert + '\n</style>', 1)
+
+          p.write_text(s, encoding='utf-8')
+          PY
+
+      - name: Commit fix
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git diff --cached --quiet && exit 0
+          git commit -m "Fix task completion checkbox interaction"
+          git push
+
+      - name: Remove temporary workflow
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm -f .github/workflows/fix-task-check.yml || true
+          git commit -m "Remove temporary task fix workflow" || true
+          git push || true
