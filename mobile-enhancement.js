@@ -13,6 +13,60 @@
       .sk-mobile-btn{position:relative;height:52px;border:0;background:transparent;color:#7C8198;font:600 10px Inter,-apple-system,BlinkMacSystemFont,sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px;min-width:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
       .sk-mobile-btn svg{width:21px;height:21px;stroke:currentColor}.sk-mobile-btn.active{color:#6C5CE7}.sk-mobile-btn.active:after{content:'';width:4px;height:4px;border-radius:50%;background:#6C5CE7;position:absolute;bottom:-2px}
       .sk-mobile-fab-wrap{height:76px;display:flex;justify-content:center;align-items:flex-start}.sk-mobile-fab{margin-top:-19px!important;width:62px!important;height:62px!important;border:0!important;border-radius:21px!important;background:#6C5CE7!important;color:#fff!important;box-shadow:0 10px 24px rgba(108,92,231,.32)!important;display:flex!important;align-items:center!important;justify-content:center!important;position:relative!important;cursor:pointer}.sk-mobile-fab svg{width:27px!important;height:27px!important}.sk-mobile-fab-label{position:absolute;top:65px;color:#6C5CE7;font:700 10px Inter,sans-serif;white-space:nowrap}
+
+      /* Compact dashboard: one date, one progress card, then actions. */
+      #page-dashboard{padding:1.15rem 1rem 3.5rem!important}
+      #page-dashboard > .page-hdr{display:block!important;margin:0 4px 12px!important}
+      #page-dashboard > .page-hdr h1{font-size:27px!important;line-height:1.08!important;letter-spacing:-.035em!important;margin:0!important;color:#202033!important}
+      #page-dashboard > .page-hdr p{font-size:14px!important;color:#7C8198!important;margin:6px 0 9px!important}
+      #page-dashboard > .page-hdr:after{content:'Dnes';display:inline-flex;align-items:center;margin-top:0;padding:6px 11px;border:1px solid #E8E8F0;border-radius:999px;background:#fff;box-shadow:0 2px 7px rgba(32,32,51,.05);font-size:11px;font-weight:700;color:#7C8198}
+
+      /* Hide the old three large stat cards; date is shown once in the compact hero. */
+      #page-dashboard > .stats{display:none!important}
+      #page-dashboard > div[style*="grid-template-columns:1fr 300px"]{display:block!important}
+      #page-dashboard > div[style*="grid-template-columns:1fr 300px"] > div:first-child{display:block!important}
+      #page-dashboard > div[style*="grid-template-columns:1fr 300px"] > div:first-child > .grid2{display:flex!important;flex-direction:column!important;gap:10px!important;margin-bottom:10px!important}
+
+      /* Put tasks before quick links on mobile. */
+      #page-dashboard > div[style*="grid-template-columns:1fr 300px"] > div:first-child > .grid2 > .card:first-child{order:2}
+      #page-dashboard > div[style*="grid-template-columns:1fr 300px"] > div:first-child > .grid2 > .card:nth-child(2){order:1}
+
+      /* Compact task overview card */
+      #page-dashboard .grid2 > .card:nth-child(2){padding:14px 14px 13px!important;border-radius:18px!important;background:#fff!important;box-shadow:0 3px 14px rgba(32,32,51,.06)!important}
+      #page-dashboard .grid2 > .card:nth-child(2) .card-hd{margin-bottom:8px!important;align-items:center!important}
+      #page-dashboard .grid2 > .card:nth-child(2) .card-ttl{font-size:13px!important;font-weight:800!important;text-transform:uppercase!important;letter-spacing:.06em!important;color:#7C8198!important}
+      #page-dashboard .grid2 > .card:nth-child(2) .card-sub{font-size:20px!important;line-height:1.1!important;font-weight:800!important;color:#202033!important;margin-top:2px!important}
+      #page-dashboard .grid2 > .card:nth-child(2) .badge{font-size:11px!important;padding:5px 9px!important;border-radius:999px!important;background:#F0EEFF!important;color:#6C5CE7!important}
+      #page-dashboard .grid2 > .card:nth-child(2) .toolbar-row,#page-dashboard .grid2 > .card:nth-child(2) .ti-row{margin-bottom:8px!important}
+      #page-dashboard .grid2 > .card:nth-child(2) .toolbar-row{display:none!important}
+      #page-dashboard .grid2 > .card:nth-child(2) .ti-row{display:grid!important;grid-template-columns:1fr 54px 48px!important;gap:7px!important}
+      #page-dashboard .grid2 > .card:nth-child(2) .ti{min-width:0!important}
+      #page-dashboard .grid2 > .card:nth-child(2) .tadd{padding:0!important;height:40px!important}
+      #page-dashboard .grid2 > .card:nth-child(2) .tlist{max-height:none!important;gap:4px!important}
+      #page-dashboard .grid2 > .card:nth-child(2) .titem{padding:8px 9px!important;min-height:42px!important}
+
+      /* Add live progress meter above the task input. */
+      #page-dashboard .grid2 > .card:nth-child(2)::before{content:'';display:block;height:7px;border-radius:99px;background:linear-gradient(to right,#6C5CE7 var(--sk-progress,0%),#EDEDF3 var(--sk-progress,0%));margin:2px 0 11px}
+
+      /* Quick links are compact, not oversized feature cards. */
+      #page-dashboard .grid2 > .card:first-child{padding:14px!important;border-radius:18px!important}
+      #page-dashboard .grid2 > .card:first-child .card-hd{margin-bottom:9px!important}
+      #page-dashboard .grid2 > .card:first-child .card-ttl{font-size:13px!important;font-weight:800!important;text-transform:uppercase!important;letter-spacing:.06em!important;color:#7C8198!important}
+      #page-dashboard .grid2 > .card:first-child .card-sub{font-size:12px!important;margin-top:3px!important}
+      #page-dashboard .lgrid{grid-template-columns:1fr!important;gap:6px!important}
+      #page-dashboard .lbtn{padding:9px 10px!important;min-height:54px!important;border-radius:14px!important}
+      #page-dashboard .li{width:34px!important;height:34px!important}
+      #page-dashboard .ln{font-size:13px!important}
+      #page-dashboard .ld{font-size:10px!important}
+
+      /* Notes stay useful but lose the oversized spacing. */
+      #page-dashboard > div[style*="grid-template-columns:1fr 300px"] > div:first-child > .card:last-child{padding:14px!important;border-radius:18px!important;margin-top:10px!important}
+      #page-dashboard > div[style*="grid-template-columns:1fr 300px"] > div:first-child > .card:last-child .card-hd{margin-bottom:9px!important}
+      #page-dashboard > div[style*="grid-template-columns:1fr 300px"] > div:first-child > .card:last-child .ninput{min-height:78px!important}
+
+      /* Calendar is not useful in the first mobile viewport. */
+      #page-dashboard > div[style*="grid-template-columns:1fr 300px"] > div:last-child{display:none!important}
+
       .sk-capture{position:fixed;inset:0;background:rgba(20,20,35,.46);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);z-index:10000;display:none;align-items:flex-end;justify-content:center}
       .sk-capture.open{display:flex}.sk-sheet{width:100%;max-width:560px;background:#fff;border-radius:28px 28px 0 0;padding:10px 18px calc(18px + env(safe-area-inset-bottom));box-shadow:0 -18px 60px rgba(0,0,0,.2);box-sizing:border-box;max-height:88vh;overflow:auto}
       .sk-grab{width:38px;height:4px;background:#DADAE5;border-radius:9px;margin:0 auto 15px}.sk-title{font:700 20px Inter,-apple-system,sans-serif;color:#202033}.sk-sub{font:13px Inter,-apple-system,sans-serif;color:#7C8198;margin:4px 0 15px}
@@ -23,82 +77,6 @@
       .sk-actions{display:grid;grid-template-columns:1fr 1.6fr;gap:8px;margin-top:10px}.sk-actions button{height:48px;border-radius:13px;border:1px solid #E8E8F0;font:700 14px Inter,sans-serif}.sk-save{background:#6C5CE7;color:#fff;border-color:#6C5CE7!important}.sk-save:disabled{opacity:.42}.sk-message{display:none;margin-top:9px;padding:9px 11px;border-radius:11px;background:#FFF7E9;color:#9A671A;font:500 10px/1.35 Inter,sans-serif}.sk-message.on{display:block}.sk-hint{font:10px Inter,sans-serif;color:#A8ABBE;text-align:center;margin-top:9px}
     }
     @media(min-width:701px){.sk-mobile-bar,.sk-capture{display:none!important}}
-
-    /* ── Dashboard redesign: hero + quick actions ── */
-    #page-dashboard .sk-dash-hero{
-      display:flex;align-items:flex-end;justify-content:space-between;gap:20px;
-      margin:-2px 0 22px;padding:2px 2px 0;
-    }
-    #page-dashboard .sk-dash-hero-copy{min-width:0}
-    #page-dashboard .sk-dash-kicker{
-      display:flex;align-items:center;gap:7px;margin-bottom:5px;
-      color:var(--ink3);font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
-    }
-    #page-dashboard .sk-dash-kicker-dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 0 4px var(--green-soft)}
-    #page-dashboard .sk-dash-title{font-size:28px;line-height:1.12;letter-spacing:-.035em;font-weight:750;color:var(--ink)}
-    #page-dashboard .sk-dash-subtitle{margin-top:6px;color:var(--ink2);font-size:14px;line-height:1.45;max-width:620px}
-    #page-dashboard .sk-dash-date{
-      flex:0 0 auto;padding:9px 12px;border:1px solid var(--border);border-radius:999px;
-      background:var(--surface);box-shadow:var(--shadow-xs);color:var(--ink2);font-size:11px;font-weight:650;white-space:nowrap;
-    }
-    #page-dashboard .stats{gap:14px;margin-bottom:20px}
-    #page-dashboard .stat{
-      position:relative;overflow:hidden;border-radius:16px;padding:16px 17px 15px;
-      box-shadow:var(--shadow-xs);transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease;
-    }
-    #page-dashboard .stat::after{content:'';position:absolute;right:-18px;top:-18px;width:72px;height:72px;border-radius:50%;background:var(--primary-soft);opacity:.55;pointer-events:none}
-    #page-dashboard .stat:nth-child(1)::after{background:var(--blue-soft)}
-    #page-dashboard .stat:nth-child(2)::after{background:var(--green-soft)}
-    #page-dashboard .stat:nth-child(3)::after{background:var(--amber-soft)}
-    #page-dashboard .stat:hover{transform:translateY(-2px);box-shadow:var(--shadow-sm);border-color:var(--border2)}
-    #page-dashboard .stat-lbl{position:relative;z-index:1;margin-bottom:9px;color:var(--ink2);font-size:10px;letter-spacing:.075em}
-    #page-dashboard .stat-val{position:relative;z-index:1;font-size:27px;line-height:1.05}
-    #page-dashboard .stat-sub{position:relative;z-index:1;margin-top:8px;font-size:11px;color:var(--ink2)}
-    #page-dashboard .stat-dot{width:7px;height:7px}
-    #page-dashboard .grid2{gap:14px}
-    #page-dashboard .grid2 > .card:first-child{grid-column:1 / -1}
-    #page-dashboard .grid2 > .card:first-child .card-hd{align-items:center;margin-bottom:12px}
-    #page-dashboard .grid2 > .card:first-child .card-ttl{text-transform:none;font-size:18px;font-weight:750;letter-spacing:-.02em}
-    #page-dashboard .grid2 > .card:first-child .card-sub{font-size:12px;margin-top:3px;color:var(--ink2)}
-    #page-dashboard .grid2 > .card:first-child .lgrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
-    #page-dashboard .grid2 > .card:first-child .lbtn{
-      min-height:64px;padding:11px 36px 11px 12px;border-radius:14px;background:var(--surface);
-      box-shadow:var(--shadow-xs);transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease,background .16s ease;
-    }
-    #page-dashboard .grid2 > .card:first-child .lbtn:hover{transform:translateY(-2px);box-shadow:var(--shadow-sm);background:var(--surface);border-color:var(--border2)}
-    #page-dashboard .grid2 > .card:first-child .li{width:38px;height:38px;border-radius:11px;font-size:16px;flex:0 0 38px}
-    #page-dashboard .grid2 > .card:first-child .ln{font-size:13px;font-weight:700}
-    #page-dashboard .grid2 > .card:first-child .ld{font-size:11px;margin-top:2px;color:var(--ink2)}
-    #page-dashboard .grid2 > .card:first-child .la{top:50%;right:12px;transform:translateY(-50%);opacity:1;font-size:14px}
-    #page-dashboard .grid2 > .card:first-child .ladd{min-height:54px;grid-column:1 / -1;border-radius:14px}
-
-    @media(max-width:700px){
-      #page-dashboard{padding:20px 16px calc(120px + env(safe-area-inset-bottom))}
-      #page-dashboard .sk-dash-hero{display:block;margin:0 2px 18px;padding:0}
-      #page-dashboard .sk-dash-kicker{margin-bottom:6px;font-size:10px}
-      #page-dashboard .sk-dash-title{font-size:25px}
-      #page-dashboard .sk-dash-subtitle{font-size:13px;margin-top:5px;max-width:340px}
-      #page-dashboard .sk-dash-date{display:inline-flex;margin-top:10px;padding:7px 10px;font-size:10px}
-      #page-dashboard .stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:18px}
-      #page-dashboard .stat{padding:14px 13px;border-radius:15px;min-width:0}
-      #page-dashboard .stat:nth-child(3){grid-column:1 / -1}
-      #page-dashboard .stat-val{font-size:23px}
-      #page-dashboard .stat-lbl{font-size:9px;margin-bottom:8px}
-      #page-dashboard .stat-sub{font-size:10px;white-space:nowrap}
-      #page-dashboard .grid2{display:block;margin-bottom:14px}
-      #page-dashboard .grid2 > .card{margin-bottom:14px}
-      #page-dashboard .grid2 > .card:first-child .card-ttl{font-size:17px}
-      #page-dashboard .grid2 > .card:first-child .lgrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
-      #page-dashboard .grid2 > .card:first-child .lbtn{min-height:70px;padding:10px 30px 10px 10px}
-      #page-dashboard .grid2 > .card:first-child .li{width:34px;height:34px;flex-basis:34px;border-radius:10px}
-      #page-dashboard .grid2 > .card:first-child .ln{font-size:12px;line-height:1.25}
-      #page-dashboard .grid2 > .card:first-child .ld{font-size:10px;line-height:1.25}
-      #page-dashboard .grid2 > .card:first-child .la{right:8px;font-size:12px}
-    }
-    @media(min-width:701px){
-      #page-dashboard .grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
-      #page-dashboard .grid2 > .card:nth-child(2){grid-column:1 / -1}
-    }
   `;
   document.head.appendChild(css);
 
@@ -107,7 +85,7 @@
     home: icon('<path d="M3 10.5 12 3l9 7.5"/><path d="M5.5 9.5V21h13V9.5"/><path d="M9.5 21v-6h5v6"/>'),
     material: icon('<path d="M4 4h16v16H4z"/><path d="M8 8h8M8 12h8M8 16h5"/>'),
     evidence: icon('<path d="M6 3h12v18H6z"/><path d="M9 7h6M9 11h6M9 15h4"/>'),
-    settings: icon('<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-1.8 1.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5v.2h-2.6v-.2a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1-1.8-1.8.1-.1A1.7 1.7 0 0 0 8 15a1.7 1.7 0 0 0-1.5-1H6v-2.6h.2a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1 1.8-1.8.1.1a1.7 1.7 0 0 0 1.9.3 1.7 1.7 0 0 0 1.9-0.3l.1-.1 1.8 1.8-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.5 1h.2V14h-.2a1.7 1.7 0 0 0-1.5 1z"/>'),
+    settings: icon('<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-1.8 1.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5v.2h-2.6v-.2a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1-1.8-1.8.1-.1A1.7 1.7 0 0 0 8 15a1.7 1.7 0 0 0-1.5-1H6v-2.6h.2a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1 1.8-1.8.1.1a1.7 1.7 0 0 0 1.9-.3 1.7 1.7 0 0 0 1 1.5V5h2.6v.2a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1 1.8 1.8-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.5 1h.2V14h-.2a1.7 1.7 0 0 0-1.5 1z"/>'),
     mic: icon('<rect x="8" y="3" width="8" height="12" rx="4"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3M8 21h8"/>')
   };
 
@@ -171,88 +149,36 @@
   };
   bar.querySelectorAll('[data-page]').forEach(btn=>btn.onclick=()=>{
     bar.querySelectorAll('.sk-mobile-btn').forEach(x=>x.classList.remove('active')); btn.classList.add('active');
-    const target=document.querySelector('.ntab[data-page="'+btn.dataset.page+'"]'); if(target) target.click();
+    const target=document.querySelector('.ntab[data-page="'+btn.dataset.page+'"];'); if(target) target.click();
   });
+
+  /* Keep the compact dashboard progress bar synced with the real task state. */
+  function syncCompactDashboard(){
+    const card=document.querySelector('#page-dashboard .grid2 > .card:nth-child(2)');
+    if(!card) return;
+    const items=card.querySelectorAll('.titem');
+    const total=items.length || 0;
+    const done=card.querySelectorAll('.titem.done').length;
+    const pct=total ? Math.round(done/total*100) : 0;
+    card.style.setProperty('--sk-progress', pct+'%');
+  }
+  const progressObserver=new MutationObserver(syncCompactDashboard);
+  function initCompactDashboard(){
+    syncCompactDashboard();
+    const list=document.getElementById('taskList');
+    if(list) progressObserver.observe(list,{childList:true,subtree:true,attributes:true});
+    const date=document.getElementById('dateVal');
+    const hero=document.querySelector('#page-dashboard > .page-hdr');
+    if(date&&hero){
+      const setDate=()=>{ hero.style.setProperty('--sk-date', JSON.stringify(date.textContent.trim())); };
+      const obs=new MutationObserver(setDate); obs.observe(date,{childList:true,subtree:true,characterData:true}); setDate();
+      const style=document.createElement('style'); style.textContent='#page-dashboard > .page-hdr:after{content:var(--sk-date,"Dnes")!important}'; document.head.appendChild(style);
+    }
+  }
+  setTimeout(initCompactDashboard,250);
+  setTimeout(syncCompactDashboard,1000);
+  setTimeout(syncCompactDashboard,2500);
 
   const updateMobileVisibility=()=>{ document.documentElement.classList.toggle('sk-mobile-active',isMobile()); };
   updateMobileVisibility(); window.addEventListener('resize',updateMobileVisibility);
-
-  /* Dashboard hero: uses real user/date data and stays scoped to Dashboard. */
-  function setupDashboardRedesign(){
-    const dashboard=document.getElementById('page-dashboard');
-    if(!dashboard || dashboard.querySelector('.sk-dash-hero')) return;
-    const stats=dashboard.querySelector('.stats');
-    if(!stats) return;
-
-    const hero=document.createElement('section');
-    hero.className='sk-dash-hero';
-    hero.innerHTML=`<div class="sk-dash-hero-copy"><div class="sk-dash-kicker"><span class="sk-dash-kicker-dot"></span><span>DNES</span></div><h1 class="sk-dash-title">Dobrý den<span class="sk-dash-name"></span> 👋</h1><p class="sk-dash-subtitle">Tady je přehled toho, co tě dnes čeká.</p></div><div class="sk-dash-date" id="skDashDate">Dnes</div>`;
-    stats.parentNode.insertBefore(hero,stats);
-
-    const nameEl=hero.querySelector('.sk-dash-name');
-    const dateEl=hero.querySelector('#skDashDate');
-    const update=()=>{
-      let name='';
-      try{
-        const user=window.auth && window.auth.currentUser;
-        name=(user && (user.displayName || user.email)) || '';
-      }catch(e){}
-      if(!name){
-        const navName=document.getElementById('navGreet');
-        name=navName ? (navName.textContent||'').trim() : '';
-      }
-      if(name){
-        name=name.split('@')[0].trim();
-        name=name.replace(/\s+/g,' ');
-        nameEl.textContent=', '+name;
-      }else nameEl.textContent='';
-
-      const dateVal=document.getElementById('dateVal');
-      const dayVal=document.getElementById('dayVal');
-      const date=(dateVal && dateVal.textContent.trim()) || '';
-      const day=(dayVal && dayVal.textContent.trim()) || '';
-      dateEl.textContent=date && day ? `${day} · ${date}` : (date || 'Dnes');
-    };
-    update();
-    setTimeout(update,500);
-    setTimeout(update,1500);
-  }
-
-  function setupDashboardQuickActions(){
-    const dashboard=document.getElementById('page-dashboard');
-    const grid=dashboard && dashboard.querySelector('#linksGrid');
-    const card=grid && grid.closest('.card');
-    if(!grid || !card || card.dataset.skRedesigned==='1') return;
-    card.dataset.skRedesigned='1';
-    card.classList.add('sk-quick-actions-card');
-
-    const title=card.querySelector('.card-ttl');
-    const sub=card.querySelector('.card-sub');
-    if(title) title.textContent='Rychlé odkazy';
-    if(sub) sub.textContent='Nejdůležitější nástroje na dosah ruky';
-
-    const decorate=()=>{
-      grid.querySelectorAll('.lbtn').forEach(btn=>{
-        if(!btn.querySelector('.sk-link-arrow')){
-          const arrow=document.createElement('span');
-          arrow.className='sk-link-arrow';
-          arrow.textContent='›';
-          btn.appendChild(arrow);
-        }
-      });
-    };
-    decorate();
-    const observer=new MutationObserver(decorate);
-    observer.observe(grid,{childList:true});
-    setTimeout(()=>observer.disconnect(),10000);
-  }
-
-  const bootDashboard=()=>{
-    setupDashboardRedesign();
-    setupDashboardQuickActions();
-  };
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',bootDashboard,{once:true});
-  else bootDashboard();
-  setTimeout(bootDashboard,700);
-  setTimeout(bootDashboard,1800);
 })();
