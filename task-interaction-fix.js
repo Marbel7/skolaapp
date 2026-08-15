@@ -1,4 +1,4 @@
-/* SkolaApp — reliable task interactions (loaded by mobile-enhancement.js) */
+/* SkolaApp — reliable task interactions + collapsed mobile task card */
 (function () {
   'use strict';
 
@@ -60,7 +60,7 @@
   }
 
   function findTaskInput() {
-    return document.getElementById('taskInput') || document.querySelector('#taskList') && document.querySelector('.ti');
+    return document.getElementById('taskInput') || (document.querySelector('#taskList') && document.querySelector('.ti'));
   }
 
   function findTaskAddButton() {
@@ -83,21 +83,13 @@
     }
 
     var priorityEl = document.getElementById('taskPriority') || document.querySelector('.psel');
-    var task = {
-      text: value,
-      priority: priorityEl && priorityEl.value ? priorityEl.value : 'med',
-      done: false,
-      createdAt: new Date().toISOString()
-    };
+    var task = { text: value, priority: priorityEl && priorityEl.value ? priorityEl.value : 'med', done: false, createdAt: new Date().toISOString() };
     window.tasks = arr();
     window.tasks.unshift(task);
     input.value = '';
 
     if (window.fbSyncEnabled && typeof window.fbAddTask === 'function') {
-      Promise.resolve(window.fbAddTask(task)).then(render).catch(function (err) {
-        console.error('[SKOLA fbAddTask]', err);
-        render();
-      });
+      Promise.resolve(window.fbAddTask(task)).then(render).catch(function (err) { console.error('[SKOLA fbAddTask]', err); render(); });
     } else {
       if (typeof window.saveTasks === 'function') window.saveTasks();
       render();
@@ -142,22 +134,15 @@
     document.addEventListener('click', function (e) {
       var save = e.target && e.target.closest ? e.target.closest('#sk-save') : null;
       if (!save) return;
-
       var mode = document.getElementById('sk-task');
       var text = document.getElementById('sk-text');
       if (!mode || !mode.classList.contains('active') || !text || !text.value.trim()) return;
 
       e.preventDefault();
       e.stopImmediatePropagation();
-
       var value = text.value.trim();
       var priorityEl = document.getElementById('taskPriority') || document.querySelector('.psel');
-      var task = {
-        text: value,
-        priority: priorityEl && priorityEl.value ? priorityEl.value : 'med',
-        done: false,
-        createdAt: new Date().toISOString()
-      };
+      var task = { text: value, priority: priorityEl && priorityEl.value ? priorityEl.value : 'med', done: false, createdAt: new Date().toISOString() };
 
       function finish() {
         text.value = '';
@@ -181,20 +166,79 @@
     }, true);
   }
 
-  function bindAccordion() {
-    var card = document.getElementById('taskList');
-    card = card && card.closest('.card');
+  function injectAccordionStyles() {
+    if (document.getElementById('sk-task-collapse-styles')) return;
+    var style = document.createElement('style');
+    style.id = 'sk-task-collapse-styles';
+    style.textContent = `
+      @media(max-width:700px){
+        #page-dashboard .sk-task-collapsible{overflow:hidden!important;}
+        #page-dashboard .sk-task-collapsible.is-collapsed > :not(.sk-task-summary){display:none!important;}
+        #page-dashboard .sk-task-summary{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:10px!important;min-height:76px!important;margin:0!important;padding:4px 2px!important;cursor:pointer!important;user-select:none!important;}
+        #page-dashboard .sk-task-summary-main{display:flex!important;align-items:center!important;gap:12px!important;min-width:0!important;}
+        #page-dashboard .sk-task-summary-icon{width:46px!important;height:46px!important;flex:0 0 46px!important;border-radius:14px!important;background:#F0EEFF!important;color:#6C5CE7!important;display:flex!important;align-items:center!important;justify-content:center!important;font-size:24px!important;font-weight:800!important;}
+        #page-dashboard .sk-task-summary-title{font-size:14px!important;font-weight:800!important;color:#202033!important;line-height:1.15!important;}
+        #page-dashboard .sk-task-summary-value{font-size:19px!important;font-weight:700!important;color:#202033!important;margin-top:3px!important;}
+        #page-dashboard .sk-task-summary-meta{font-size:11px!important;color:#7C8198!important;margin-top:4px!important;}
+        #page-dashboard .sk-task-summary-progress{width:150px!important;height:5px!important;background:#EDEDF3!important;border-radius:99px!important;overflow:hidden!important;margin-top:6px!important;}
+        #page-dashboard .sk-task-summary-progress span{display:block!important;height:100%!important;background:#6C5CE7!important;border-radius:99px!important;}
+        #page-dashboard .sk-task-summary-chevron{width:34px!important;height:34px!important;flex:0 0 34px!important;border-radius:50%!important;background:#F4F4F8!important;color:#7C8198!important;display:flex!important;align-items:center!important;justify-content:center!important;font-size:20px!important;}
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  function setupTaskSummary(card) {
     if (!card || card.__skTaskAccordion) return;
+    var originalHeader = card.querySelector('.card-hd');
+    if (!originalHeader) return;
     card.__skTaskAccordion = true;
-    var header = card.querySelector('.card-hd');
-    if (!header) return;
+    card.classList.add('sk-task-collapsible', 'is-collapsed');
+
+    var header = document.createElement('div');
+    header.className = 'sk-task-summary';
+    header.setAttribute('role', 'button');
+    header.setAttribute('tabindex', '0');
+    header.setAttribute('aria-expanded', 'false');
+    header.setAttribute('aria-controls', 'taskList');
+    header.innerHTML =
+      '<div class="sk-task-summary-main">' +
+        '<div class="sk-task-summary-icon">✓</div>' +
+        '<div>' +
+          '<div class="sk-task-summary-title">Úkoly</div>' +
+          '<div class="sk-task-summary-value"><strong id="skTaskDone">0</strong> / <span id="skTaskTotal">0</span> splněno</div>' +
+          '<div class="sk-task-summary-progress"><span id="skTaskProgress" style="width:0%"></span></div>' +
+          '<div class="sk-task-summary-meta" id="skTaskMeta">Zatím žádné úkoly</div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="sk-task-summary-chevron">⌄</div>';
+
+    originalHeader.replaceWith(header);
+
+    function toggle() {
+      var open = card.classList.contains('is-expanded');
+      card.classList.toggle('is-expanded', !open);
+      card.classList.toggle('is-collapsed', open);
+      header.setAttribute('aria-expanded', open ? 'false' : 'true');
+      var chev = header.querySelector('.sk-task-summary-chevron');
+      if (chev) chev.textContent = open ? '⌄' : '⌃';
+    }
+
     header.addEventListener('click', function (e) {
       if (e.target.closest('button,input,select,textarea,a')) return;
-      card.classList.toggle('is-expanded');
-      card.classList.toggle('is-collapsed');
-      var open = card.classList.contains('is-expanded');
-      header.setAttribute('aria-expanded', open ? 'true' : 'false');
+      toggle();
     });
+    header.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
+    });
+    refreshSummary();
+  }
+
+  function bindAccordion() {
+    injectAccordionStyles();
+    var list = document.getElementById('taskList');
+    var card = list && list.closest('.card');
+    if (card) setupTaskSummary(card);
   }
 
   function init() {
@@ -205,11 +249,9 @@
     refreshSummary();
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init, { once: true });
-  } else {
-    init();
-  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });
+  else init();
   setTimeout(init, 250);
   setTimeout(init, 1000);
+  setTimeout(init, 2000);
 })();
