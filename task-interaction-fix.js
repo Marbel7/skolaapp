@@ -62,7 +62,6 @@
   var style = document.createElement('style');
   style.id = 'sk-dashboard-design-pass-01';
   style.textContent = `
-    /* Page rhythm */
     .page {
       max-width: 1120px !important;
       padding: 2.35rem 2rem 5rem !important;
@@ -83,8 +82,6 @@
       color: var(--ink2) !important;
       margin-top: 7px !important;
     }
-
-    /* Stats become calm, useful information blocks */
     .stats {
       gap: 14px !important;
       margin-bottom: 16px !important;
@@ -118,8 +115,6 @@
     .stat-lbl { font-size: 10px !important; letter-spacing: .09em !important; }
     .stat-val { font-size: 28px !important; }
     .stat-sub { font-size: 11px !important; color: var(--ink2) !important; }
-
-    /* Cards */
     .grid2 { gap: 14px !important; margin-bottom: 14px !important; }
     .card {
       border-radius: 16px !important;
@@ -130,8 +125,6 @@
     .card-ttl { font-size: 14px !important; font-weight: 700 !important; letter-spacing: -.01em; }
     .card-sub { font-size: 11px !important; color: var(--ink2) !important; }
     .badge { padding: 5px 9px !important; font-size: 9px !important; letter-spacing: .03em; }
-
-    /* Quick links */
     .lgrid { gap: 9px !important; }
     .lbtn {
       min-height: 58px;
@@ -146,8 +139,6 @@
     .li { width: 34px !important; height: 34px !important; border-radius: 10px !important; }
     .ln { font-size: 12px !important; }
     .ld { font-size: 10px !important; color: var(--ink2) !important; }
-
-    /* Tasks / notes: clearer rows and stronger affordances */
     .ti-row { margin-bottom: 10px !important; }
     .tadd { width: 40px; min-width: 40px; padding: 0 !important; font-size: 20px !important; }
     .titem, .nitem, .mitem, .eitem {
@@ -163,24 +154,18 @@
     .tprio { font-size: 9px !important; padding: 3px 7px !important; }
     .tdel { width: 26px; height: 26px; border-radius: 7px; }
     .tdel:hover { background: var(--red-soft); color: var(--red); }
-
-    /* Inputs */
     .search-input, .field, .sinput, .ninput, .file-input, .ti, .psel {
       border-radius: 10px !important;
     }
     .search-input:focus, .field:focus, .sinput:focus, .ninput:focus, .file-input:focus, .ti:focus, .psel:focus {
       box-shadow: 0 0 0 3px rgba(108,92,231,.09) !important;
     }
-
-    /* Desktop spacing */
     @media (min-width: 841px) {
       .page.active .page-hdr { animation: skFadeIn .28s ease both; }
       .page.active .stat { animation: skFadeIn .32s ease both; }
       .page.active .grid2 { animation: skFadeIn .38s ease both; }
     }
     @keyframes skFadeIn { from { opacity: .55; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-
-    /* Mobile: keep the new hierarchy without wasting vertical space */
     @media (max-width: 700px) {
       .page { padding: 1.15rem 12px 3.5rem !important; }
       .page-hdr { margin-bottom: 1rem !important; padding: 0 2px !important; }
@@ -203,4 +188,142 @@
     }
   `;
   (document.head || document.documentElement).appendChild(style);
+})();
+
+/* ── Dashboard Layout Fix 02 ───────────────────────────────────────────
+   Mobile-only interaction/layout fix. Does not touch navigation, data or JS handlers. */
+(function () {
+  'use strict';
+  var style = document.createElement('style');
+  style.id = 'sk-dashboard-layout-fix-02';
+  style.textContent = `
+    @media (max-width:700px){
+      /* The page, not the bottom nav, owns the vertical scroll. */
+      body{
+        padding-bottom:calc(112px + env(safe-area-inset-bottom)) !important;
+        overflow-x:hidden !important;
+      }
+      #page-dashboard{
+        padding-bottom:calc(112px + env(safe-area-inset-bottom)) !important;
+      }
+
+      /* Keep the date only once and keep it compact. */
+      #page-dashboard > .page-hdr{
+        margin:0 4px 10px !important;
+      }
+      #page-dashboard > .page-hdr h1{display:none !important;}
+      #page-dashboard > .page-hdr p{
+        display:block !important;
+        font-size:14px !important;
+        line-height:1.3 !important;
+        font-weight:600 !important;
+        color:#7C8198 !important;
+        margin:0 !important;
+      }
+      #page-dashboard > .page-hdr:after{display:none !important;}
+      #page-dashboard > .stats{display:none !important;}
+
+      /* Dashboard content becomes one clean vertical flow. */
+      #page-dashboard > div[style*="grid-template-columns:1fr 300px"]{
+        display:block !important;
+      }
+      #page-dashboard > div[style*="grid-template-columns:1fr 300px"] > div:last-child{
+        display:none !important;
+      }
+      #page-dashboard > div[style*="grid-template-columns:1fr 300px"] > div:first-child > .grid2{
+        display:flex !important;
+        flex-direction:column !important;
+        gap:10px !important;
+        margin-bottom:10px !important;
+      }
+
+      /* Tasks: compact card + independent inner scroll. */
+      #page-dashboard .grid2 > .card:nth-child(2){
+        order:1 !important;
+        padding:14px !important;
+        border-radius:16px !important;
+        overflow:hidden !important;
+      }
+      #page-dashboard .grid2 > .card:nth-child(2) .card-hd{
+        margin-bottom:9px !important;
+      }
+      #page-dashboard .grid2 > .card:nth-child(2) .toolbar-row{
+        display:none !important;
+      }
+      #page-dashboard .grid2 > .card:nth-child(2) .ti-row{
+        display:grid !important;
+        grid-template-columns:minmax(0,1fr) 54px 48px !important;
+        gap:7px !important;
+        margin-bottom:9px !important;
+      }
+      #page-dashboard .grid2 > .card:nth-child(2) .tlist{
+        display:flex !important;
+        flex-direction:column !important;
+        gap:5px !important;
+        max-height:282px !important;
+        overflow-y:auto !important;
+        overflow-x:hidden !important;
+        overscroll-behavior:contain !important;
+        -webkit-overflow-scrolling:touch !important;
+        padding:1px 2px 2px 0 !important;
+        scrollbar-width:thin !important;
+      }
+      #page-dashboard .grid2 > .card:nth-child(2) .titem{
+        flex:0 0 auto !important;
+        min-height:44px !important;
+        padding:8px 9px !important;
+        border-radius:12px !important;
+      }
+      #page-dashboard .grid2 > .card:nth-child(2) .ttxt{
+        font-size:12px !important;
+        line-height:1.35 !important;
+      }
+
+      /* Quick links follow the tasks, compact and 2-column. */
+      #page-dashboard .grid2 > .card:first-child{
+        order:2 !important;
+        padding:14px !important;
+        border-radius:16px !important;
+      }
+      #page-dashboard .grid2 > .card:first-child .lgrid{
+        display:grid !important;
+        grid-template-columns:1fr 1fr !important;
+        gap:7px !important;
+      }
+      #page-dashboard .grid2 > .card:first-child .lbtn{
+        min-height:58px !important;
+        padding:9px !important;
+        border-radius:12px !important;
+      }
+      #page-dashboard .grid2 > .card:first-child .li,
+      #page-dashboard .grid2 > .card:first-child .link-logo-img{
+        width:32px !important;
+        height:32px !important;
+        flex:0 0 32px !important;
+      }
+
+      /* Notes: normal page section, with its own history scroll. */
+      #page-dashboard > div[style*="grid-template-columns:1fr 300px"] > div:first-child > .card:last-child{
+        margin-top:10px !important;
+        padding:14px !important;
+        border-radius:16px !important;
+        overflow:hidden !important;
+      }
+      #page-dashboard > div[style*="grid-template-columns:1fr 300px"] > div:first-child > .card:last-child .nlist{
+        max-height:320px !important;
+        overflow-y:auto !important;
+        overflow-x:hidden !important;
+        overscroll-behavior:contain !important;
+        -webkit-overflow-scrolling:touch !important;
+        scrollbar-width:thin !important;
+        padding-right:2px !important;
+      }
+
+      /* Never let the fixed bottom navigation cover the last row. */
+      #page-dashboard > div[style*="grid-template-columns:1fr 300px"] > div:first-child > .card:last-child{
+        margin-bottom:0 !important;
+      }
+    }
+  `;
+  document.head.appendChild(style);
 })();
