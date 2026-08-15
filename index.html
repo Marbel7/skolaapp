@@ -1603,7 +1603,10 @@ function fbSetupListeners() {
       var data = d.data();
       // Ensure createdAt exists
       if (!data.createdAt) data.createdAt = new Date().toISOString();
+      if (fbPendingTaskToggles[d.id]) data.done = fbPendingTaskToggles[d.id];
       return Object.assign({id:d.id}, data);
+    }).filter(function(t){
+      return !fbPendingTaskDeletes[t.id];
     });
     renderTasks();
     calRender();
@@ -1645,14 +1648,18 @@ function fbAddTask(task) {
   }).catch(function(e){ showToast('⚠️ Chyba ukládání: '+e.message); });
 }
 
+/* TASK_INTERACTION_FIX_V1 */
+var fbPendingTaskToggles = Object.create(null);
+var fbPendingTaskDeletes = Object.create(null);
+
 function fbToggleTask(taskId, done) {
-  if (!fbSyncEnabled) return;
-  fbUserDoc('tasks').doc(taskId).update({done: done});
+  if (!fbSyncEnabled || !taskId) return Promise.resolve();
+  return fbUserDoc('tasks').doc(taskId).update({done: done});
 }
 
 function fbDeleteTask(taskId) {
-  if (!fbSyncEnabled) return;
-  fbUserDoc('tasks').doc(taskId).delete();
+  if (!fbSyncEnabled || !taskId) return Promise.resolve();
+  return fbUserDoc('tasks').doc(taskId).delete();
 }
 
 // NOTES
@@ -2050,10 +2057,61 @@ document.getElementById('taskAddBtn').addEventListener('click', addTask);
 document.getElementById('taskInput').addEventListener('keydown', function(e){ if(e.key==='Enter') addTask(); });
 document.getElementById('taskList').addEventListener('click', function(e){
   var el = e.target.closest('[data-action]'); if (!el) return;
-  var i = parseInt(el.dataset.i);
-  if (el.dataset.action==='check') tasks[i].done = !tasks[i].done;
-  if (el.dataset.action==='del')   tasks.splice(i,1);
-  saveTasks(); renderTasks(); calRender();
+  var i = parseInt(el.dataset.i, 10);
+  if (!Number.isInteger(i) || !tasks[i]) return;
+  var task = tasks[i];
+  var action = el.dataset.action;
+
+  if (action === 'check') {
+    var previousDone = !!task.done;
+    var nextDone = !previousDone;
+    task.done = nextDone;
+    renderTasks();
+    calRender();
+
+    if (fbSyncEnabled && task.id) {
+      var taskId = task.id;
+      fbPendingTaskToggles[taskId] = nextDone;
+      fbToggleTask(taskId, nextDone).then(function(){
+        delete fbPendingTaskToggles[taskId];
+      }).catch(function(err){
+        delete fbPendingTaskToggles[taskId];
+        var current = tasks.find(function(t){ return t.id === taskId; });
+        if (current) current.done = previousDone;
+        renderTasks();
+        calRender();
+        showToast('⚠️ Nepodařilo se uložit úkol');
+        console.error('Task toggle failed:', err);
+      });
+    } else {
+      saveTasks();
+    }
+    return;
+  }
+
+  if (action === 'del') {
+    var removed = tasks.splice(i, 1)[0];
+    renderTasks();
+    calRender();
+
+    if (fbSyncEnabled && removed && removed.id) {
+      var deleteId = removed.id;
+      fbPendingTaskDeletes[deleteId] = true;
+      fbDeleteTask(deleteId).then(function(){
+        delete fbPendingTaskDeletes[deleteId];
+      }).catch(function(err){
+        delete fbPendingTaskDeletes[deleteId];
+        tasks.push(removed);
+        tasks.sort(function(a,b){ return String(b.createdAt || '').localeCompare(String(a.createdAt || '')); });
+        renderTasks();
+        calRender();
+        showToast('⚠️ Nepodařilo se smazat úkol');
+        console.error('Task delete failed:', err);
+      });
+    } else {
+      saveTasks();
+    }
+  }
 });
 
 // ===== Notes =====
