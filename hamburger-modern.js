@@ -17,13 +17,13 @@
 
       .mob-drawer-overlay {
         background: rgba(18, 20, 34, .48) !important;
-        backdrop-filter: blur(2px) !important;
-        -webkit-backdrop-filter: blur(2px) !important;
+        backdrop-filter: blur(3px) !important;
+        -webkit-backdrop-filter: blur(3px) !important;
       }
 
       .mob-drawer {
-        width: min(86vw, 340px) !important;
-        max-width: 340px !important;
+        width: min(84vw, 336px) !important;
+        max-width: 336px !important;
         background: #fff !important;
         border-right: 1px solid var(--drawer-border) !important;
         border-radius: 0 24px 24px 0 !important;
@@ -32,7 +32,7 @@
       }
 
       .mob-drawer-hd {
-        min-height: 78px !important;
+        min-height: 80px !important;
         padding: max(14px, env(safe-area-inset-top)) 18px 14px !important;
         padding-top: max(14px, calc(env(safe-area-inset-top) + 10px)) !important;
         gap: 12px !important;
@@ -48,19 +48,19 @@
       }
 
       .mob-drawer-hd > span {
-        font-size: 15px !important;
+        font-size: 16px !important;
         font-weight: 750 !important;
         letter-spacing: -.015em !important;
         color: var(--drawer-ink) !important;
       }
 
       .mob-drawer-close {
-        width: 38px !important;
-        height: 38px !important;
+        width: 40px !important;
+        height: 40px !important;
         margin-left: auto !important;
         padding: 0 !important;
         border: 1px solid var(--drawer-border) !important;
-        border-radius: 12px !important;
+        border-radius: 13px !important;
         background: #F7F7FA !important;
         color: #737991 !important;
         font-size: 18px !important;
@@ -71,15 +71,15 @@
       .mob-drawer-close:active { transform: scale(.96); }
 
       .mob-drawer-nav {
-        padding: 14px 12px !important;
+        padding: 16px 12px !important;
         overflow-y: auto !important;
       }
 
       .mob-drawer-item {
-        min-height: 54px !important;
+        min-height: 56px !important;
         margin: 3px 0 !important;
         padding: 7px 12px !important;
-        border-radius: 15px !important;
+        border-radius: 16px !important;
         gap: 12px !important;
         font-size: 14px !important;
         font-weight: 600 !important;
@@ -88,10 +88,10 @@
       }
 
       .mob-drawer-item .drawer-icon {
-        width: 40px;
-        height: 40px;
-        flex: 0 0 40px;
-        border-radius: 12px;
+        width: 42px;
+        height: 42px;
+        flex: 0 0 42px;
+        border-radius: 13px;
         display: grid;
         place-items: center;
         background: #F5F5F9;
@@ -112,6 +112,7 @@
         background: var(--drawer-primary-soft) !important;
         color: var(--drawer-primary) !important;
         font-weight: 700 !important;
+        box-shadow: inset 0 0 0 1px rgba(108,92,231,.035);
       }
       .mob-drawer-item.active .drawer-icon {
         background: #fff !important;
