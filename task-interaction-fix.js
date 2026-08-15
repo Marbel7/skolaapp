@@ -1,262 +1,215 @@
-/* SkolaApp — reliable mobile task + accordion interactions */
+/* SkolaApp — reliable task interactions (loaded by mobile-enhancement.js) */
 (function () {
   'use strict';
 
-  function taskState() {
-    var list = Array.isArray(window.tasks) ? window.tasks : [];
-    var done = list.filter(function (t) { return !!t.done; }).length;
-    return { tasks: list, total: list.length, done: done, remaining: Math.max(0, list.length - done), percent: list.length ? Math.round(done / list.length * 100) : 0 };
+  function arr() {
+    return Array.isArray(window.tasks) ? window.tasks : [];
   }
 
-  function taskCard() {
-    var list = document.getElementById('taskList');
-    return list ? list.closest('.card') : null;
-  }
-
-  function noteCard() {
-    var list = document.getElementById('notesList');
-    return list ? list.closest('.card') : null;
-  }
-
-  function escapeText(value) {
-    return String(value == null ? '' : value)
-      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
-  }
-
-  function latestNote() {
-    var notes = Array.isArray(window.notes) ? window.notes : [];
-    if (!notes.length) return 'Žádná uložená poznámka';
-    var text = String(notes[0].text || '').trim().replace(/\s+/g, ' ');
-    return text ? (text.length > 54 ? text.slice(0, 54) + '…' : text) : 'Poslední uložená poznámka';
-  }
-
-  function taskHeader(card) {
-    var header = card.querySelector('.card-hd');
-    if (!header) return;
-    var s = taskState();
-    header.className = 'card-hd sk-collapse-hd';
-    header.setAttribute('role', 'button');
-    header.setAttribute('tabindex', '0');
-    header.setAttribute('aria-controls', 'taskList');
-    header.innerHTML =
-      '<div class="sk-summary-main"><div class="sk-summary-icon sk-icon-task">✓</div>' +
-      '<div class="sk-summary-copy"><div class="sk-summary-title">Úkoly</div>' +
-      '<div class="sk-summary-value"><strong id="skTaskDone">' + s.done + '</strong> / <span id="skTaskTotal">' + s.total + '</span> splněno</div>' +
-      '<div class="sk-progress"><span id="skTaskProgress" style="width:' + s.percent + '%"></span></div>' +
-      '<div class="sk-summary-meta" id="skTaskMeta">' + (s.remaining ? s.remaining + ' zbývá' : (s.total ? 'Všechno hotovo' : 'Zatím žádné úkoly')) + '</div></div></div>' +
-      '<div class="sk-summary-right"><span class="sk-chevron">⌄</span></div>';
-  }
-
-  function noteHeader(card) {
-    var header = card.querySelector('.card-hd');
-    if (!header) return;
-    var notes = Array.isArray(window.notes) ? window.notes : [];
-    header.className = 'card-hd sk-collapse-hd';
-    header.setAttribute('role', 'button');
-    header.setAttribute('tabindex', '0');
-    header.setAttribute('aria-controls', 'notesList');
-    header.innerHTML =
-      '<div class="sk-summary-main"><div class="sk-summary-icon sk-icon-note">✎</div>' +
-      '<div class="sk-summary-copy"><div class="sk-summary-title">Poznámky</div>' +
-      '<div class="sk-summary-value"><strong id="skNotesTotal">' + notes.length + '</strong> uložených</div>' +
-      '<div class="sk-summary-meta" id="skNotesMeta">' + escapeText(latestNote()) + '</div></div></div>' +
-      '<div class="sk-summary-right"><span class="sk-chevron">⌄</span></div>';
-  }
-
-  function setExpanded(card, expanded) {
-    card.classList.toggle('is-expanded', expanded);
-    card.classList.toggle('is-collapsed', !expanded);
-    var header = card.querySelector('.sk-collapse-hd');
-    if (header) {
-      header.setAttribute('aria-expanded', expanded ? 'true' : 'false');
-      var chevron = header.querySelector('.sk-chevron');
-      if (chevron) chevron.textContent = expanded ? '⌃' : '⌄';
-    }
-  }
-
-  function bindAccordion(card, kind) {
-    if (!card || card.__skAccordionFixed) return;
-    card.__skAccordionFixed = true;
-    card.classList.add('sk-collapsible', 'is-collapsed');
-    if (kind === 'tasks') taskHeader(card); else noteHeader(card);
-    var header = card.querySelector('.sk-collapse-hd');
-    if (!header) return;
-    function toggle() { setExpanded(card, !card.classList.contains('is-expanded')); }
-    header.addEventListener('click', function (e) {
-      if (e.target.closest('button,input,select,textarea,a')) return;
-      toggle();
-    });
-    header.addEventListener('keydown', function (e) {
-      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
-    });
+  function render() {
+    if (typeof window.renderTasks === 'function') window.renderTasks();
+    if (typeof window.calRender === 'function') window.calRender();
+    refreshSummary();
   }
 
   function refreshSummary() {
-    var s = taskState();
-    var done = document.getElementById('skTaskDone');
-    var total = document.getElementById('skTaskTotal');
-    var progress = document.getElementById('skTaskProgress');
-    var meta = document.getElementById('skTaskMeta');
-    if (done) done.textContent = s.done;
-    if (total) total.textContent = s.total;
-    if (progress) progress.style.width = s.percent + '%';
-    if (meta) meta.textContent = s.remaining ? s.remaining + ' zbývá' : (s.total ? 'Všechno hotovo' : 'Zatím žádné úkoly');
-    var nt = document.getElementById('skNotesTotal');
-    var nm = document.getElementById('skNotesMeta');
-    if (nt) nt.textContent = Array.isArray(window.notes) ? window.notes.length : 0;
-    if (nm) nm.textContent = latestNote();
+    var tasks = arr();
+    var done = tasks.filter(function (t) { return !!t.done; }).length;
+    var total = tasks.length;
+    var d = document.getElementById('skTaskDone');
+    var t = document.getElementById('skTaskTotal');
+    var p = document.getElementById('skTaskProgress');
+    var m = document.getElementById('skTaskMeta');
+    if (d) d.textContent = done;
+    if (t) t.textContent = total;
+    if (p) p.style.width = (total ? Math.round(done / total * 100) : 0) + '%';
+    if (m) m.textContent = total - done ? (total - done) + ' zbývá' : (total ? 'Všechno hotovo' : 'Zatím žádné úkoly');
   }
 
-  /* Reliable checkbox handler. Uses capture phase so the original handler cannot swallow the tap. */
-  function bindCheckboxes() {
-    var list = document.getElementById('taskList');
-    if (!list || list.__mobileCheckboxFix) return;
-    list.__mobileCheckboxFix = true;
-    list.addEventListener('click', function (e) {
-      var el = e.target.closest('[data-action="check"]');
-      if (!el || !list.contains(el)) return;
-      e.preventDefault();
-      e.stopImmediatePropagation();
-      var i = parseInt(el.dataset.i, 10);
-      var arr = Array.isArray(window.tasks) ? window.tasks : [];
-      if (!Number.isInteger(i) || !arr[i]) return;
-      var task = arr[i];
-      var previous = !!task.done;
-      task.done = !previous;
-      if (typeof window.renderTasks === 'function') window.renderTasks();
-      if (typeof window.calRender === 'function') window.calRender();
-      if (window.fbSyncEnabled && task.id && typeof window.fbToggleTask === 'function') {
-        var id = task.id;
-        if (window.fbPendingTaskToggles) window.fbPendingTaskToggles[id] = task.done;
-        window.fbToggleTask(id, task.done).then(function () {
-          if (window.fbPendingTaskToggles) delete window.fbPendingTaskToggles[id];
-        }).catch(function (err) {
-          if (window.fbPendingTaskToggles) delete window.fbPendingTaskToggles[id];
-          var current = arr.find(function (t) { return t.id === id; });
-          if (current) current.done = previous;
-          if (typeof window.renderTasks === 'function') window.renderTasks();
-          if (typeof window.calRender === 'function') window.calRender();
-          if (typeof window.showToast === 'function') window.showToast('⚠️ Nepodařilo se uložit úkol');
-          console.error('[mobile task checkbox]', err);
-        });
-      } else if (typeof window.saveTasks === 'function') {
-        window.saveTasks();
-      }
-      refreshSummary();
-    }, true);
-  }
+  function toggleTask(index) {
+    var tasks = arr();
+    var i = Number(index);
+    if (!Number.isInteger(i) || !tasks[i]) return;
+    var task = tasks[i];
+    var old = !!task.done;
+    task.done = !old;
+    render();
 
-  /* Direct task entry on the dashboard. */
-  function bindTaskEntry() {
-    var input = document.getElementById('taskInput');
-    var button = document.getElementById('taskAddBtn');
-    if (!input || !button || button.__mobileTaskEntryFix) return;
-    button.__mobileTaskEntryFix = true;
-    function addFromInput(e) {
-      if (e) { e.preventDefault(); e.stopImmediatePropagation(); }
-      var value = input.value.trim();
-      if (!value) { input.focus(); return; }
-      if (typeof window.addTask === 'function') {
-        window.addTask();
-      } else {
-        var arr = Array.isArray(window.tasks) ? window.tasks : [];
-        var priority = (document.getElementById('taskPriority') || {}).value || 'med';
-        var task = {text:value, priority:priority, done:false, createdAt:new Date().toISOString()};
-        arr.unshift(task); window.tasks = arr;
-        if (typeof window.saveTasks === 'function') window.saveTasks();
-        if (typeof window.renderTasks === 'function') window.renderTasks();
-      }
-      refreshSummary();
+    if (window.fbSyncEnabled && task.id && typeof window.fbToggleTask === 'function') {
+      Promise.resolve(window.fbToggleTask(task.id, task.done)).catch(function (err) {
+        task.done = old;
+        render();
+        if (typeof window.showToast === 'function') window.showToast('⚠️ Nepodařilo se uložit úkol');
+        console.error('[SKOLA task toggle]', err);
+      });
+    } else if (typeof window.saveTasks === 'function') {
+      window.saveTasks();
     }
-    button.addEventListener('click', addFromInput, true);
-    input.addEventListener('keydown', function (e) {
-      if (e.key === 'Enter') { e.preventDefault(); e.stopImmediatePropagation(); addFromInput(); }
-    }, true);
   }
 
-  /* Directly handle the "Uložit" button in the quick-capture sheet for typed tasks. */
-  function bindCaptureSave() {
-    var save = document.getElementById('sk-save');
-    if (!save || save.__mobileCaptureFix) return;
-    save.__mobileCaptureFix = true;
-    save.addEventListener('click', function (e) {
-      var modeBtn = document.getElementById('sk-task');
-      var text = document.getElementById('sk-text');
-      var modeIsTask = modeBtn && modeBtn.classList.contains('active');
-      if (!modeIsTask || !text || !text.value.trim()) return;
+  function bindCheckboxes() {
+    if (document.__skTaskClicks) return;
+    document.__skTaskClicks = true;
+    document.addEventListener('click', function (e) {
+      var el = e.target && e.target.closest ? e.target.closest('#taskList [data-action="check"], #taskList .tck') : null;
+      if (!el) return;
       e.preventDefault();
       e.stopImmediatePropagation();
-      var value = text.value.trim();
-      var input = document.getElementById('taskInput');
-      var arr = Array.isArray(window.tasks) ? window.tasks : [];
-      var priorityEl = document.getElementById('taskPriority');
-      var task = {text:value, priority:priorityEl ? priorityEl.value : 'med', done:false, createdAt:new Date().toISOString()};
-      if (window.fbSyncEnabled && typeof window.fbAddTask === 'function') {
-        window.fbAddTask(task);
-      } else {
-        arr.unshift(task);
-        window.tasks = arr;
-        if (typeof window.saveTasks === 'function') window.saveTasks();
-        if (typeof window.renderTasks === 'function') window.renderTasks();
-        if (typeof window.calRender === 'function') window.calRender();
-      }
-      if (input) input.value = '';
-      var overlay = document.querySelector('.sk-capture');
-      if (overlay) overlay.classList.remove('open');
-      text.value = '';
-      refreshSummary();
+      toggleTask(el.getAttribute('data-i'));
     }, true);
   }
 
-  function injectStyles() {
-    if (document.getElementById('sk-dashboard-accordion-styles')) return;
-    var style = document.createElement('style');
-    style.id = 'sk-dashboard-accordion-styles';
-    style.textContent = `
-      .sk-collapsible{overflow:hidden;}
-      .sk-collapsible>.sk-collapse-hd{margin-bottom:0!important;min-height:74px;align-items:center;cursor:pointer;user-select:none;border-radius:12px;transition:background .16s ease,margin .2s ease,padding .2s ease;}
-      .sk-collapsible>.sk-collapse-hd:hover{background:var(--surface2);}
-      .sk-collapsible.is-expanded>.sk-collapse-hd{margin-bottom:14px!important;}
-      .sk-collapsible.is-collapsed>:not(.sk-collapse-hd){display:none!important;}
-      .sk-summary-main{display:flex;align-items:center;gap:12px;min-width:0;}
-      .sk-summary-icon{width:42px;height:42px;flex:0 0 42px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:21px;font-weight:800;}
-      .sk-icon-task{background:var(--primary-soft);color:var(--primary);}.sk-icon-note{background:var(--amber-soft);color:var(--amber);font-size:23px;}
-      .sk-summary-copy{min-width:0;}.sk-summary-title{font-size:14px;font-weight:750;color:var(--ink);line-height:1.15;}
-      .sk-summary-value{font-size:18px;color:var(--ink);line-height:1.2;margin-top:2px;letter-spacing:-.02em;}.sk-summary-value strong{font-weight:800;}
-      .sk-summary-meta{font-size:11px;color:var(--ink2);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:360px;}
-      .sk-progress{width:min(180px,42vw);height:5px;background:var(--surface3);border-radius:99px;overflow:hidden;margin-top:7px;}.sk-progress span{display:block;height:100%;background:var(--primary);border-radius:inherit;transition:width .25s ease;}
-      .sk-summary-right{margin-left:auto;display:flex;align-items:center;padding-left:10px;}.sk-chevron{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--surface2);color:var(--ink2);font-size:20px;line-height:1;}
-      .sk-collapsible.is-expanded>.sk-collapse-hd{padding-bottom:2px;}
-      @media(max-width:700px){
-        .sk-collapsible>.sk-collapse-hd{min-height:70px;padding:4px 2px!important;}
-        .sk-summary-icon{width:40px;height:40px;flex-basis:40px;border-radius:12px;}.sk-summary-value{font-size:17px;}.sk-summary-meta{font-size:10px;max-width:220px;}.sk-progress{width:150px;}
-        #taskList{max-height:300px!important;height:300px!important;overflow-y:auto!important;overflow-x:hidden!important;-webkit-overflow-scrolling:touch!important;overscroll-behavior:contain!important;}
-        #notesList{max-height:270px!important;height:270px!important;overflow-y:auto!important;overflow-x:hidden!important;-webkit-overflow-scrolling:touch!important;overscroll-behavior:contain!important;}
-        #taskList .titem,#notesList .nitem{flex:0 0 auto!important;}
+  function findTaskInput() {
+    return document.getElementById('taskInput') || document.querySelector('#taskList') && document.querySelector('.ti');
+  }
+
+  function findTaskAddButton() {
+    return document.getElementById('taskAddBtn') || document.querySelector('.tadd');
+  }
+
+  function addTypedTask(input) {
+    if (!input) return;
+    var value = String(input.value || '').trim();
+    if (!value) { input.focus(); return; }
+
+    if (typeof window.addTask === 'function') {
+      try {
+        window.addTask();
+        setTimeout(render, 50);
+        return;
+      } catch (err) {
+        console.error('[SKOLA addTask fallback]', err);
       }
-    `;
-    document.head.appendChild(style);
+    }
+
+    var priorityEl = document.getElementById('taskPriority') || document.querySelector('.psel');
+    var task = {
+      text: value,
+      priority: priorityEl && priorityEl.value ? priorityEl.value : 'med',
+      done: false,
+      createdAt: new Date().toISOString()
+    };
+    window.tasks = arr();
+    window.tasks.unshift(task);
+    input.value = '';
+
+    if (window.fbSyncEnabled && typeof window.fbAddTask === 'function') {
+      Promise.resolve(window.fbAddTask(task)).then(render).catch(function (err) {
+        console.error('[SKOLA fbAddTask]', err);
+        render();
+      });
+    } else {
+      if (typeof window.saveTasks === 'function') window.saveTasks();
+      render();
+    }
+  }
+
+  function bindTaskEntry() {
+    if (document.__skTaskEntry) return;
+    document.__skTaskEntry = true;
+
+    document.addEventListener('click', function (e) {
+      var button = e.target && e.target.closest ? e.target.closest('#taskAddBtn, .tadd') : null;
+      if (!button) return;
+      var input = findTaskInput();
+      if (!input) return;
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      addTypedTask(input);
+    }, true);
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Enter') return;
+      var input = e.target && e.target.closest ? e.target.closest('#taskInput, .ti') : null;
+      if (!input) return;
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      addTypedTask(input);
+    }, true);
+  }
+
+  function bindCapture() {
+    if (document.__skCaptureTaskFix) return;
+    document.__skCaptureTaskFix = true;
+
+    document.addEventListener('input', function (e) {
+      var text = e.target && e.target.closest ? e.target.closest('#sk-text') : null;
+      if (!text) return;
+      var save = document.getElementById('sk-save');
+      if (save) save.disabled = !text.value.trim();
+    }, true);
+
+    document.addEventListener('click', function (e) {
+      var save = e.target && e.target.closest ? e.target.closest('#sk-save') : null;
+      if (!save) return;
+
+      var mode = document.getElementById('sk-task');
+      var text = document.getElementById('sk-text');
+      if (!mode || !mode.classList.contains('active') || !text || !text.value.trim()) return;
+
+      e.preventDefault();
+      e.stopImmediatePropagation();
+
+      var value = text.value.trim();
+      var priorityEl = document.getElementById('taskPriority') || document.querySelector('.psel');
+      var task = {
+        text: value,
+        priority: priorityEl && priorityEl.value ? priorityEl.value : 'med',
+        done: false,
+        createdAt: new Date().toISOString()
+      };
+
+      function finish() {
+        text.value = '';
+        save.disabled = true;
+        var overlay = document.querySelector('.sk-capture');
+        if (overlay) overlay.classList.remove('open');
+        render();
+      }
+
+      if (window.fbSyncEnabled && typeof window.fbAddTask === 'function') {
+        Promise.resolve(window.fbAddTask(task)).then(finish).catch(function (err) {
+          console.error('[SKOLA capture fbAddTask]', err);
+          if (typeof window.showToast === 'function') window.showToast('⚠️ Úkol se nepodařilo uložit');
+        });
+      } else {
+        window.tasks = arr();
+        window.tasks.unshift(task);
+        if (typeof window.saveTasks === 'function') window.saveTasks();
+        finish();
+      }
+    }, true);
+  }
+
+  function bindAccordion() {
+    var card = document.getElementById('taskList');
+    card = card && card.closest('.card');
+    if (!card || card.__skTaskAccordion) return;
+    card.__skTaskAccordion = true;
+    var header = card.querySelector('.card-hd');
+    if (!header) return;
+    header.addEventListener('click', function (e) {
+      if (e.target.closest('button,input,select,textarea,a')) return;
+      card.classList.toggle('is-expanded');
+      card.classList.toggle('is-collapsed');
+      var open = card.classList.contains('is-expanded');
+      header.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
   }
 
   function init() {
-    var tc = taskCard(), nc = noteCard();
-    if (tc) bindAccordion(tc, 'tasks');
-    if (nc) bindAccordion(nc, 'notes');
     bindCheckboxes();
     bindTaskEntry();
-    bindCaptureSave();
-    injectStyles();
+    bindCapture();
+    bindAccordion();
     refreshSummary();
-    var list = document.getElementById('taskList');
-    if (list && !list.__mobileSummaryObserver) {
-      list.__mobileSummaryObserver = new MutationObserver(refreshSummary);
-      list.__mobileSummaryObserver.observe(list, {childList:true, subtree:true, attributes:true});
-    }
   }
 
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, {once:true});
-  else init();
-  setTimeout(init, 300);
-  setTimeout(init, 1200);
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init, { once: true });
+  } else {
+    init();
+  }
+  setTimeout(init, 250);
+  setTimeout(init, 1000);
 })();
