@@ -197,9 +197,12 @@ body { font-family: var(--font); background: var(--bg); color: var(--ink); min-h
   transition: border-color 0.12s; 
 }
 .titem:hover, .nitem:hover, .mitem:hover, .eitem:hover { background: var(--surface); border-color: var(--border2); }
-.titem.done { opacity: 0.45; }
-.titem.done .ttxt { text-decoration: line-through; color: var(--ink3); }
-.tck { width: 18px; height: 18px; border: 1.5px solid var(--border2); border-radius: 5px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+.titem.done { opacity: 1; background: var(--surface2); }
+.titem.done .ttxt { text-decoration: line-through; text-decoration-thickness: 1.5px; text-decoration-color: var(--ink3); color: var(--ink3); }
+.tck { appearance: none; -webkit-appearance: none; width: 18px; height: 18px; padding: 0; margin: 0; border: 1.5px solid var(--border2); border-radius: 5px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background .15s, border-color .15s, transform .1s; background: transparent; flex: 0 0 18px; }
+.tck:hover { border-color: var(--primary); }
+.tck:active { transform: scale(.92); }
+.tck:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 .tck.checked { background: var(--primary); border-color: var(--primary); }
 .tck.checked::after { content: '✓'; color: #fff; font-size: 10px; font-weight: 700; }
 .ttxt { font-size: 12px; flex: 1; color: var(--ink); font-weight: 500; }
@@ -974,6 +977,9 @@ body.drawer-open {
   display: block !important;
 }
 
+/* TASK_CHECK_UI_FIX_V3 */
+.titem .ttxt[data-action="check"] { cursor: pointer; }
+@media (max-width:700px){ .titem .ttxt[data-action="check"]{-webkit-tap-highlight-color:transparent;} }
 </style>
 <!-- Firebase SDKs -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -2030,8 +2036,8 @@ function renderTasks() {
   list.innerHTML = filtered.map(function(t){
     var idx = tasks.indexOf(t);
     return '<li class="titem '+(t.done?'done':'')+'">'
-      +'<div class="tck '+(t.done?'checked':'')+'" data-action="check" data-i="'+idx+'"></div>'
-      +'<span class="ttxt">'+esc(t.text)+'</span>'
+      +'<button type="button" class="tck '+(t.done?'checked':'')+'" data-action="check" data-i="'+idx+'" aria-label="'+(t.done?'Označit jako nesplněné':'Označit jako splněné')+'" aria-pressed="'+(t.done?'true':'false')+'"></button>'
+      +'<span class="ttxt" data-action="check" data-i="'+idx+'">'+esc(t.text)+'</span>'
       +'<span class="tprio '+(t.priority==='high'?'ph':t.priority==='low'?'pl':'pm')+'">'+(t.priority==='high'?'Vysoká':t.priority==='low'?'Nízká':'Střední')+'</span>'
       +'<button class="tdel" data-action="del" data-i="'+idx+'">✕</button>'
       +'</li>';
