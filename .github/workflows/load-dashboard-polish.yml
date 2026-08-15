@@ -1,0 +1,39 @@
+name: Load dashboard polish
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  add-dashboard-script:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Add dashboard polish script once
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+          tag = '<script src="dashboard-polish.js"></script>'
+          if tag not in s:
+              marker = '</body>'
+              if marker not in s:
+                  raise SystemExit('index.html has no </body> marker')
+              s = s.replace(marker, '  ' + tag + '\n' + marker, 1)
+              p.write_text(s, encoding='utf-8')
+          PY
+      - name: Commit script reference
+        run: |
+          if git diff --quiet -- index.html; then
+            echo 'Dashboard polish already loaded.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git commit -m 'Load dashboard polish layer'
+          git push
