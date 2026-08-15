@@ -14,24 +14,17 @@
       .sk-mobile-btn svg{width:21px;height:21px;stroke:currentColor}.sk-mobile-btn.active{color:#6C5CE7}.sk-mobile-btn.active:after{content:'';width:4px;height:4px;border-radius:50%;background:#6C5CE7;position:absolute;bottom:-2px}
       .sk-mobile-fab-wrap{height:76px;display:flex;justify-content:center;align-items:flex-start}.sk-mobile-fab{margin-top:-19px!important;width:62px!important;height:62px!important;border:0!important;border-radius:21px!important;background:#6C5CE7!important;color:#fff!important;box-shadow:0 10px 24px rgba(108,92,231,.32)!important;display:flex!important;align-items:center!important;justify-content:center!important;position:relative!important;cursor:pointer}.sk-mobile-fab svg{width:27px!important;height:27px!important}.sk-mobile-fab-label{position:absolute;top:65px;color:#6C5CE7;font:700 10px Inter,sans-serif;white-space:nowrap}
 
-      /* Kompaktní dashboard: jedno datum, jeden přehled úkolů, potom akce. */
       #page-dashboard{padding:1.15rem 1rem 3.5rem!important}
       #page-dashboard > .page-hdr{display:block!important;margin:0 4px 12px!important}
       #page-dashboard > .page-hdr h1{font-size:27px!important;line-height:1.08!important;letter-spacing:-.035em!important;margin:0!important;color:#202033!important}
       #page-dashboard > .page-hdr p{font-size:14px!important;color:#7C8198!important;margin:6px 0 9px!important}
       #page-dashboard > .page-hdr:after{content:'Dnes';display:inline-flex;align-items:center;margin-top:0;padding:6px 11px;border:1px solid #E8E8F0;border-radius:999px;background:#fff;box-shadow:0 2px 7px rgba(32,32,51,.05);font-size:11px;font-weight:700;color:#7C8198}
-
-      /* Původní velké tři statistické karty skryjeme; datum je jen jednou v hero. */
       #page-dashboard > .stats{display:none!important}
       #page-dashboard > div[style*="grid-template-columns:1fr 300px"]{display:block!important}
       #page-dashboard > div[style*="grid-template-columns:1fr 300px"] > div:first-child{display:block!important}
       #page-dashboard > div[style*="grid-template-columns:1fr 300px"] > div:first-child > .grid2{display:flex!important;flex-direction:column!important;gap:10px!important;margin-bottom:10px!important}
-
-      /* Na mobilu: nejdřív přehled úkolů, potom rychlé odkazy. */
       #page-dashboard > div[style*="grid-template-columns:1fr 300px"] > div:first-child > .grid2 > .card:first-child{order:2}
       #page-dashboard > div[style*="grid-template-columns:1fr 300px"] > div:first-child > .grid2 > .card:nth-child(2){order:1}
-
-      /* Kompaktní karta úkolů s progres barem a procenty. */
       #page-dashboard .grid2 > .card:nth-child(2){padding:14px 14px 13px!important;border-radius:18px!important;background:#fff!important;box-shadow:0 3px 14px rgba(32,32,51,.06)!important}
       #page-dashboard .grid2 > .card:nth-child(2) .card-hd{margin-bottom:8px!important;align-items:center!important}
       #page-dashboard .grid2 > .card:nth-child(2) .card-ttl{font-size:11px!important;font-weight:800!important;text-transform:uppercase!important;letter-spacing:.06em!important;color:#7C8198!important}
@@ -45,8 +38,6 @@
       #page-dashboard .grid2 > .card:nth-child(2) .tlist{max-height:none!important;gap:4px!important}
       #page-dashboard .grid2 > .card:nth-child(2) .titem{padding:8px 9px!important;min-height:42px!important}
       #page-dashboard .grid2 > .card:nth-child(2)::before{content:attr(data-progress);display:flex;align-items:center;justify-content:flex-end;height:18px;padding:0 8px;border-radius:99px;background:linear-gradient(to right,#6C5CE7 var(--sk-progress,0%),#EDEDF3 var(--sk-progress,0%));margin:2px 0 11px;color:#fff;font-size:10px;font-weight:800;box-sizing:border-box;transition:background .25s ease}
-
-      /* Rychlé odkazy: kompaktní, ne obří. */
       #page-dashboard .grid2 > .card:first-child{padding:14px!important;border-radius:18px!important}
       #page-dashboard .grid2 > .card:first-child .card-hd{margin-bottom:9px!important}
       #page-dashboard .grid2 > .card:first-child .card-ttl{font-size:13px!important;font-weight:800!important;text-transform:uppercase!important;letter-spacing:.06em!important;color:#7C8198!important}
@@ -56,15 +47,10 @@
       #page-dashboard .li{width:34px!important;height:34px!important}
       #page-dashboard .ln{font-size:13px!important}
       #page-dashboard .ld{font-size:10px!important}
-
-      /* Poznámky zůstávají, ale s menším spacingem. */
       #page-dashboard > div[style*="grid-template-columns:1fr 300px"] > div:first-child > .card:last-child{padding:14px!important;border-radius:18px!important;margin-top:10px!important}
       #page-dashboard > div[style*="grid-template-columns:1fr 300px"] > div:first-child > .card:last-child .card-hd{margin-bottom:9px!important}
       #page-dashboard > div[style*="grid-template-columns:1fr 300px"] > div:first-child > .card:last-child .ninput{min-height:78px!important}
-
-      /* Kalendář necháváme dostupný jinde, ale neblokuje první mobilní viewport. */
       #page-dashboard > div[style*="grid-template-columns:1fr 300px"] > div:last-child{display:none!important}
-
       .sk-capture{position:fixed;inset:0;background:rgba(20,20,35,.46);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);z-index:10000;display:none;align-items:flex-end;justify-content:center}
       .sk-capture.open{display:flex}.sk-sheet{width:100%;max-width:560px;background:#fff;border-radius:28px 28px 0 0;padding:10px 18px calc(18px + env(safe-area-inset-bottom));box-shadow:0 -18px 60px rgba(0,0,0,.2);box-sizing:border-box;max-height:88vh;overflow:auto}
       .sk-grab{width:38px;height:4px;background:#DADAE5;border-radius:9px;margin:0 auto 15px}.sk-title{font:700 20px Inter,-apple-system,sans-serif;color:#202033}.sk-sub{font:13px Inter,-apple-system,sans-serif;color:#7C8198;margin:4px 0 15px}
@@ -78,7 +64,6 @@
   `;
   document.head.appendChild(css);
 
-  /* Final dashboard direction: reduce visual noise, keep the information hierarchy. */
   const polish = document.createElement('style');
   polish.textContent = `
     @media (max-width:700px){
@@ -114,7 +99,7 @@
     home: icon('<path d="M3 10.5 12 3l9 7.5"/><path d="M5.5 9.5V21h13V9.5"/><path d="M9.5 21v-6h5v6"/>'),
     material: icon('<path d="M4 4h16v16H4z"/><path d="M8 8h8M8 12h8M8 16h5"/>'),
     evidence: icon('<path d="M6 3h12v18H6z"/><path d="M9 7h6M9 11h6M9 15h4"/>'),
-    settings: icon('<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-1.8 1.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5v.2h-2.6v-.2a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1-1.8-1.8.1-.1A1.7 1.7 0 0 0 8 15a1.7 1.7 0 0 0-1.5-1H6v-2.6h.2a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1 1.8-1.8.1.1a1.7 1.7 0 0 0 1.9-.3 1.7 1.7 0 0 0 1 1.5v.2h-2.6v-.2a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1-1.8-1.8.1-.1a1.7 1.7 0 0 0-.3-1.9 1.7 1.7 0 0 0-1.5-1H6V9.4... (truncated) />'),
+    settings: icon('<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-1.8 1.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5v.2h-2.6v-.2a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1-1.8-1.8.1-.1A1.7 1.7 0 0 0 8 15a1.7 1.7 0 0 0-1.5-1H6v-2.6h.2a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1 1.8-1.8.1.1a1.7 1.7 0 0 0 1.9-.3 1.7 1.7 0 0 0 1 1.5v.2h-2.6v-.2a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1-1.8-1.8.1-.1a1.7 1.7 0 0 0-.3-1.9A1.7 1.7 0 0 0 6 9.4v-.2H3.4V6.6h.2a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1 1.8-1.8.1.1a1.7 1.7 0 0 0 1.9.3 1.7 1.7 0 0 0 1-1.5V.5h2.6v.2a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1 1.8 1.8-.1.1a1.7 1.7 0 0 0 .3 1.9 1.7 1.7 0 0 0 1.5 1h.2v2.6h-.2a1.7 1.7 0 0 0-1.5 1 1.7 1.7 0 0 0 .3 1.9l.1.1-1.8 1.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5v.2h-2.6v-.2a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1-1.8-1.8.1-.1A1.7 1.7 0 0 0 8 15a1.7 1.7 0 0 0 1.5 1H6v-2.6h.2A1.7 1.7 0 0 0 7.7 12a1.7 1.7 0 0 0-.3-1.9l-.1-.1 1.8-1.8.1.1a1.7 1.7 0 0 0 1.9.3 1.7 1.7 0 0 0 1-1.5V5h2.6v.2a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1 1.8 1.8-.1.1a1.7 1.7 0 0 0 .3 1.9 1.7 1.7 0 0 0 1.5 1h.2V14h-.2a1.7 1.7 0 0 0-1.5 1z"/>'),
     mic: icon('<rect x="8" y="3" width="8" height="12" rx="4"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3M8 21h8"/>')
   };
 
@@ -181,7 +166,6 @@
     const target=document.querySelector('.ntab[data-page="'+btn.dataset.page+'"]'); if(target) target.click();
   });
 
-  /* Synchronizuj procento dokončení s reálným seznamem úkolů. */
   function syncCompactDashboard(){
     const card=document.querySelector('#page-dashboard .grid2 > .card:nth-child(2)');
     if(!card) return;
