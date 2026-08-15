@@ -37,17 +37,14 @@ jobs:
               p.write_text(s, encoding='utf-8')
           PY
 
-      - name: Fix task interactions
-        run: python3 fix_tasks.py
-
-      - name: Commit changes
+      - name: Commit mobile UI scripts
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add index.html
           if git diff --cached --quiet; then
-            echo "No changes needed"
+            echo "Mobile UI scripts already active"
             exit 0
           fi
-          git commit -m "fix: make tasks interactive"
+          git commit -m "feat: load modern mobile hamburger drawer"
           git push
