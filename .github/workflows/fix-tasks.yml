@@ -9,7 +9,6 @@ permissions:
 
 jobs:
   fix:
-    if: "!contains(github.event.head_commit.message, 'fix: make tasks interactive')"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -20,7 +19,6 @@ jobs:
         run: |
           python3 - <<'PY'
           from pathlib import Path
-          import re
 
           p = Path('index.html')
           s = p.read_text(encoding='utf-8')
@@ -38,7 +36,6 @@ function fbDeleteTask(taskId) {
   if (!fbSyncEnabled) return;
   fbUserDoc('tasks').doc(taskId).delete();
 }'''
-
           new_fb = '''/* TASK_INTERACTION_FIX_V1 */
 var fbPendingTaskToggles = Object.create(null);
 var fbPendingTaskDeletes = Object.create(null);
@@ -66,11 +63,9 @@ function fbDeleteTask(taskId) {
       var data = d.data();
       // Ensure createdAt exists
       if (!data.createdAt) data.createdAt = new Date().toISOString();
-      // Keep optimistic UI state while a write is in flight.
       if (fbPendingTaskToggles[d.id]) data.done = fbPendingTaskToggles[d.id];
       return Object.assign({id:d.id}, data);
     }).filter(function(t){
-      // Do not resurrect an item that was optimistically deleted until the write settles.
       return !fbPendingTaskDeletes[t.id];
     });'''
           if old_listener not in s:
@@ -150,11 +145,14 @@ function fbDeleteTask(taskId) {
           print('Task interaction fix applied')
           PY
 
-      - name: Commit and remove one-time fixer
+      - name: Commit fix
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add index.html
-          git rm .github/workflows/fix-tasks.yml
+          if git diff --cached --quiet; then
+            echo "No task changes to commit"
+            exit 0
+          fi
           git commit -m "fix: make tasks interactive"
           git push
