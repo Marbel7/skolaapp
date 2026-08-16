@@ -11,18 +11,26 @@
     return e ? String(e.textContent||'').trim() : '';
   }
 
+  function taskSource(){
+    if(Array.isArray(window.tasks) && window.tasks.length) return window.tasks;
+    var raw = null;
+    try { raw = JSON.parse(localStorage.getItem('zs_tasks_v3') || '[]'); } catch(e) { raw = []; }
+    return Array.isArray(raw) ? raw : [];
+  }
+
   function refreshTaskSummary(){
     var doneEl=document.getElementById('skTaskDone');
     var totalEl=document.getElementById('skTaskTotal');
     var prog=document.getElementById('skTaskProgress');
     var meta=document.getElementById('skTaskMeta');
-    if(Array.isArray(window.tasks)){
-      var done=window.tasks.filter(function(t){return !!t.done;}).length;
-      var total=window.tasks.length;
+    var source=taskSource();
+    if(source.length){
+      var done=source.filter(function(t){return !!t.done;}).length;
+      var total=source.length;
       if(doneEl && doneEl.textContent!==String(done)) doneEl.textContent=done;
       if(totalEl && totalEl.textContent!==String(total)) totalEl.textContent=total;
       if(prog) prog.style.width=(total?Math.round(done/total*100):0)+'%';
-      if(meta) meta.textContent=total ? ((total-done)+' zbývá') : 'Zatím žádné úkoly';
+      if(meta) meta.textContent=(total-done)+' zbývá';
       return;
     }
     var m=text('doneCount').match(/(\d+)\s*\/\s*(\d+)/);
@@ -32,6 +40,19 @@
     if(totalEl && totalEl.textContent!==String(t)) totalEl.textContent=t;
     if(prog) prog.style.width=(t?Math.round(d/t*100):0)+'%';
     if(meta) meta.textContent=t ? ((t-d)+' zbývá') : 'Zatím žádné úkoly';
+  }
+
+  function reconcileTaskList(){
+    var list=document.getElementById('taskList');
+    if(!list) return;
+    var source=taskSource();
+    if(source.length && typeof window.renderTasks==='function'){
+      var empty=list.querySelector('.tempty');
+      if(empty || !list.querySelector('.titem')){
+        window.renderTasks();
+      }
+    }
+    refreshTaskSummary();
   }
 
   function refreshNotesSummary(){
@@ -211,6 +232,12 @@
     refreshTaskSummary();
     refreshNotesSummary();
     syncTaskCheckmarks(document);
+    reconcileTaskList();
+    var tries=0;
+    var timer=setInterval(function(){
+      reconcileTaskList();
+      if(++tries>=20) clearInterval(timer);
+    },500);
   }
 
   window.__SKOLA_DASHBOARD_ACCORDIONS__={reapply:init};
