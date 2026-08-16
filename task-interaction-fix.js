@@ -9,26 +9,30 @@
     var raw=Array.isArray(window.tasks) ? window.tasks : null;
     if(raw){
       var done=raw.filter(function(t){return !!t.done;}).length, total=raw.length;
-      if(doneEl) doneEl.textContent=done; if(totalEl) totalEl.textContent=total;
+      if(doneEl && doneEl.textContent!==String(done)) doneEl.textContent=done;
+      if(totalEl && totalEl.textContent!==String(total)) totalEl.textContent=total;
       if(prog) prog.style.width=(total?Math.round(done/total*100):0)+'%';
       if(meta) meta.textContent=total ? (total-done ? (total-done)+' zbývá' : 'Všechno hotovo') : 'Zatím žádné úkoly';
       return;
     }
     var m=text('doneCount').match(/(\d+)\s*\/\s*(\d+)/); if(!m) return;
     var d=Number(m[1]), t=Number(m[2]);
-    if(doneEl) doneEl.textContent=d; if(totalEl) totalEl.textContent=t;
+    if(doneEl && doneEl.textContent!==String(d)) doneEl.textContent=d;
+    if(totalEl && totalEl.textContent!==String(t)) totalEl.textContent=t;
     if(prog) prog.style.width=(t?Math.round(d/t*100):0)+'%';
     if(meta) meta.textContent=t ? (t-d ? (t-d)+' zbývá' : 'Všechno hotovo') : 'Zatím žádné úkoly';
   }
   function refreshNotesSummary(){
     var count=document.getElementById('skNotesCount'), preview=document.getElementById('skNotesPreview');
     if(Array.isArray(window.notes)){
-      if(count) count.textContent=window.notes.length+' uložených';
+      var countText=window.notes.length+' uložených';
+      if(count && count.textContent!==countText) count.textContent=countText;
       var latest=window.notes[0]&&window.notes[0].text ? String(window.notes[0].text).trim() : '';
-      if(preview) preview.textContent=latest||'Žádné uložené poznámky';
+      var previewText=latest||'Žádné uložené poznámky';
+      if(preview && preview.textContent!==previewText) preview.textContent=previewText;
       return;
     }
-    var m=text('notesCount').match(/\d+/); if(m&&count) count.textContent=Number(m[0])+' uložených';
+    var m=text('notesCount').match(/\d+/); if(m&&count){ var fallback=Number(m[0])+' uložených'; if(count.textContent!==fallback) count.textContent=fallback; }
   }
 
   function syncTaskCheckmarks(root){
@@ -36,8 +40,14 @@
     var buttons=scope.querySelectorAll ? scope.querySelectorAll('.tck') : [];
     for(var i=0;i<buttons.length;i++){
       var b=buttons[i];
-      b.textContent=b.classList.contains('checked')?'✓':'';
-      b.setAttribute('aria-pressed',b.classList.contains('checked')?'true':'false');
+      var nextText=b.classList.contains('checked')?'✓':'';
+      var nextPressed=b.classList.contains('checked')?'true':'false';
+      // MutationObserver watches this subtree. Only write when the value
+      // actually changes, otherwise our own DOM update would trigger the
+      // observer again indefinitely (especially visible as an iOS Safari
+      // renderer crash / "A problem repeatedly occurred" page reload).
+      if(b.textContent!==nextText) b.textContent=nextText;
+      if(b.getAttribute('aria-pressed')!==nextPressed) b.setAttribute('aria-pressed',nextPressed);
     }
   }
   function installTaskCheckmarkObserver(){
@@ -99,7 +109,7 @@
     if(search&&search.parentElement)search.parentElement.classList.add('sk-notes-tools');
     card.dataset.skNotesAccordion='1'; card.classList.add('sk-note-collapsible');
     var b=document.createElement('button'); b.type='button'; b.className='sk-note-summary'; b.setAttribute('aria-expanded','false');
-    b.innerHTML='<span class="sk-summary-copy"><span class="sk-note-heading"><span class="sk-note-icon" aria-hidden="true">✎</span><span class="sk-summary-title">Poznámky</span></span><span class="sk-summary-value" id="skNotesCount">0 uložených</span><span class="sk-summary-meta" id="skNotesPreview">Žádné uložené poznámky</span></span><span class="sk-summary-chevron" aria-hidden="true">⌄</span>';
+    b.innerHTML='<span class="sk-summary-copy"><span class="sk-note-heading"><span class="sk-note-icon" aria-hidden="true">✎</span><span class="sk-summary-title">Poznámky</span></span><span class="sk-summary-value" id="skNotesCount">0 uložených</span><span class="sk-summary-meta" id="skNotesPreview">Žádné uložené poznámky</span></span><span class="sk-summary-chevron" aria-hidden="true">⌄</span></span>';
     head.replaceWith(b); expanded(card,b,false); toggleBind(card,b); refreshNotesSummary();
   }
   function styles(){
