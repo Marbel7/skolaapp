@@ -233,6 +233,14 @@
         /* Data se změnila → obnov stav z _state */
         _applyState('taskList');
         syncCheckmarks(taskList);
+        /* Pokud list obsahuje jen "prázdný stav" ale window.tasks má data,
+           renderTasks() byl volán dřív než Firestore vrátil data.
+           Zavolej ho znovu teď kdy tasks jsou k dispozici. */
+        var isEmpty = taskList.querySelector('.tempty') && !taskList.querySelector('.titem');
+        if (isEmpty && Array.isArray(window.tasks) && window.tasks.length) {
+          if (typeof window.renderTasks === 'function') window.renderTasks();
+          return; /* refreshTaskSummary se zavolá z dalšího MutationObserver triggeru */
+        }
         refreshTaskSummary();
       });
       taskList.__skObserver.observe(taskList, { childList: true, subtree: true });
