@@ -1,194 +1,41 @@
-name: Apply hamburger design
+name: Validate mobile UI
 
 on:
   push:
     branches: [main]
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  apply:
+  validate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      - name: Inject mobile UI scripts
+      - name: Validate mobile scripts
         run: |
           python3 - <<'PY'
           from pathlib import Path
-          p = Path('index.html')
-          s = p.read_text(encoding='utf-8')
-          tags = [
-              '<script src="mobile-enhancement.js"></script>\n',
-              '<script src="hamburger-modern.js"></script>\n',
+          index = Path('index.html').read_text(encoding='utf-8')
+          required = [
+              'mobile-enhancement.js',
+              'hamburger-modern.js',
+              'task-interaction-fix.js',
           ]
-          lower = s.lower()
-          pos = lower.rfind('</body>')
-          if pos < 0:
-              pos = lower.rfind('</html>')
-          if pos < 0:
-              raise SystemExit('No closing html tag found')
-          additions = ''.join(tag for tag in tags if tag not in s)
-          if additions:
-              s = s[:pos] + additions + s[pos:]
-              p.write_text(s, encoding='utf-8')
+          missing = [x for x in required if x not in index]
+          if missing:
+              raise SystemExit('Missing mobile script tags: ' + ', '.join(missing))
+
+          mobile = Path('mobile-enhancement.js').read_text(encoding='utf-8')
+          if 'signInWithRedirect' in mobile or 'fbSignIn' in mobile or 'firebase.auth' in mobile:
+              raise SystemExit('mobile-enhancement.js must not contain authentication overrides')
+
+          workflow = Path('.github/workflows/apply-hamburger.yml').read_text(encoding='utf-8')
+          if 'git push' in workflow or 'contents: write' in workflow:
+              raise SystemExit('Validation workflow must not write back to the repository')
+          if 'signInWithRedirect' in workflow or 'Safari/iOS Firebase auth' in workflow:
+              raise SystemExit('Validation workflow must not modify Firebase authentication')
+
+          print('Mobile UI validation passed; auth remains owned by index.html.')
           PY
-
-      - name: Repair Safari/iOS Firebase auth
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          p = Path('index.html')
-          s = p.read_text(encoding='utf-8')
-          start = s.find('// ── AUTH ──────────────────────────────────────────────────────────────────────')
-          end = s.find('// ===== NAČTENÍ VŠECH DAT =====')
-          if start < 0 or end < 0 or end <= start:
-              raise SystemExit('Auth block markers not found')
-          if 'Safari / Private Browsing safe' in s[start:end]:
-              print('Safari auth repair already applied')
-              raise SystemExit(0)
-          replacement = r'''// ── AUTH — Safari / Private Browsing safe ────────────────────────────────────
-var _authInitialized = false;
-var _authInitTimer = null;
-var _persistenceReady = null;
-
-// Safari Private Browsing may reject LOCAL persistence. Fall back to SESSION.
-_persistenceReady = auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
-  .catch(function(err) {
-    console.warn('[AUTH] LOCAL persistence unavailable, falling back to SESSION:', err.code || err.message);
-    return auth.setPersistence(firebase.auth.Auth.Persistence.SESSION);
-  })
-  .catch(function(err) {
-    console.warn('[AUTH] SESSION persistence unavailable:', err.code || err.message);
-  });
-
-auth.getRedirectResult().then(function(result) {
-  if (result && result.user) console.log('[AUTH] redirect sign-in success:', result.user.email);
-}).catch(function(err) {
-  if (err.code !== 'auth/no-current-user') {
-    console.error('[AUTH] redirect result error:', err.code, err.message);
-    if (typeof showToast === 'function') showToast('⚠️ Chyba přihlášení: ' + (err.message || err.code));
-  }
-});
-
-var fbUserId = null;
-var fbUserEmail = null;
-var fbSyncEnabled = false;
-
-function fbUserDoc(col) {
-  return db.collection('users').doc(fbUserId).collection(col);
-}
-function fbShowLoginOverlay() {
-  document.getElementById('fbLoginOverlay').style.display = 'flex';
-}
-function fbHideLoginOverlay() {
-  document.getElementById('fbLoginOverlay').style.display = 'none';
-}
-function fbAuthError(err) {
-  console.error('[AUTH] sign-in error:', err.code, err.message);
-  var msg = null;
-  switch (err.code) {
-    case 'auth/popup-closed-by-user':
-    case 'auth/cancelled-popup-request': return;
-    case 'auth/popup-blocked': msg = 'Prohlížeč zablokoval přihlašovací okno. Zkuste přihlášení znovu.'; break;
-    case 'auth/unauthorized-domain': msg = 'Doména není povolena ve Firebase Console.'; break;
-    case 'auth/network-request-failed': msg = 'Chyba sítě. Zkontrolujte připojení.'; break;
-    case 'auth/operation-not-supported-in-this-environment':
-    case 'auth/unsupported-persistence-type': msg = 'Safari Private Browsing blokuje potřebné úložiště pro přihlášení. Zkuste běžné okno Safari.'; break;
-    default: msg = 'Chyba přihlášení: ' + (err.message || err.code);
-  }
-  if (msg) {
-    if (typeof showToast === 'function') showToast('⚠️ ' + msg);
-    else alert(msg);
-  }
-}
-
-function fbSignIn() {
-  var provider = new firebase.auth.GoogleAuthProvider();
-  provider.setCustomParameters({ prompt: 'select_account' });
-  var ua = navigator.userAgent || '';
-  var isSafari = /Safari/i.test(ua) && !/(Chrome|CriOS|FxiOS|EdgiOS|OPiOS|Android)/i.test(ua);
-
-  if (isSafari) {
-    // Safari: redirect avoids popup/window handling problems.
-    _persistenceReady.then(function() {
-      return auth.signInWithRedirect(provider);
-    }).catch(fbAuthError);
-    return;
-  }
-
-  // Other browsers: popup remains directly inside onclick.
-  auth.signInWithPopup(provider).catch(function(err) {
-    if (err.code === 'auth/popup-blocked') {
-      auth.signInWithRedirect(provider).catch(fbAuthError);
-      return;
-    }
-    fbAuthError(err);
-  });
-}
-function fbSignOut() {
-  auth.signOut().catch(function(err) { console.error('[AUTH] signOut error:', err); });
-}
-function fbOnUserSignedIn(user) {
-  _authInitialized = true;
-  if (_authInitTimer) { clearTimeout(_authInitTimer); _authInitTimer = null; }
-  fbUserId = user.uid;
-  fbUserEmail = user.email;
-  fbSyncEnabled = true;
-  fbHideLoginOverlay();
-  fbSetupListeners();
-  var info = document.getElementById('fbUserInfo');
-  if (info) info.textContent = user.displayName || user.email;
-  var btnIn = document.getElementById('fbSignInBtn');
-  var btnOut = document.getElementById('fbSignOutBtn');
-  if (btnIn) btnIn.style.display = 'none';
-  if (btnOut) btnOut.style.display = '';
-  var av = document.getElementById('navAvatar');
-  if (av) {
-    if (user.photoURL) av.innerHTML = '<img src="' + user.photoURL + '" style="width:34px;height:34px;border-radius:50%;object-fit:cover">';
-    else av.textContent = (user.displayName || user.email || 'U').charAt(0).toUpperCase();
-  }
-  var gr = document.getElementById('navGreet');
-  if (gr) gr.textContent = 'Dobrý den, ' + (user.displayName ? user.displayName.split(' ')[0] : '') + ' 👋';
-  fbLoadAll();
-}
-function fbOnUserSignedOut() {
-  _authInitialized = true;
-  if (_authInitTimer) { clearTimeout(_authInitTimer); _authInitTimer = null; }
-  fbUserId = null;
-  fbUserEmail = null;
-  fbSyncEnabled = false;
-  fbShowLoginOverlay();
-}
-auth.onAuthStateChanged(function(user) {
-  if (user) {
-    fbOnUserSignedIn(user);
-  } else if (!_authInitialized) {
-    if (_authInitTimer) clearTimeout(_authInitTimer);
-    _authInitTimer = setTimeout(function() {
-      if (!_authInitialized && !auth.currentUser) fbOnUserSignedOut();
-    }, 800);
-  } else {
-    fbOnUserSignedOut();
-  }
-});
-
-'''
-          p.write_text(s[:start] + replacement + s[end:], encoding='utf-8')
-          print('Safari auth repair applied')
-          PY
-
-      - name: Commit changes
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
-          if git diff --cached --quiet; then
-            echo "No changes to commit"
-            exit 0
-          fi
-          git commit -m "Fix Safari/iOS Google authentication"
-          git push
