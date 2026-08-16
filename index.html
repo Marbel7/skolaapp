@@ -1465,6 +1465,7 @@ function fbHideLoginOverlay() {
 // Žádný Promise wrapper před signInWithPopup — kritické pro iOS Safari
 function fbSignIn() {
   var provider = new firebase.auth.GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: 'select_account' });
   auth.signInWithPopup(provider).catch(function(err) {
     console.error('[AUTH] signInWithPopup error:', err.code, err.message);
     var msg = null;
