@@ -1,0 +1,42 @@
+name: Restore stable Firebase auth
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  restore:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Restore auth block from known-good commit
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import urllib.request
+          path = Path('index.html')
+          text = path.read_text(encoding='utf-8')
+          start = text.find('// ── AUTH')
+          end = text.find('// ===== NAČTENÍ VŠECH DAT =====')
+          if start < 0 or end < 0 or end <= start:
+              raise SystemExit('Auth block markers not found')
+          stable_url = 'https://raw.githubusercontent.com/Marbel7/skolaapp/4ab46875eb1bde87b6394948848b671b101fc8b3/index.html'
+          stable = urllib.request.urlopen(stable_url, timeout=20).read().decode('utf-8')
+          stable_start = stable.find('// ── AUTH')
+          stable_end = stable.find('// ===== NAČTENÍ VŠECH DAT =====')
+          if stable_start < 0 or stable_end < 0 or stable_end <= stable_start:
+              raise SystemExit('Known-good auth block not found')
+          replacement = stable[stable_start:stable_end]
+          path.write_text(text[:start] + replacement + text[end:], encoding='utf-8')
+          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "Restore stable Firebase authentication"
+          git rm -f .github/workflows/restore-auth.yml
+          git commit -m "Remove temporary auth restore workflow"
+          git push origin HEAD:main
