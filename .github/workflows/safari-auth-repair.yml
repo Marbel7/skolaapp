@@ -15,38 +15,28 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 1
-      - name: Patch auth block
+      - name: Restore stable auth block
         run: |
           python3 - <<'PY'
           from pathlib import Path
           path = Path('index.html')
           text = path.read_text(encoding='utf-8')
-          start = text.find('// ── AUTH ──────────────────────────────────────────────────────────────────────')
+          start = text.find('// ── AUTH')
           end = text.find('// ===== NAČTENÍ VŠECH DAT =====')
           if start < 0 or end < 0 or end <= start:
               raise SystemExit('Auth block markers not found')
-          replacement = r'''// ── AUTH — Safari / Private Browsing safe ────────────────────────────────────
-var _authInitialized = false;
-var _authInitTimer = null;
-var _persistenceReady = null;
+          replacement = r'''// ── AUTH ──────────────────────────────────────────────────────────────────────
+// Stable implementation: popup is started directly from the onclick handler.
+// onAuthStateChanged is the single source of truth for the UI.
+// Firebase compat defaults to LOCAL persistence in normal web browsers.
 
-// Safari Private Browsing may reject LOCAL persistence. Fall back to SESSION.
-_persistenceReady = auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
-  .catch(function(err) {
-    console.warn('[AUTH] LOCAL persistence unavailable, falling back to SESSION:', err.code || err.message);
-    return auth.setPersistence(firebase.auth.Auth.Persistence.SESSION);
-  })
-  .catch(function(err) {
-    console.warn('[AUTH] SESSION persistence unavailable:', err.code || err.message);
-  });
-
-// Resolve redirect results before deciding that the user is signed out.
 auth.getRedirectResult().then(function(result) {
-  if (result && result.user) console.log('[AUTH] redirect sign-in success:', result.user.email);
+  if (result && result.user) {
+    console.log('[AUTH] getRedirectResult: user =', result.user.email);
+  }
 }).catch(function(err) {
   if (err.code !== 'auth/no-current-user') {
-    console.error('[AUTH] redirect result error:', err.code, err.message);
-    if (typeof showToast === 'function') showToast('⚠️ Chyba přihlášení: ' + (err.message || err.code));
+    console.warn('[AUTH] getRedirectResult error:', err.code);
   }
 });
 
@@ -57,110 +47,94 @@ var fbSyncEnabled = false;
 function fbUserDoc(col) {
   return db.collection('users').doc(fbUserId).collection(col);
 }
+
 function fbShowLoginOverlay() {
   document.getElementById('fbLoginOverlay').style.display = 'flex';
 }
 function fbHideLoginOverlay() {
   document.getElementById('fbLoginOverlay').style.display = 'none';
 }
-function fbAuthError(err) {
-  console.error('[AUTH] sign-in error:', err.code, err.message);
-  var msg = null;
-  switch (err.code) {
-    case 'auth/popup-closed-by-user':
-    case 'auth/cancelled-popup-request': return;
-    case 'auth/popup-blocked': msg = 'Prohlížeč zablokoval přihlašovací okno. Zkuste přihlášení znovu.'; break;
-    case 'auth/unauthorized-domain': msg = 'Doména není povolena ve Firebase Console.'; break;
-    case 'auth/network-request-failed': msg = 'Chyba sítě. Zkontrolujte připojení.'; break;
-    case 'auth/operation-not-supported-in-this-environment':
-    case 'auth/unsupported-persistence-type': msg = 'Safari Private Browsing blokuje potřebné úložiště pro přihlášení. Zkuste běžné okno Safari.'; break;
-    default: msg = 'Chyba přihlášení: ' + (err.message || err.code);
-  }
-  if (msg) {
-    if (typeof showToast === 'function') showToast('⚠️ ' + msg);
-    else alert(msg);
-  }
-}
 
 function fbSignIn() {
   var provider = new firebase.auth.GoogleAuthProvider();
   provider.setCustomParameters({ prompt: 'select_account' });
-  var ua = navigator.userAgent || '';
-  var isSafari = /Safari/i.test(ua) && !/(Chrome|CriOS|FxiOS|EdgiOS|OPiOS|Android)/i.test(ua);
-
-  if (isSafari) {
-    // Safari: redirect avoids popup/window handling problems.
-    _persistenceReady.then(function() {
-      return auth.signInWithRedirect(provider);
-    }).catch(fbAuthError);
-    return;
-  }
-
-  // Other browsers: popup remains directly inside onclick.
   auth.signInWithPopup(provider).catch(function(err) {
-    if (err.code === 'auth/popup-blocked') {
-      auth.signInWithRedirect(provider).catch(fbAuthError);
-      return;
+    console.error('[AUTH] signInWithPopup error:', err.code, err.message);
+    var msg = null;
+    switch (err.code) {
+      case 'auth/popup-closed-by-user':
+      case 'auth/cancelled-popup-request':
+        break;
+      case 'auth/popup-blocked':
+        msg = 'Prohlížeč zablokoval přihlašovací okno. Povolte popupy pro tuto stránku.';
+        break;
+      case 'auth/unauthorized-domain':
+        msg = 'Doména není povolena ve Firebase Console.';
+        break;
+      case 'auth/network-request-failed':
+        msg = 'Chyba sítě. Zkontrolujte připojení.';
+        break;
+      default:
+        msg = 'Chyba přihlášení: ' + (err.message || err.code);
     }
-    fbAuthError(err);
+    if (msg) {
+      if (typeof showToast === 'function') showToast('⚠️ ' + msg);
+      else alert(msg);
+    }
   });
 }
+
 function fbSignOut() {
-  auth.signOut().catch(function(err) { console.error('[AUTH] signOut error:', err); });
+  auth.signOut().catch(function(err) {
+    console.error('[AUTH] signOut error:', err);
+  });
 }
-function fbOnUserSignedIn(user) {
-  _authInitialized = true;
-  if (_authInitTimer) { clearTimeout(_authInitTimer); _authInitTimer = null; }
-  fbUserId = user.uid;
-  fbUserEmail = user.email;
-  fbSyncEnabled = true;
-  fbHideLoginOverlay();
-  fbSetupListeners();
-  var info = document.getElementById('fbUserInfo');
-  if (info) info.textContent = user.displayName || user.email;
-  var btnIn = document.getElementById('fbSignInBtn');
-  var btnOut = document.getElementById('fbSignOutBtn');
-  if (btnIn) btnIn.style.display = 'none';
-  if (btnOut) btnOut.style.display = '';
-  var av = document.getElementById('navAvatar');
-  if (av) {
-    if (user.photoURL) av.innerHTML = '<img src="' + user.photoURL + '" style="width:34px;height:34px;border-radius:50%;object-fit:cover">';
-    else av.textContent = (user.displayName || user.email || 'U').charAt(0).toUpperCase();
-  }
-  var gr = document.getElementById('navGreet');
-  if (gr) gr.textContent = 'Dobrý den, ' + (user.displayName ? user.displayName.split(' ')[0] : '') + ' 👋';
-  fbLoadAll();
-}
-function fbOnUserSignedOut() {
-  _authInitialized = true;
-  if (_authInitTimer) { clearTimeout(_authInitTimer); _authInitTimer = null; }
-  fbUserId = null;
-  fbUserEmail = null;
-  fbSyncEnabled = false;
-  fbShowLoginOverlay();
-}
+
 auth.onAuthStateChanged(function(user) {
   if (user) {
-    fbOnUserSignedIn(user);
-  } else if (!_authInitialized) {
-    if (_authInitTimer) clearTimeout(_authInitTimer);
-    _authInitTimer = setTimeout(function() {
-      if (!_authInitialized && !auth.currentUser) fbOnUserSignedOut();
-    }, 800);
+    fbUserId      = user.uid;
+    fbUserEmail   = user.email;
+    fbSyncEnabled = true;
+
+    fbHideLoginOverlay();
+    fbSetupListeners();
+
+    var info = document.getElementById('fbUserInfo');
+    if (info) info.textContent = user.displayName || user.email;
+    var btnIn  = document.getElementById('fbSignInBtn');
+    var btnOut = document.getElementById('fbSignOutBtn');
+    if (btnIn)  btnIn.style.display  = 'none';
+    if (btnOut) btnOut.style.display = '';
+
+    var av = document.getElementById('navAvatar');
+    if (av) {
+      if (user.photoURL) {
+        av.innerHTML = '<img src="' + user.photoURL + '" style="width:34px;height:34px;border-radius:50%;object-fit:cover">';
+      } else {
+        av.textContent = (user.displayName || user.email || 'U').charAt(0).toUpperCase();
+      }
+    }
+    var gr = document.getElementById('navGreet');
+    if (gr) gr.textContent = 'Dobrý den, ' + (user.displayName ? user.displayName.split(' ')[0] : '') + ' 👋';
+
+    fbLoadAll();
   } else {
-    fbOnUserSignedOut();
+    fbUserId      = null;
+    fbUserEmail   = null;
+    fbSyncEnabled = false;
+    fbShowLoginOverlay();
   }
 });
 
 '''
           path.write_text(text[:start] + replacement + text[end:], encoding='utf-8')
-          print('Firebase auth block patched')
+          print('Restored stable Firebase auth block')
           PY
-      - name: Commit fix and remove workflow
+      - name: Remove repair workflow
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          rm -f .github/workflows/safari-auth-repair.yml .github/workflows/.tmp-fix-safari-auth.yml
-          git add index.html .github/workflows/safari-auth-repair.yml .github/workflows/.tmp-fix-safari-auth.yml
-          git commit -m "Fix Safari/iOS Google authentication"
+          git add index.html
+          git rm -f .github/workflows/safari-auth-repair.yml
+          git commit -m "Restore stable Firebase authentication"
           git push origin HEAD:main
