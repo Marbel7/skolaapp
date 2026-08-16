@@ -30,6 +30,49 @@
     }
     var m=text('notesCount').match(/\d+/); if(m&&count) count.textContent=Number(m[0])+' uložených';
   }
+
+  /* iOS/Safari: keep a real text checkmark inside the button instead of relying only on ::after. */
+  function syncTaskCheckmarks(root){
+    var scope=root||document;
+    var buttons=scope.querySelectorAll ? scope.querySelectorAll('.tck') : [];
+    for(var i=0;i<buttons.length;i++){
+      var b=buttons[i];
+      b.textContent=b.classList.contains('checked')?'✓':'';
+      b.setAttribute('aria-pressed',b.classList.contains('checked')?'true':'false');
+    }
+  }
+  function installTaskCheckmarkObserver(){
+    var list=document.getElementById('taskList');
+    if(!list||list.__skCheckmarkObserver)return;
+    list.__skCheckmarkObserver=new MutationObserver(function(){syncTaskCheckmarks(list);});
+    list.__skCheckmarkObserver.observe(list,{childList:true,subtree:true});
+    syncTaskCheckmarks(list);
+  }
+
+  /* Robust note delete handler for iOS. It runs in capture phase and replaces the older bubble handler. */
+  function installNoteDeleteHandler(){
+    var list=document.getElementById('notesList');
+    if(!list||list.__skRobustDeleteHandler)return;
+    list.__skRobustDeleteHandler=true;
+    list.addEventListener('click',function(e){
+      var btn=e.target&&e.target.closest ? e.target.closest('[data-note-del]') : null;
+      if(!btn||!list.contains(btn))return;
+      var idx=parseInt(btn.getAttribute('data-note-del'),10);
+      if(!Number.isInteger(idx)||!Array.isArray(window.notes)||!window.notes[idx])return;
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      var note=window.notes[idx];
+      if(window.fbSyncEnabled&&note.id&&typeof window.fbDeleteNote==='function'){
+        window.fbDeleteNote(note.id);
+      }else{
+        window.notes.splice(idx,1);
+        if(typeof window.saveJSON==='function')window.saveJSON('zs_notes_list_v1',window.notes);
+        if(typeof window.renderNotes==='function')window.renderNotes();
+      }
+    },true);
+  }
+
   function expanded(card,button,on){
     card.classList.toggle('is-expanded',on); card.classList.toggle('is-collapsed',!on);
     button.setAttribute('aria-expanded',on?'true':'false');
@@ -73,19 +116,24 @@
       '#page-dashboard .sk-summary-chevron{display:grid;width:32px;height:32px;flex:0 0 32px;place-items:center;border:1px solid var(--border);border-radius:50%;background:var(--surface2);color:var(--ink2);font-size:17px;line-height:1}'+
       '#page-dashboard .sk-task-collapsible.is-collapsed .toolbar-row,#page-dashboard .sk-task-collapsible.is-collapsed .ti-row,#page-dashboard .sk-task-collapsible.is-collapsed #taskList,#page-dashboard .sk-note-collapsible.is-collapsed .nrow,#page-dashboard .sk-note-collapsible.is-collapsed .sk-notes-tools,#page-dashboard .sk-note-collapsible.is-collapsed #notesFilterInfo,#page-dashboard .sk-note-collapsible.is-collapsed #notesList{display:none!important}'+
       '#page-dashboard .sk-task-collapsible.is-expanded .toolbar-row{display:flex!important}'+
+      '#page-dashboard .tck{position:relative!important;overflow:hidden;-webkit-appearance:none!important;appearance:none!important}'+
+      '#page-dashboard .tck.checked{background:var(--primary)!important;border-color:var(--primary)!important;color:#fff!important}'+
+      '#page-dashboard .tck.checked::after{content:none!important}'+
+      '#page-dashboard .tck.checked{font-size:12px!important;font-weight:800!important;line-height:1!important;text-align:center!important}'+
+      '#page-dashboard .n-del{min-width:36px!important;min-height:36px!important;padding:7px!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;touch-action:manipulation!important;pointer-events:auto!important}'+
       '@media(max-width:700px){#page-dashboard .sk-task-summary,#page-dashboard .sk-note-summary{min-height:68px;margin-bottom:0}#page-dashboard .sk-summary-title{font-size:14px;font-weight:700}#page-dashboard .sk-summary-value{font-size:13px}#page-dashboard .sk-task-collapsible.is-expanded #taskList{max-height:min(42vh,360px)!important;overflow-y:auto!important;overflow-x:hidden!important;-webkit-overflow-scrolling:touch!important;overscroll-behavior:contain!important;touch-action:pan-y!important;padding-right:2px}#page-dashboard .sk-task-collapsible.is-expanded .tdel{opacity:1!important;visibility:visible!important;pointer-events:auto!important;position:relative!important;z-index:3!important;min-width:30px!important;min-height:30px!important}#page-dashboard .sk-task-collapsible.is-expanded .tck{position:relative!important;z-index:3!important;pointer-events:auto!important;min-width:30px!important;min-height:30px!important}#page-dashboard .sk-task-collapsible.is-expanded .titem{position:relative;z-index:1}#page-dashboard .sk-task-collapsible.is-expanded #taskList button{touch-action:manipulation;-webkit-tap-highlight-color:transparent}#page-dashboard .sk-note-collapsible.is-expanded #notesList{max-height:min(42vh,360px)!important;overflow-y:auto!important;-webkit-overflow-scrolling:touch!important;overscroll-behavior:contain!important;touch-action:pan-y!important}}';
     document.head.appendChild(s);
   }
   function wrap(name,fn){
     var original=window[name]; if(typeof original!=='function'||original.__skAccordionWrapped)return;
-    function wrapped(){var r=original.apply(this,arguments);fn();return r;} wrapped.__skAccordionWrapped=true; window[name]=wrapped;
+    function wrapped(){var r=original.apply(this,arguments);fn();if(name==='renderTasks')syncTaskCheckmarks(document);return r;} wrapped.__skAccordionWrapped=true; window[name]=wrapped;
   }
   function observe(){
     var tc=document.getElementById('doneCount'), nc=document.getElementById('notesCount');
     if(tc&&!tc.__skSummaryObserver){tc.__skSummaryObserver=new MutationObserver(refreshTaskSummary);tc.__skSummaryObserver.observe(tc,{childList:true,characterData:true,subtree:true});}
     if(nc&&!nc.__skSummaryObserver){nc.__skSummaryObserver=new MutationObserver(refreshNotesSummary);nc.__skSummaryObserver.observe(nc,{childList:true,characterData:true,subtree:true});}
   }
-  function init(){styles();taskAccordion();notesAccordion();wrap('renderTasks',refreshTaskSummary);wrap('renderNotes',refreshNotesSummary);observe();refreshTaskSummary();refreshNotesSummary();setTimeout(function(){refreshTaskSummary();refreshNotesSummary();},500);}
+  function init(){styles();taskAccordion();notesAccordion();wrap('renderTasks',refreshTaskSummary);wrap('renderNotes',refreshNotesSummary);observe();installTaskCheckmarkObserver();installNoteDeleteHandler();refreshTaskSummary();refreshNotesSummary();syncTaskCheckmarks(document);setTimeout(function(){refreshTaskSummary();refreshNotesSummary();syncTaskCheckmarks(document);},500);}
   window.__SKOLA_DASHBOARD_ACCORDIONS__={reapply:init};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
