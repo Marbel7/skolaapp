@@ -1,0 +1,155 @@
+name: Fix Safari Firebase auth now
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Replace auth block with Safari-safe implementation
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+          start = s.find('// ── AUTH ──────────────────────────────────────────────────────────────────────')
+          end = s.find('// ===== NAČTENÍ VŠECH DAT =====')
+          if start < 0 or end < 0 or end <= start:
+              raise SystemExit(f'Auth markers not found: start={start} end={end}')
+          replacement = r'''// ── AUTH — Safari / Private Browsing safe ────────────────────────────────────
+var _authInitialized = false;
+var _authInitTimer = null;
+var _persistenceReady = null;
+
+_persistenceReady = auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+  .catch(function(err) {
+    console.warn('[AUTH] LOCAL persistence unavailable, falling back to SESSION:', err.code || err.message);
+    return auth.setPersistence(firebase.auth.Auth.Persistence.SESSION);
+  })
+  .catch(function(err) {
+    console.warn('[AUTH] SESSION persistence unavailable:', err.code || err.message);
+  });
+
+auth.getRedirectResult().then(function(result) {
+  if (result && result.user) console.log('[AUTH] redirect sign-in success:', result.user.email);
+}).catch(function(err) {
+  if (err.code !== 'auth/no-current-user') {
+    console.error('[AUTH] redirect result error:', err.code, err.message);
+  }
+});
+
+var fbUserId = null;
+var fbUserEmail = null;
+var fbSyncEnabled = false;
+
+function fbUserDoc(col) {
+  return db.collection('users').doc(fbUserId).collection(col);
+}
+function fbShowLoginOverlay() {
+  document.getElementById('fbLoginOverlay').style.display = 'flex';
+}
+function fbHideLoginOverlay() {
+  document.getElementById('fbLoginOverlay').style.display = 'none';
+}
+function fbAuthError(err) {
+  console.error('[AUTH] sign-in error:', err.code, err.message);
+  var msg = null;
+  switch (err.code) {
+    case 'auth/popup-closed-by-user':
+    case 'auth/cancelled-popup-request': return;
+    case 'auth/popup-blocked': msg = 'Prohlížeč zablokoval přihlašovací okno. Zkuste přihlášení znovu.'; break;
+    case 'auth/unauthorized-domain': msg = 'Doména není povolena ve Firebase Console.'; break;
+    case 'auth/network-request-failed': msg = 'Chyba sítě. Zkontrolujte připojení.'; break;
+    case 'auth/operation-not-supported-in-this-environment':
+    case 'auth/unsupported-persistence-type': msg = 'Safari Private Browsing blokuje potřebné úložiště pro přihlášení. Zkuste běžné okno Safari.'; break;
+    default: msg = 'Chyba přihlášení: ' + (err.message || err.code);
+  }
+  if (msg) {
+    if (typeof showToast === 'function') showToast('⚠️ ' + msg);
+    else alert(msg);
+  }
+}
+function fbSignIn() {
+  var provider = new firebase.auth.GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: 'select_account' });
+  var ua = navigator.userAgent || '';
+  var isSafari = /Safari/i.test(ua) && !/(Chrome|CriOS|FxiOS|EdgiOS|OPiOS|Android)/i.test(ua);
+  if (isSafari) {
+    _persistenceReady.then(function() {
+      return auth.signInWithRedirect(provider);
+    }).catch(fbAuthError);
+    return;
+  }
+  auth.signInWithPopup(provider).catch(function(err) {
+    if (err.code === 'auth/popup-blocked') {
+      auth.signInWithRedirect(provider).catch(fbAuthError);
+      return;
+    }
+    fbAuthError(err);
+  });
+}
+function fbSignOut() {
+  auth.signOut().catch(function(err) { console.error('[AUTH] signOut error:', err); });
+}
+function fbOnUserSignedIn(user) {
+  _authInitialized = true;
+  if (_authInitTimer) { clearTimeout(_authInitTimer); _authInitTimer = null; }
+  fbUserId = user.uid;
+  fbUserEmail = user.email;
+  fbSyncEnabled = true;
+  fbHideLoginOverlay();
+  fbSetupListeners();
+  var info = document.getElementById('fbUserInfo');
+  if (info) info.textContent = user.displayName || user.email;
+  var btnIn = document.getElementById('fbSignInBtn');
+  var btnOut = document.getElementById('fbSignOutBtn');
+  if (btnIn) btnIn.style.display = 'none';
+  if (btnOut) btnOut.style.display = '';
+  var av = document.getElementById('navAvatar');
+  if (av) {
+    if (user.photoURL) av.innerHTML = '<img src="' + user.photoURL + '" style="width:34px;height:34px;border-radius:50%;object-fit:cover">';
+    else av.textContent = (user.displayName || user.email || 'U').charAt(0).toUpperCase();
+  }
+  var gr = document.getElementById('navGreet');
+  if (gr) gr.textContent = 'Dobrý den, ' + (user.displayName ? user.displayName.split(' ')[0] : '') + ' 👋';
+  fbLoadAll();
+}
+function fbOnUserSignedOut() {
+  _authInitialized = true;
+  if (_authInitTimer) { clearTimeout(_authInitTimer); _authInitTimer = null; }
+  fbUserId = null;
+  fbUserEmail = null;
+  fbSyncEnabled = false;
+  fbShowLoginOverlay();
+}
+auth.onAuthStateChanged(function(user) {
+  if (user) {
+    fbOnUserSignedIn(user);
+  } else if (!_authInitialized) {
+    if (_authInitTimer) clearTimeout(_authInitTimer);
+    _authInitTimer = setTimeout(function() {
+      if (!_authInitialized && !auth.currentUser) fbOnUserSignedOut();
+    }, 800);
+  } else {
+    fbOnUserSignedOut();
+  }
+});
+
+'''
+          p.write_text(s[:start] + replacement + s[end:], encoding='utf-8')
+          PY
+      - name: Commit fix and remove temporary workflow
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "Fix Safari iOS Firebase authentication"
+          git rm -f .github/workflows/fix-safari-auth-now.yml
+          git commit -m "Remove temporary Safari auth fix workflow"
+          git push origin HEAD:main
