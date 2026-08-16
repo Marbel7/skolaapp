@@ -1,0 +1,220 @@
+name: temporary Safari auth repair
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Patch Firebase auth
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          path = Path('index.html')
+          text = path.read_text(encoding='utf-8')
+          start = text.find('// ── AUTH ──────────────────────────────────────────────────────────────────────')
+          end = text.find('// ===== NAČTENÍ VŠECH DAT =====')
+          if start < 0 or end < 0 or end <= start:
+              raise SystemExit('Auth block markers not found; refusing to modify index.html')
+
+          replacement = r'''// ── AUTH — Safari / Private Browsing safe ────────────────────────────────────
+// Safari/iOS can initialize Auth with a temporary null user before persistence
+// and redirect state are ready.  We process redirect results first and delay
+// showing the login overlay briefly so the app does not race the SDK.
+
+var _authInitialized = false;
+var _authInitTimer = null;
+var _persistenceReady = null;
+
+// Prefer LOCAL, but Safari Private Browsing may reject it. SESSION is a safe
+// fallback for the current tab/session and is sufficient for the redirect flow.
+_persistenceReady = auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+  .catch(function(err) {
+    console.warn('[AUTH] LOCAL persistence unavailable, falling back to SESSION:', err.code || err.message);
+    return auth.setPersistence(firebase.auth.Auth.Persistence.SESSION);
+  })
+  .catch(function(err) {
+    console.warn('[AUTH] SESSION persistence unavailable:', err.code || err.message);
+  });
+
+// Handle a redirect result before deciding that the user is signed out.
+console.log('[AUTH] checking redirect result');
+auth.getRedirectResult().then(function(result) {
+  if (result && result.user) {
+    console.log('[AUTH] redirect sign-in success:', result.user.email);
+  }
+}).catch(function(err) {
+  if (err.code !== 'auth/no-current-user') {
+    console.error('[AUTH] redirect result error:', err.code, err.message);
+    if (typeof showToast === 'function') showToast('⚠️ Chyba přihlášení: ' + (err.message || err.code));
+  }
+});
+
+var fbUserId      = null;
+var fbUserEmail   = null;
+var fbSyncEnabled = false;
+
+function fbUserDoc(col) {
+  return db.collection('users').doc(fbUserId).collection(col);
+}
+
+function fbShowLoginOverlay() {
+  document.getElementById('fbLoginOverlay').style.display = 'flex';
+}
+function fbHideLoginOverlay() {
+  document.getElementById('fbLoginOverlay').style.display = 'none';
+}
+
+function fbAuthError(err) {
+  console.error('[AUTH] sign-in error:', err.code, err.message);
+  var msg = null;
+  switch (err.code) {
+    case 'auth/popup-closed-by-user':
+    case 'auth/cancelled-popup-request':
+      return;
+    case 'auth/popup-blocked':
+      msg = 'Prohlížeč zablokoval přihlašovací okno. Zkuste přihlášení znovu.';
+      break;
+    case 'auth/unauthorized-domain':
+      msg = 'Doména není povolena ve Firebase Console.';
+      break;
+    case 'auth/network-request-failed':
+      msg = 'Chyba sítě. Zkontrolujte připojení.';
+      break;
+    case 'auth/operation-not-supported-in-this-environment':
+    case 'auth/unsupported-persistence-type':
+      msg = 'Safari Private Browsing blokuje potřebné úložiště pro přihlášení. Zkuste běžné okno Safari.';
+      break;
+    default:
+      msg = 'Chyba přihlášení: ' + (err.message || err.code);
+  }
+  if (msg) {
+    if (typeof showToast === 'function') showToast('⚠️ ' + msg);
+    else alert(msg);
+  }
+}
+
+// Safari: use full-page redirect, which avoids popup handling problems.
+// Other browsers: keep popup because it must remain directly tied to onclick.
+function fbSignIn() {
+  var provider = new firebase.auth.GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: 'select_account' });
+
+  var ua = navigator.userAgent || '';
+  var isSafari = /Safari/i.test(ua) && !/(Chrome|CriOS|FxiOS|EdgiOS|OPiOS|Android)/i.test(ua);
+
+  if (isSafari) {
+    console.log('[AUTH] Safari sign-in: redirect');
+    // For redirect it is safe to wait for persistence. This is especially
+    // important in Private Browsing where LOCAL may need SESSION fallback.
+    _persistenceReady.then(function() {
+      return auth.signInWithRedirect(provider);
+    }).catch(fbAuthError);
+    return;
+  }
+
+  console.log('[AUTH] popup sign-in');
+  auth.signInWithPopup(provider).catch(function(err) {
+    // Popup is still the primary desktop flow. If the browser blocks it,
+    // redirect is a useful fallback and is initiated immediately here.
+    if (err.code === 'auth/popup-blocked') {
+      auth.signInWithRedirect(provider).catch(fbAuthError);
+      return;
+    }
+    fbAuthError(err);
+  });
+}
+
+function fbSignOut() {
+  auth.signOut().catch(function(err) {
+    console.error('[AUTH] signOut error:', err);
+  });
+}
+
+function fbOnUserSignedIn(user) {
+  _authInitialized = true;
+  if (_authInitTimer) { clearTimeout(_authInitTimer); _authInitTimer = null; }
+
+  fbUserId      = user.uid;
+  fbUserEmail   = user.email;
+  fbSyncEnabled = true;
+
+  fbHideLoginOverlay();
+  fbSetupListeners();
+
+  var info = document.getElementById('fbUserInfo');
+  if (info) info.textContent = user.displayName || user.email;
+  var btnIn  = document.getElementById('fbSignInBtn');
+  var btnOut = document.getElementById('fbSignOutBtn');
+  if (btnIn)  btnIn.style.display  = 'none';
+  if (btnOut) btnOut.style.display = '';
+
+  var av = document.getElementById('navAvatar');
+  if (av) {
+    if (user.photoURL) {
+      av.innerHTML = '<img src="' + user.photoURL + '" style="width:34px;height:34px;border-radius:50%;object-fit:cover">';
+    } else {
+      av.textContent = (user.displayName || user.email || 'U').charAt(0).toUpperCase();
+    }
+  }
+  var gr = document.getElementById('navGreet');
+  if (gr) gr.textContent = 'Dobrý den, ' + (user.displayName ? user.displayName.split(' ')[0] : '') + ' 👋';
+
+  fbLoadAll();
+}
+
+function fbOnUserSignedOut() {
+  _authInitialized = true;
+  if (_authInitTimer) { clearTimeout(_authInitTimer); _authInitTimer = null; }
+  fbUserId = null;
+  fbUserEmail = null;
+  fbSyncEnabled = false;
+  fbShowLoginOverlay();
+}
+
+auth.onAuthStateChanged(function(user) {
+  if (user) {
+    fbOnUserSignedIn(user);
+  } else if (!_authInitialized) {
+    // Safari can emit null before the redirect/local persistence state is
+    // restored. Do not flash the login overlay during that short window.
+    console.log('[AUTH] initial null — waiting for auth initialization');
+    if (_authInitTimer) clearTimeout(_authInitTimer);
+    _authInitTimer = setTimeout(function() {
+      if (!_authInitialized && !auth.currentUser) fbOnUserSignedOut();
+    }, 800);
+  } else {
+    fbOnUserSignedOut();
+  }
+});
+
+'''
+
+          path.write_text(text[:start] + replacement + text[end:], encoding='utf-8')
+          print('Patched Firebase auth block')
+          PY
+
+      - name: Commit fix and remove temporary workflow
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          rm -f .github/workflows/.tmp-fix-safari-auth.yml
+          git add index.html .github/workflows/.tmp-fix-safari-auth.yml
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git commit -m "Fix Safari/iOS Google authentication"
+          git push origin HEAD:main
