@@ -92,7 +92,7 @@
     button.type = 'button';
     button.className = 'sk-note-summary';
     button.setAttribute('aria-expanded', 'false');
-    button.innerHTML = '<span class="sk-summary-copy"><span class="sk-summary-title">Poznámky</span><span class="sk-summary-value" id="skNotesCount">0 uložených</span><span class="sk-summary-meta" id="skNotesPreview">Žádné uložené poznámky</span></span><span class="sk-summary-chevron" aria-hidden="true">⌄</span>';
+    button.innerHTML = '<span class="sk-summary-copy"><span class="sk-note-heading"><span class="sk-note-icon" aria-hidden="true">✎</span><span class="sk-summary-title">Poznámky</span></span><span class="sk-summary-value" id="skNotesCount">0 uložených</span><span class="sk-summary-meta" id="skNotesPreview">Žádné uložené poznámky</span></span><span class="sk-summary-chevron" aria-hidden="true">⌄</span>';
     oldHeader.replaceWith(button);
     setExpanded(card, button, false);
     bindToggle(card, button);
@@ -108,7 +108,7 @@
 
     var style = document.createElement('style');
     style.id = 'sk-dashboard-accordion-styles';
-    style.textContent = '\n      #page-dashboard .sk-task-summary,\n      #page-dashboard .sk-note-summary {\n        width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 12px;\n        margin: 0 0 1.1rem; padding: 0; border: 0; background: transparent; color: inherit;\n        text-align: left; font: inherit; cursor: pointer;\n      }\n      #page-dashboard .sk-summary-copy { display: flex; flex: 1; min-width: 0; flex-direction: column; }\n      #page-dashboard .sk-summary-title { font-size: 13px; font-weight: 600; color: var(--ink); }\n      #page-dashboard .sk-summary-value { margin-top: 2px; font-size: 12px; font-weight: 600; color: var(--ink2); }\n      #page-dashboard .sk-summary-progress { width: min(180px, 100%); height: 5px; margin-top: 7px; overflow: hidden; border-radius: 999px; background: var(--surface3); }\n      #page-dashboard .sk-summary-progress > span { display: block; height: 100%; border-radius: inherit; background: var(--primary); transition: width .15s ease; }\n      #page-dashboard .sk-summary-meta { margin-top: 5px; overflow: hidden; color: var(--ink3); font-size: 11px; font-weight: 500; text-overflow: ellipsis; white-space: nowrap; }\n      #page-dashboard .sk-summary-chevron { display: grid; width: 32px; height: 32px; flex: 0 0 32px; place-items: center; border: 1px solid var(--border); border-radius: 50%; background: var(--surface2); color: var(--ink2); font-size: 17px; line-height: 1; }\n      #page-dashboard .sk-task-summary:focus-visible,\n      #page-dashboard .sk-note-summary:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }\n      #page-dashboard .sk-task-collapsible.is-collapsed .toolbar-row,\n      #page-dashboard .sk-task-collapsible.is-collapsed .ti-row,\n      #page-dashboard .sk-task-collapsible.is-collapsed #taskList,\n      #page-dashboard .sk-note-collapsible.is-collapsed .nrow,\n      #page-dashboard .sk-note-collapsible.is-collapsed .sk-notes-tools,\n      #page-dashboard .sk-note-collapsible.is-collapsed #notesFilterInfo,\n      #page-dashboard .sk-note-collapsible.is-collapsed #notesList { display: none !important; }\n      #page-dashboard .sk-task-collapsible.is-expanded .toolbar-row { display: flex !important; }\n      @media (max-width: 700px) {\n        #page-dashboard .sk-task-collapsible, #page-dashboard .sk-note-collapsible { overflow: hidden; }\n        #page-dashboard .sk-task-summary, #page-dashboard .sk-note-summary { min-height: 68px; margin-bottom: 0; }\n        #page-dashboard .sk-summary-title { font-size: 14px; font-weight: 700; }\n        #page-dashboard .sk-summary-value { font-size: 13px; }\n      }\n    ';
+    style.textContent = '\n      #page-dashboard .sk-task-summary,\n      #page-dashboard .sk-note-summary {\n        width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 12px;\n        margin: 0 0 1.1rem; padding: 0; border: 0; background: transparent; color: inherit;\n        text-align: left; font: inherit; cursor: pointer;\n      }\n      #page-dashboard .sk-summary-copy { display: flex; flex: 1; min-width: 0; flex-direction: column; }\n      #page-dashboard .sk-note-heading { display: inline-flex; align-items: center; gap: 6px; }\n      #page-dashboard .sk-note-icon { color: var(--amber); font-size: 15px; line-height: 1; }\n      #page-dashboard .sk-summary-title { font-size: 13px; font-weight: 600; color: var(--ink); }\n      #page-dashboard .sk-summary-value { margin-top: 2px; font-size: 12px; font-weight: 600; color: var(--ink2); }\n      #page-dashboard .sk-summary-progress { width: min(180px, 100%); height: 5px; margin-top: 7px; overflow: hidden; border-radius: 999px; background: var(--surface3); }\n      #page-dashboard .sk-summary-progress > span { display: block; height: 100%; border-radius: inherit; background: var(--primary); transition: width .15s ease; }\n      #page-dashboard .sk-summary-meta { margin-top: 5px; overflow: hidden; color: var(--ink3); font-size: 11px; font-weight: 500; text-overflow: ellipsis; white-space: nowrap; }\n      #page-dashboard .sk-summary-chevron { display: grid; width: 32px; height: 32px; flex: 0 0 32px; place-items: center; border: 1px solid var(--border); border-radius: 50%; background: var(--surface2); color: var(--ink2); font-size: 17px; line-height: 1; }\n      #page-dashboard .sk-task-summary:focus-visible,\n      #page-dashboard .sk-note-summary:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }\n      #page-dashboard .sk-task-collapsible.is-collapsed .toolbar-row,\n      #page-dashboard .sk-task-collapsible.is-collapsed .ti-row,\n      #page-dashboard .sk-task-collapsible.is-collapsed #taskList,\n      #page-dashboard .sk-note-collapsible.is-collapsed .nrow,\n      #page-dashboard .sk-note-collapsible.is-collapsed .sk-notes-tools,\n      #page-dashboard .sk-note-collapsible.is-collapsed #notesFilterInfo,\n      #page-dashboard .sk-note-collapsible.is-collapsed #notesList { display: none !important; }\n      #page-dashboard .sk-task-collapsible.is-expanded .toolbar-row { display: flex !important; }\n      @media (max-width: 700px) {\n        #page-dashboard .sk-task-collapsible, #page-dashboard .sk-note-collapsible { overflow: hidden; }\n        #page-dashboard .sk-task-summary, #page-dashboard .sk-note-summary { min-height: 68px; margin-bottom: 0; }\n        #page-dashboard .sk-summary-title { font-size: 14px; font-weight: 700; }\n        #page-dashboard .sk-summary-value { font-size: 13px; }\n      }\n    ';
     document.head.appendChild(style);
   }
 
@@ -125,14 +125,31 @@
     window[name] = wrapped;
   }
 
+  function observeSummaryLists() {
+    var taskList = document.getElementById('taskList');
+    var notesList = document.getElementById('notesList');
+
+    if (taskList && !taskList.__skSummaryObserver) {
+      taskList.__skSummaryObserver = new MutationObserver(refreshTaskSummary);
+      taskList.__skSummaryObserver.observe(taskList, {childList:true, subtree:true, attributes:true, characterData:true});
+    }
+    if (notesList && !notesList.__skSummaryObserver) {
+      notesList.__skSummaryObserver = new MutationObserver(refreshNotesSummary);
+      notesList.__skSummaryObserver.observe(notesList, {childList:true, subtree:true, attributes:true, characterData:true});
+    }
+  }
+
   function init() {
     injectStyles();
     setupTaskAccordion();
     setupNotesAccordion();
     wrapRenderer('renderTasks', refreshTaskSummary);
     wrapRenderer('renderNotes', refreshNotesSummary);
+    observeSummaryLists();
     refreshTaskSummary();
     refreshNotesSummary();
+    setTimeout(function(){ refreshTaskSummary(); refreshNotesSummary(); }, 0);
+    setTimeout(function(){ refreshTaskSummary(); refreshNotesSummary(); }, 500);
   }
 
   window.__SKOLA_DASHBOARD_ACCORDIONS__ = { reapply: init };
