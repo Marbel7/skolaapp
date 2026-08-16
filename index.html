@@ -1604,10 +1604,8 @@ function fbLoadAll() {
 
 // ===== REAL-TIME LISTENERY =====
 function fbSetupListeners() {
-  showToast('🔄 Načítám data... (uid: ' + (fbUserId||'?').slice(0,6) + ')');
   // Tasks real-time sync
   fbUserDoc('tasks').orderBy('createdAt','desc').onSnapshot(function(snap) {
-    showToast('✅ Tasks: ' + snap.docs.length + ' položek');
     tasks = snap.docs.map(function(d){
       var data = d.data();
       // Ensure createdAt exists
@@ -1625,7 +1623,6 @@ function fbSetupListeners() {
     document.getElementById('notesCount').textContent = String(notes.length);
   }, function(err) {
     console.error('Tasks listener error:', err);
-    showToast('❌ Tasks chyba: ' + err.code + ' ' + err.message.slice(0,30));
     // Fallback to localStorage
     tasks = readJSON('zs_tasks_v3', []);
     renderTasks(); calRender();
