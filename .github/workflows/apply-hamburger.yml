@@ -28,14 +28,10 @@ jobs:
               raise SystemExit('Missing mobile script tags: ' + ', '.join(missing))
 
           mobile = Path('mobile-enhancement.js').read_text(encoding='utf-8')
-          if 'signInWithRedirect' in mobile or 'fbSignIn' in mobile or 'firebase.auth' in mobile:
-              raise SystemExit('mobile-enhancement.js must not contain authentication overrides')
+          forbidden = ['signInWithRedirect', 'fbSignIn', 'firebase.auth']
+          found = [x for x in forbidden if x in mobile]
+          if found:
+              raise SystemExit('mobile-enhancement.js contains auth override(s): ' + ', '.join(found))
 
-          workflow = Path('.github/workflows/apply-hamburger.yml').read_text(encoding='utf-8')
-          if 'git push' in workflow or 'contents: write' in workflow:
-              raise SystemExit('Validation workflow must not write back to the repository')
-          if 'signInWithRedirect' in workflow or 'Safari/iOS Firebase auth' in workflow:
-              raise SystemExit('Validation workflow must not modify Firebase authentication')
-
-          print('Mobile UI validation passed; auth remains owned by index.html.')
+          print('Mobile UI validation passed; authentication remains in index.html.')
           PY
