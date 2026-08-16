@@ -185,8 +185,7 @@ auth.onAuthStateChanged(function(user) {
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          rm -f .github/workflows/safari-auth-repair.yml .github/workflows/.tmp-fix-safari-auth.yml
-          git add index.html .github/workflows/apply-hamburger.yml .github/workflows/safari-auth-repair.yml .github/workflows/.tmp-fix-safari-auth.yml
+          git add -A
           if git diff --cached --quiet; then
             echo "No changes to commit"
             exit 0
