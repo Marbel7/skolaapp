@@ -201,26 +201,27 @@
       var t = e.target;
       if (!t || !t.closest) return;
 
-      /* Je klik na summary button? */
-      var summary = t.closest('.sk-task-summary, .sk-note-summary');
-      if (summary) {
-        /* Je to přímo summary nebo jeho přímý potomek (chevron, copy)? */
-        /* Nesmí to být interaktivní prvek uvnitř listu */
-        var card = summary.closest('.card');
-        if (!card) return;
-        var listId = card.classList.contains('sk-task-collapsible') ? 'taskList' : 'notesList';
-        _state[listId] = !_state[listId];
-        _applyState(listId);
-        /* Zastav event — summary nemá dělat nic jiného */
-        e.preventDefault();
-        e.stopImmediatePropagation();
-        return;
-      }
+      /* Přeskoč všechny interaktivní prvky — nechej je zpracovat index.html */
+      var isInteractive = t.closest(
+        '.tck, .tdel, [data-action], [data-note-del], .n-del,'
+        + ' .tadd, #taskAddBtn, #taskInput, #taskSearch, #taskPriority,'
+        + ' #saveNoteBtn, #noteDraft, #notesSearch, #notesDateFilter,'
+        + ' .ladd, [data-toggle-dd], .link-dd-item, a'
+      );
+      if (isInteractive) return; /* nechej event volně probublat */
 
-      /* Pro všechny ostatní prvky (.tck, .tdel, [data-action], atd.)
-       * NEZASTAVUJEME event — necháme ho projít do capture handleru
-       * v index.html který ho zpracuje. */
-    }, true); /* capture phase — zachytí event před bubbling */
+      /* Klik na summary button → toggle accordion */
+      var summary = t.closest('.sk-task-summary, .sk-note-summary');
+      if (!summary) return;
+
+      var card = summary.closest('.card');
+      if (!card) return;
+      var listId = card.classList.contains('sk-task-collapsible') ? 'taskList' : 'notesList';
+      _state[listId] = !_state[listId];
+      _applyState(listId);
+      e.preventDefault();
+      e.stopPropagation(); /* zastav jen pro summary — ostatní projdou */
+    }, false); /* bubbling phase — interní handlery v index.html běží dřív (na taskList) */
   }
 
   /* ─── MutationObserver — reaguje na renderTasks/renderNotes ───
@@ -342,11 +343,11 @@
 
       /* Checkboxy */
       '#page-dashboard .tck{',
-        'position:relative!important;overflow:hidden;',
+        'position:relative!important;',
         '-webkit-appearance:none!important;appearance:none!important;',
         'touch-action:manipulation!important;',
         '-webkit-tap-highlight-color:transparent!important;',
-        'cursor:pointer!important}',
+        'cursor:pointer!important;overflow:visible!important}',
       '#page-dashboard .tck.checked{',
         'background:var(--primary)!important;border-color:var(--primary)!important;',
         'color:#fff!important;font-size:12px!important;font-weight:800!important;',
