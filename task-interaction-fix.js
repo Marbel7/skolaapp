@@ -194,32 +194,33 @@
     if (document.__skAccordionClickInstalled) return;
     document.__skAccordionClickInstalled = true;
 
+    /* Použij capture phase (true) — stejně jako index.html.
+     * Tím máme jistotu že event dostaneme jako první na všech prohlížečích
+     * včetně iOS Safari. */
     document.addEventListener('click', function (e) {
-      /* Ignoruj kliknutí na interaktivní prvky UVNITŘ listu */
-      if (e.target && e.target.closest) {
-        var skip = e.target.closest('.tck, .tdel, [data-action], [data-note-del], .n-del, .tadd, button:not(.sk-task-summary):not(.sk-note-summary)');
-        if (skip) return; /* nechej event probublat dál normálně */
+      var t = e.target;
+      if (!t || !t.closest) return;
+
+      /* Je klik na summary button? */
+      var summary = t.closest('.sk-task-summary, .sk-note-summary');
+      if (summary) {
+        /* Je to přímo summary nebo jeho přímý potomek (chevron, copy)? */
+        /* Nesmí to být interaktivní prvek uvnitř listu */
+        var card = summary.closest('.card');
+        if (!card) return;
+        var listId = card.classList.contains('sk-task-collapsible') ? 'taskList' : 'notesList';
+        _state[listId] = !_state[listId];
+        _applyState(listId);
+        /* Zastav event — summary nemá dělat nic jiného */
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        return;
       }
 
-      /* Klik na summary header → toggle accordion */
-      var summary = e.target && e.target.closest ? e.target.closest('.sk-task-summary, .sk-note-summary') : null;
-      if (!summary) return;
-
-      var card = summary.closest('.card');
-      if (!card) return;
-
-      /* Zjisti listId podle třídy karty */
-      var listId = card.classList.contains('sk-task-collapsible') ? 'taskList' : 'notesList';
-
-      /* Toggle stav v _state */
-      _state[listId] = !_state[listId];
-
-      /* Aplikuj na DOM */
-      _applyState(listId);
-
-      /* Zastav propagaci jen pokud jsme accordion button — ne jiné prvky */
-      e.stopPropagation();
-    }, false); /* bubbling phase, ne capture — aby interní handlery v index.html mohly zachytit dřív */
+      /* Pro všechny ostatní prvky (.tck, .tdel, [data-action], atd.)
+       * NEZASTAVUJEME event — necháme ho projít do capture handleru
+       * v index.html který ho zpracuje. */
+    }, true); /* capture phase — zachytí event před bubbling */
   }
 
   /* ─── MutationObserver — reaguje na renderTasks/renderNotes ───
@@ -302,8 +303,9 @@
         'position:relative;z-index:20;width:100%;display:flex;align-items:center;',
         'justify-content:space-between;gap:12px;margin:0 0 1.1rem;padding:0;',
         'border:0;background:transparent;color:inherit;text-align:left;font:inherit;',
-        'cursor:pointer;pointer-events:auto;touch-action:manipulation;',
-        '-webkit-tap-highlight-color:transparent}',
+        'cursor:pointer;pointer-events:auto;',
+        'touch-action:manipulation;-webkit-tap-highlight-color:transparent;',
+        'user-select:none;-webkit-user-select:none}',
 
       '#page-dashboard .sk-summary-copy{display:flex;flex:1;min-width:0;flex-direction:column}',
       '#page-dashboard .sk-note-heading{display:inline-flex;align-items:center;gap:6px}',
@@ -341,7 +343,10 @@
       /* Checkboxy */
       '#page-dashboard .tck{',
         'position:relative!important;overflow:hidden;',
-        '-webkit-appearance:none!important;appearance:none!important}',
+        '-webkit-appearance:none!important;appearance:none!important;',
+        'touch-action:manipulation!important;',
+        '-webkit-tap-highlight-color:transparent!important;',
+        'cursor:pointer!important}',
       '#page-dashboard .tck.checked{',
         'background:var(--primary)!important;border-color:var(--primary)!important;',
         'color:#fff!important;font-size:12px!important;font-weight:800!important;',
@@ -372,10 +377,16 @@
         '#page-dashboard .sk-task-collapsible.is-expanded .tdel{',
           'opacity:1!important;visibility:visible!important;',
           'pointer-events:auto!important;position:relative!important;z-index:3!important;',
-          'min-width:30px!important;min-height:30px!important}',
+          'min-width:44px!important;min-height:44px!important;',
+          'touch-action:manipulation!important;',
+          '-webkit-tap-highlight-color:transparent!important;',
+          'cursor:pointer!important}',
         '#page-dashboard .sk-task-collapsible.is-expanded .tck{',
           'position:relative!important;z-index:3!important;',
-          'pointer-events:auto!important;min-width:30px!important;min-height:30px!important}',
+          'pointer-events:auto!important;',
+          'min-width:44px!important;min-height:44px!important;',
+          'touch-action:manipulation!important;',
+          '-webkit-tap-highlight-color:transparent!important}',
         '#page-dashboard .sk-task-collapsible.is-expanded .titem{position:relative;z-index:1}',
         '#page-dashboard .sk-task-collapsible.is-expanded #taskList button{',
           'touch-action:manipulation;-webkit-tap-highlight-color:transparent}',
