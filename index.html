@@ -1504,7 +1504,8 @@ auth.onAuthStateChanged(function(user) {
     fbSyncEnabled = true;
 
     fbHideLoginOverlay();
-    fbSetupListeners();
+    if (window.TaskEngine) window.TaskEngine.init(user.uid);
+    fbSetupListeners(); /* notes listener */
 
     var info = document.getElementById('fbUserInfo');
     if (info) info.textContent = user.displayName || user.email;
@@ -1529,110 +1530,24 @@ auth.onAuthStateChanged(function(user) {
     fbUserId      = null;
     fbUserEmail   = null;
     fbSyncEnabled = false;
+    if (window.TaskEngine) window.TaskEngine.destroy();
     fbShowLoginOverlay();
   }
 });
 
 // ===== NAČTENÍ VŠECH DAT =====
-function fbLoadAll() {
-  // Tasks - loaded by real-time listener in fbSetupListeners
-  // (one-time load as fallback if listener hasn't fired yet)
-  fbUserDoc('tasks').orderBy('createdAt', 'desc').get().then(function(snap) {
-    if (!snap.empty && tasks.length === 0) {
-      tasks = snap.docs.map(function(d) {
-        var data = d.data();
-        if (!data.createdAt) data.createdAt = new Date().toISOString();
-        return Object.assign({id: d.id}, data);
-      });
-      renderTasks();
-      calRender();
-    }
-  });
-  // Notes
-  fbUserDoc('notes').orderBy('createdAt', 'desc').get().then(function(snap) {
-    if (!snap.empty) {
-      notes = snap.docs.map(function(d) { return Object.assign({id: d.id}, d.data()); });
-      renderNotes();
-      document.getElementById('notesCount').textContent = String(notes.length);
-    }
-  });
-  // Links
-  fbUserDoc('links').orderBy('order').get().then(function(snap) {
-    if (!snap.empty) {
-      links = snap.docs.map(function(d) { return Object.assign({id: d.id}, d.data()); });
-      renderLinks();
-      renderLinksTable();
-    }
-  });
-  // Materials
-  fbUserDoc('materials').orderBy('createdAt', 'desc').get().then(function(snap) {
-    if (!snap.empty) {
-      materials = snap.docs.map(function(d) { return Object.assign({id: d.id}, d.data()); });
-      renderMaterials();
-    }
-  });
-  // Evidence
-  fbUserDoc('evidence').orderBy('borrowedAt', 'desc').get().then(function(snap) {
-    if (!snap.empty) {
-      evidence = snap.docs.map(function(d) { return Object.assign({id: d.id}, d.data()); });
-      renderEvidence();
-    }
-  });
-  // Settings
-  db.collection('users').doc(fbUserId).get().then(function(doc) {
-    if (doc.exists && doc.data().settings) {
-      settings = doc.data().settings;
-      applySettings();
-    }
-  });
-  // Teachers & history (dohledy)
-  fbUserDoc('d_teachers').get().then(function(snap) {
-    if (!snap.empty) {
-      dTeachers = snap.docs.map(function(d) { return Object.assign({id: d.id}, d.data()); });
-      dRenderTeacherMgmt();
-      dRenderDutyCounter();
-    }
-  });
-  fbUserDoc('d_history').orderBy('at', 'desc').get().then(function(snap) {
-    if (!snap.empty) {
-      dHistory = snap.docs.map(function(d) { return Object.assign({id: d.id}, d.data()); });
-      dRenderTodayList();
-      dRenderDutyCounter();
-    }
-  });
-}
+function fbLoadAll() {}
+
 
 // ===== REAL-TIME LISTENERY =====
 function fbSetupListeners() {
-  // Tasks real-time sync
-  fbUserDoc('tasks').orderBy('createdAt','desc').onSnapshot(function(snap) {
-    tasks = snap.docs.map(function(d){
-      var data = d.data();
-      // Ensure createdAt exists
-      if (!data.createdAt) data.createdAt = new Date().toISOString();
-      if (fbPendingTaskToggles[d.id]) data.done = fbPendingTaskToggles[d.id];
-      return Object.assign({id:d.id}, data);
-    }).filter(function(t){
-      return !fbPendingTaskDeletes[t.id];
-    });
-    renderTasks();
-    calRender();
-    var done = tasks.filter(function(t){return t.done;}).length;
-    document.getElementById('doneCount').textContent = done + ' / ' + tasks.length;
-    document.getElementById('taskBadge').textContent = tasks.length + ' úkol' + (tasks.length===1?'':'ů');
-    document.getElementById('notesCount').textContent = String(notes.length);
-  }, function(err) {
-    console.error('Tasks listener error:', err);
-    // Fallback to localStorage
-    tasks = readJSON('zs_tasks_v3', []);
-    renderTasks(); calRender();
-  });
-
-  // Notes real-time sync
+  /* [TaskEngine] tasks onSnapshot odstraněn — TaskEngine.init() spouští vlastní */
+  /* Notes real-time sync — zachováno */
   fbUserDoc('notes').orderBy('createdAt','desc').onSnapshot(function(snap) {
     notes = snap.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
     renderNotes();
-    document.getElementById('notesCount').textContent = String(notes.length);
+    var el = document.getElementById('notesCount');
+    if (el) el.textContent = String(notes.length);
   }, function(err) {
     console.error('Notes listener error:', err);
     notes = readJSON('zs_notes_list_v1', []);
@@ -1640,56 +1555,18 @@ function fbSetupListeners() {
   });
 }
 
+
 // ===== FIREBASE SAVE FUNKCE =====
 
 // TASKS
-function fbSaveTasks() {
-  if (!fbSyncEnabled) { saveJSON('zs_tasks_v3', tasks); return; }
-  // Tasks jsou aktualizovány individuálně - viz fbAddTask, fbToggleTask, fbDeleteTask
-}
 
-function fbAddTask(task) {
-  if (!fbSyncEnabled) {
-    tasks.unshift(task); saveJSON('zs_tasks_v3', tasks); renderTasks(); calRender();
-    return Promise.resolve(task);
-  }
 
-  // Use the Firestore document ID before writing so the optimistic item and
-  // the subsequent real-time snapshot represent the same task.
-  var ref = fbUserDoc('tasks').doc();
-  var optimisticTask = Object.assign({id: ref.id}, task);
-  tasks.unshift(optimisticTask);
-  saveJSON('zs_tasks_v3', tasks);
-  renderTasks();
-  calRender();
 
-  return ref.set(task).then(function() {
-    showToast('✅ Úkol uložen');
-    return optimisticTask;
-  }).catch(function(e) {
-    var index = tasks.findIndex(function(item){ return item.id === ref.id; });
-    if (index >= 0) tasks.splice(index, 1);
-    saveJSON('zs_tasks_v3', tasks);
-    renderTasks();
-    calRender();
-    showToast('⚠️ Chyba ukládání: '+e.message);
-    throw e;
-  });
-}
 
-/* TASK_INTERACTION_FIX_V1 */
-var fbPendingTaskToggles = Object.create(null);
-var fbPendingTaskDeletes = Object.create(null);
 
-function fbToggleTask(taskId, done) {
-  if (!fbSyncEnabled || !taskId) return Promise.resolve();
-  return fbUserDoc('tasks').doc(taskId).update({done: done});
-}
 
-function fbDeleteTask(taskId) {
-  if (!fbSyncEnabled || !taskId) return Promise.resolve();
-  return fbUserDoc('tasks').doc(taskId).delete();
-}
+
+
 
 // NOTES
 function fbSaveNote(note) {
@@ -1870,7 +1747,8 @@ var defaultLinks = [
 ];
 
 var settings  = readJSON('zs_settings', {});
-var tasks     = readJSON('zs_tasks_v3', []);
+var tasks = [];
+
 var links     = readJSON('zs_links_v4', defaultLinks.slice());
 var notes     = readJSON('zs_notes_list_v1', []);
 var noteDraft = localStorage.getItem('zs_notes_draft_v1') || '';
@@ -2076,107 +1954,11 @@ function renderLinksTable() {
 
 
 // ===== Tasks =====
-function saveTasks() { saveJSON('zs_tasks_v3', tasks); }
-function renderTasks() {
-  var query = (document.getElementById('taskSearch').value || '').trim().toLowerCase();
-  var list  = document.getElementById('taskList');
-  var done  = tasks.filter(function(t){ return t.done; }).length;
-  document.getElementById('doneCount').textContent = done + ' / ' + tasks.length;
-  document.getElementById('taskBadge').textContent = tasks.length + ' úkol' + (tasks.length===1?'':'ů');
-  var filtered = tasks.filter(function(t){ return !query || t.text.toLowerCase().indexOf(query) >= 0; });
-  if (!filtered.length) { list.innerHTML = '<li class="tempty">Žádné úkoly — skvělé! 🎉</li>'; return; }
-  list.innerHTML = filtered.map(function(t){
-    var idx = tasks.indexOf(t);
-    return '<li class="titem '+(t.done?'done':'')+'">'
-      +'<button type="button" class="tck '+(t.done?'checked':'')+'" data-action="check" data-i="'+idx+'" aria-label="'+(t.done?'Označit jako nesplněné':'Označit jako splněné')+'" aria-pressed="'+(t.done?'true':'false')+'"></button>'
-      +'<span class="ttxt" data-action="check" data-i="'+idx+'">'+esc(t.text)+'</span>'
-      +'<span class="tprio '+(t.priority==='high'?'ph':t.priority==='low'?'pl':'pm')+'">'+(t.priority==='high'?'Vysoká':t.priority==='low'?'Nízká':'Střední')+'</span>'
-      +'<button class="tdel" data-action="del" data-i="'+idx+'">✕</button>'
-      +'</li>';
-  }).join('');
-}
-function addTask() {
-  var inp = document.getElementById('taskInput'), text = inp.value.trim(); if (!text) return;
-  var task = {
-    text: text,
-    priority: document.getElementById('taskPriority').value,
-    done: false,
-    createdAt: new Date().toISOString()
-  };
-  inp.value=''; inp.focus();
-  if (fbSyncEnabled) {
-    fbAddTask(task);
-  } else {
-    tasks.unshift(task); saveJSON('zs_tasks_v3', tasks); renderTasks(); calRender();
-  }
-}
-document.getElementById('taskSearch').addEventListener('input', renderTasks);
-document.getElementById('taskAddBtn').addEventListener('click', addTask);
-document.getElementById('taskInput').addEventListener('keydown', function(e){ if(e.key==='Enter') addTask(); });
-document.getElementById('taskList').addEventListener('click', function(e){
-  var el = e.target.closest('[data-action]'); if (!el) return;
-  e.preventDefault();
-  e.stopPropagation();
-  var i = parseInt(el.dataset.i, 10);
-  if (!Number.isInteger(i) || !tasks[i]) return;
-  var task = tasks[i];
-  var action = el.dataset.action;
 
-  if (action === 'check') {
-    var previousDone = !!task.done;
-    var nextDone = !previousDone;
-    task.done = nextDone;
-    saveTasks();
-    renderTasks();
-    calRender();
+function renderTasks() { if (window.TaskEngine) window.TaskEngine.render(); }
 
-    if (fbSyncEnabled && task.id) {
-      var taskId = task.id;
-      fbPendingTaskToggles[taskId] = nextDone;
-      fbToggleTask(taskId, nextDone).then(function(){
-        delete fbPendingTaskToggles[taskId];
-      }).catch(function(err){
-        delete fbPendingTaskToggles[taskId];
-        var current = tasks.find(function(t){ return t.id === taskId; });
-        if (current) current.done = previousDone;
-        saveTasks();
-        renderTasks();
-        calRender();
-        showToast('⚠️ Nepodařilo se uložit úkol');
-        console.error('Task toggle failed:', err);
-      });
-    } else {
-      saveTasks();
-    }
-    return;
-  }
 
-  if (action === 'del') {
-    var removed = tasks.splice(i, 1)[0];
-    saveTasks();
-    renderTasks();
-    calRender();
 
-    if (fbSyncEnabled && removed && removed.id) {
-      var deleteId = removed.id;
-      fbPendingTaskDeletes[deleteId] = true;
-      fbDeleteTask(deleteId).then(function(){
-        delete fbPendingTaskDeletes[deleteId];
-      }).catch(function(err){
-        delete fbPendingTaskDeletes[deleteId];
-        tasks.push(removed);
-        tasks.sort(function(a,b){ return String(b.createdAt || '').localeCompare(String(a.createdAt || '')); });
-        saveTasks();
-        renderTasks();
-        calRender();
-        showToast('⚠️ Nepodařilo se smazat úkol');
-        console.error('Task delete failed:', err);
-      });
-    } else {
-      saveTasks();
-    }
-  }
-}, true);
 
 // ===== Notes =====
 function saveNotes() { saveJSON('zs_notes_list_v1', notes); }
@@ -3085,5 +2867,5 @@ renderEvidence();
 </script>
 <script src="mobile-enhancement.js"></script>
 <script src="hamburger-modern.js"></script>
-<script src="task-interaction-fix.js"></script>
+<script src="task-engine.js"></script>
 </html>
