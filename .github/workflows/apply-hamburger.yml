@@ -21,7 +21,7 @@ jobs:
           required = [
               'mobile-enhancement.js',
               'hamburger-modern.js',
-              'task-interaction-fix.js',
+              'task-engine.js',
           ]
           missing = [x for x in required if x not in index]
           if missing:
