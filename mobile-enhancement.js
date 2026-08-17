@@ -6,7 +6,7 @@
 
   function load(src, done) {
     var s = document.createElement('script');
-    s.src = src + '?v=20260816-mobile-clean';
+    s.src = src + '?v=20260817-notes-accordion';
     s.async = false;
     s.onload = function(){ if (done) done(); };
     s.onerror = function(){ console.error('[SKOLA] Failed to load ' + src); if (done) done(); };
@@ -14,5 +14,8 @@
   }
 
   // Mobile UI only. Authentication remains exclusively in index.html.
-  load('mobile-shell-original.js');
+  // Notes accordion is UI-only: it does not own or modify notes data.
+  load('mobile-shell-original.js', function(){
+    load('notes-accordion.js');
+  });
 })();
