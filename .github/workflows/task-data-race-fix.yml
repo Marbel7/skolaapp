@@ -1,0 +1,83 @@
+name: Apply task data race fix
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Patch task snapshot race
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+          old = """  fbUserDoc('tasks').orderBy('createdAt','desc').onSnapshot(function(snap) {
+    tasks = snap.docs.map(function(d){
+      var data = d.data();
+      // Ensure createdAt exists
+      if (!data.createdAt) data.createdAt = new Date().toISOString();
+      if (fbPendingTaskToggles[d.id]) data.done = fbPendingTaskToggles[d.id];
+      return Object.assign({id:d.id}, data);
+    }).filter(function(t){
+      return !fbPendingTaskDeletes[t.id];
+    });
+    renderTasks();
+    calRender();
+"""
+          new = """  fbUserDoc('tasks').orderBy('createdAt','desc').onSnapshot(function(snap) {
+    var incomingTasks = snap.docs.map(function(d){
+      var data = d.data();
+      // Ensure createdAt exists
+      if (!data.createdAt) data.createdAt = new Date().toISOString();
+      if (fbPendingTaskToggles[d.id]) data.done = fbPendingTaskToggles[d.id];
+      return Object.assign({id:d.id}, data);
+    }).filter(function(t){
+      return !fbPendingTaskDeletes[t.id];
+    });
+
+    /* Do not let an initial empty Firestore snapshot erase tasks that are
+       already available locally. This can happen while the one-time cloud
+       load is still resolving. Keep the current/local tasks until a real
+       non-empty cloud snapshot arrives. */
+    if (!incomingTasks.length) {
+      var localTasks = readJSON('zs_tasks_v3', []);
+      if (tasks.length || (Array.isArray(localTasks) && localTasks.length)) {
+        if (!tasks.length && Array.isArray(localTasks) && localTasks.length) {
+          tasks = localTasks;
+        }
+        renderTasks();
+        calRender();
+        return;
+      }
+    }
+
+    tasks = incomingTasks;
+    renderTasks();
+    calRender();
+"""
+          if old not in s:
+              raise SystemExit('Expected task listener block not found; refusing to modify unrelated code.')
+          if 'Do not let an initial empty Firestore snapshot erase tasks' in s:
+              raise SystemExit('Task race fix already present; nothing to do.')
+          p.write_text(s.replace(old, new, 1), encoding='utf-8')
+          PY
+
+      - name: Commit fix and remove temporary workflow
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git diff --cached --quiet || git commit -m "Fix task restore when cloud snapshot is empty"
+          rm .github/workflows/task-data-race-fix.yml
+          git add .github/workflows/task-data-race-fix.yml
+          git commit -m "Remove temporary task race workflow"
+          git push
