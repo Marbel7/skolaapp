@@ -1,434 +1,269 @@
-/* SkolaApp — stable dashboard task/note accordions
+/* task-interaction-fix.js — SkolaApp
  *
- * OPRAVA (2026-08): Accordion si pamatuje stav (expanded/collapsed)
- * v objekt-level proměnné _state nezávisle na DOM.
- * renderTasks() / renderNotes() přijdou s novými daty → DOM se přepíše →
- * _applyState() okamžitě obnoví správný display stav.
- * Stav se nikdy neodvozuje z CSS třídy; CSS třídy jsou jen vizuální výstup.
+ * CO TENTO SOUBOR DĚLÁ:
+ * 1. Přidá collapsible accordion na karty Úkoly a Poznámky
+ * 2. Accordion stav (_state) je jediný zdroj pravdy — CSS nikdy neodporuje _state
+ * 3. hookRenderTasks/hookRenderNotes zajistí že po každém renderTasks() / renderNotes()
+ *    z index.html se stav accordionu okamžitě obnoví
+ * 4. Click handler NESMÍ pohltit kliky na .tck, .tdel, #taskAddBtn ani ostatní
+ *    interaktivní prvky — ty zpracovává index.html sám
  *
- * Proč původní verze selhávala:
- *   makeTaskAccordion() volalo expanded(card, btn, false) → card.classList = 'is-collapsed'
- *   CSS: .is-collapsed #taskList { display:none !important }
- *   Po příchodu Firebase dat renderTasks() naplnil #taskList, ale
- *   'is-collapsed' zůstal → data byla v DOM, ale neviditelná.
- *   Neexistoval žádný hook, který by po renderu obnovil expanded stav.
+ * ARCHITEKTURA:
+ * - index.html: taskList.addEventListener('click', handler, true) — capture phase
+ * - TIF: document.addEventListener('click', handler, false) — bubbling phase
+ * - Pořadí: capture (index.html) → target → bubbling (TIF accordion)
+ * - TIF nikdy nevolá stopPropagation pro .tck/.tdel/[data-action]
  */
 (function () {
   'use strict';
 
-  if (window.__SKOLA_DASHBOARD_ACCORDIONS__) {
-    window.__SKOLA_DASHBOARD_ACCORDIONS__.reapply();
+  /* Zabraň dvojité inicializaci */
+  if (window.__SKOLA_TASK_FIX_V7__) {
+    window.__SKOLA_TASK_FIX_V7__.reinit();
     return;
   }
 
-  /* ─── stav accordionů ─────────────────────────────────────────
-   * Klíč je ID listu ('taskList' / 'notesList').
-   * true  = expanded (obsah viditelný)
-   * false = collapsed (obsah skrytý)
-   * Výchozí: false (collapsed) dokud uživatel neklikne nebo
-   * dokud nepřijdou data (pak se karta sama neotevírá — jen
-   * _applyState zajistí zobrazení aktuálního stavu).
-   ─────────────────────────────────────────────────────────────── */
+  /* ── STAV ────────────────────────────────────────────────────────── */
+  /* false = collapsed (výchozí), true = expanded */
   var _state = { taskList: false, notesList: false };
 
-  /* ─── helpers ──────────────────────────────────────────────── */
+  /* ── POMOCNÉ FUNKCE ──────────────────────────────────────────────── */
   function getEl(id) { return document.getElementById(id); }
-  function txt(id) {
-    var e = getEl(id);
-    return e ? String(e.textContent || '').trim() : '';
-  }
 
-  /* ─── datové zdroje ────────────────────────────────────────── */
-  function taskSource() {
-    if (Array.isArray(window.tasks) && window.tasks.length) return window.tasks;
-    try { var r = JSON.parse(localStorage.getItem('zs_tasks_v3') || '[]'); return Array.isArray(r) ? r : []; }
-    catch (e) { return []; }
-  }
-
-  function notesSource() {
-    if (Array.isArray(window.notes) && window.notes.length) return window.notes;
-    try { var r = JSON.parse(localStorage.getItem('zs_notes_list_v1') || '[]'); return Array.isArray(r) ? r : []; }
-    catch (e) { return []; }
-  }
-
-  /* ─── aplikace stavu na DOM ─────────────────────────────────
-   * Tato funkce je JEDINÉ místo, které mění expanded/collapsed CSS třídy.
-   * Volá se: při inicializaci, po každém renderu, po každém kliku.
-   ─────────────────────────────────────────────────────────────── */
-  function _applyState(listId) {
+  /* ── APLIKACE STAVU NA DOM ──────────────────────────────────────────
+   * JEDINÉ místo kde se mění CSS třídy is-expanded / is-collapsed.
+   * Vždy čte z _state — nikdy z DOM.
+   ─────────────────────────────────────────────────────────────────── */
+  function applyState(listId) {
     var list = getEl(listId);
     if (!list) return;
     var card = list.closest('.card');
-    var btn  = card && card.querySelector(listId === 'taskList' ? '.sk-task-summary' : '.sk-note-summary');
-    if (!card || !btn) return;
-    var on = !!_state[listId];
-    card.classList.toggle('is-expanded', on);
-    card.classList.toggle('is-collapsed', !on);
-    btn.setAttribute('aria-expanded', on ? 'true' : 'false');
-    var chevron = btn.querySelector('.sk-summary-chevron');
-    if (chevron) chevron.textContent = on ? '⌃' : '⌄';
-  }
-
-  function applyAllStates() {
-    _applyState('taskList');
-    _applyState('notesList');
-  }
-
-  /* ─── shrnutí / summary refresh ────────────────────────────── */
-  function refreshTaskSummary() {
-    var source = taskSource();
-    var done  = source.filter(function (t) { return !!t.done; }).length;
-    var total = source.length;
-    var doneEl  = getEl('skTaskDone');
-    var totalEl = getEl('skTaskTotal');
-    var prog    = getEl('skTaskProgress');
-    var meta    = getEl('skTaskMeta');
-    if (doneEl)  doneEl.textContent  = done;
-    if (totalEl) totalEl.textContent = total;
-    if (prog)    prog.style.width    = (total ? Math.round(done / total * 100) : 0) + '%';
-    if (meta)    meta.textContent    = total ? (total - done) + ' zbývá' : 'Zatím žádné úkoly';
-    if (!source.length) {
-      var m = txt('doneCount').match(/(\d+)\s*\/\s*(\d+)/);
-      if (m) {
-        var d = Number(m[1]), t = Number(m[2]);
-        if (doneEl)  doneEl.textContent  = d;
-        if (totalEl) totalEl.textContent = t;
-        if (prog)    prog.style.width    = (t ? Math.round(d / t * 100) : 0) + '%';
-        if (meta)    meta.textContent    = t ? ((t - d) + ' zbývá') : 'Zatím žádné úkoly';
-      }
+    if (!card) return;
+    var expanded = !!_state[listId];
+    card.classList.toggle('is-expanded',  expanded);
+    card.classList.toggle('is-collapsed', !expanded);
+    var btn = card.querySelector(listId === 'taskList' ? '.sk-acc-btn' : '.sk-acc-btn-n');
+    if (btn) {
+      btn.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+      var chev = btn.querySelector('.sk-chev');
+      if (chev) chev.textContent = expanded ? '⌃' : '⌄';
     }
+  }
+
+  /* ── SUMMARY REFRESH ────────────────────────────────────────────── */
+  function refreshTaskSummary() {
+    var src   = (Array.isArray(window.tasks) && window.tasks.length)
+                ? window.tasks
+                : (function(){ try{return JSON.parse(localStorage.getItem('zs_tasks_v3')||'[]');}catch(e){return[];} })();
+    var done  = src.filter(function(t){ return !!t.done; }).length;
+    var total = src.length;
+    var doneEl = getEl('skTDone'), totEl = getEl('skTTotal');
+    var progEl = getEl('skTProg'), metaEl = getEl('skTMeta');
+    if (doneEl)  doneEl.textContent  = done;
+    if (totEl)   totEl.textContent   = total;
+    if (progEl)  progEl.style.width  = (total ? Math.round(done/total*100) : 0) + '%';
+    if (metaEl)  metaEl.textContent  = total ? ((total-done) + ' zbývá') : 'Zatím žádné úkoly';
   }
 
   function refreshNotesSummary() {
-    var source  = notesSource();
-    var count   = getEl('skNotesCount');
-    var preview = getEl('skNotesPreview');
-    var c = source.length + ' uložených';
-    var p = (source[0] && source[0].text) ? String(source[0].text).trim() : 'Žádné uložené poznámky';
-    if (count)   count.textContent   = c;
-    if (preview) preview.textContent = p;
-    if (!source.length) {
-      var m = txt('notesCount').match(/\d+/);
-      if (m && count) count.textContent = Number(m[0]) + ' uložených';
-    }
+    var src  = (Array.isArray(window.notes) && window.notes.length)
+               ? window.notes
+               : (function(){ try{return JSON.parse(localStorage.getItem('zs_notes_list_v1')||'[]');}catch(e){return[];} })();
+    var cntEl  = getEl('skNCnt');
+    var prevEl = getEl('skNPrev');
+    if (cntEl)  cntEl.textContent  = src.length + ' uložených';
+    if (prevEl) prevEl.textContent = (src[0] && src[0].text) ? String(src[0].text).trim().slice(0, 60) : 'Žádné poznámky';
   }
 
-  /* ─── synchronizace checkboxů ──────────────────────────────── */
-  function syncCheckmarks(root) {
-    var scope = root || document;
-    if (!scope.querySelectorAll) return;
-    scope.querySelectorAll('.tck').forEach(function (b) {
-      var on = b.classList.contains('checked');
-      if (b.textContent !== (on ? '✓' : ''))   b.textContent = on ? '✓' : '';
-      var ap = on ? 'true' : 'false';
-      if (b.getAttribute('aria-pressed') !== ap) b.setAttribute('aria-pressed', ap);
-    });
+  /* ── HOOK renderTasks / renderNotes ─────────────────────────────────
+   * Obalí originální funkci — po každém volání obnoví stav accordionu.
+   * Eliminuje race condition kdy Firestore přepíše tasks[] a zavolá
+   * renderTasks() aniž by TIF věděl.
+   ─────────────────────────────────────────────────────────────────── */
+  function hookRender(fnName, listId, summaryFn) {
+    var orig = window[fnName];
+    if (!orig || orig.__skHooked) return;
+    window[fnName] = function() {
+      orig.apply(this, arguments);
+      /* Po renderu okamžitě obnov CSS stav z _state */
+      applyState(listId);
+      summaryFn();
+    };
+    window[fnName].__skHooked = true;
+    window[fnName].__skOrig   = orig;
   }
 
-  /* ─── sestavení accordionů ──────────────────────────────────── */
+  /* ── SESTAVENÍ ACCORDION BUTTONŮ ────────────────────────────────── */
   function makeTaskAccordion() {
     var list = getEl('taskList');
     var card = list && list.closest('.card');
-    if (!card || card.dataset.skTaskAccordion === '1') return;
+    if (!card || card.dataset.skAcc === '1') return;
     var head = card.querySelector('.card-hd');
     if (!head) return;
-    card.dataset.skTaskAccordion = '1';
-    card.classList.add('sk-task-collapsible');
+
+    card.dataset.skAcc = '1';
+    card.classList.add('sk-task-card');
+
     var btn = document.createElement('button');
     btn.type      = 'button';
-    btn.className = 'sk-task-summary';
+    btn.className = 'sk-acc-btn';
     btn.setAttribute('aria-expanded', 'false');
     btn.innerHTML =
-      '<span class="sk-summary-copy">' +
-        '<span class="sk-summary-title">Úkoly</span>' +
-        '<span class="sk-summary-value"><strong id="skTaskDone">0</strong> / <span id="skTaskTotal">0</span> splněno</span>' +
-        '<span class="sk-summary-progress"><span id="skTaskProgress"></span></span>' +
-        '<span class="sk-summary-meta" id="skTaskMeta">Zatím žádné úkoly</span>' +
+      '<span class="sk-acc-copy">' +
+        '<span class="sk-acc-title">Úkoly</span>' +
+        '<span class="sk-acc-val"><strong id="skTDone">0</strong> / <span id="skTTotal">0</span> splněno</span>' +
+        '<span class="sk-acc-prog"><span id="skTProg"></span></span>' +
+        '<span class="sk-acc-meta" id="skTMeta">Zatím žádné úkoly</span>' +
       '</span>' +
-      '<span class="sk-summary-chevron" aria-hidden="true">⌄</span>';
+      '<span class="sk-chev" aria-hidden="true">⌄</span>';
     head.replaceWith(btn);
-    /* Nastav stav přes _state + _applyState — NE přes přímé classList */
+
     _state.taskList = false;
-    _applyState('taskList');
+    applyState('taskList');
     refreshTaskSummary();
   }
 
   function makeNotesAccordion() {
     var list = getEl('notesList');
     var card = list && list.closest('.card');
-    if (!card || card.dataset.skNotesAccordion === '1') return;
+    if (!card || card.dataset.skAccN === '1') return;
     var head = card.querySelector('.card-hd');
     if (!head) return;
-    var search = getEl('notesSearch');
-    if (search && search.parentElement) search.parentElement.classList.add('sk-notes-tools');
-    card.dataset.skNotesAccordion = '1';
-    card.classList.add('sk-note-collapsible');
+
+    card.dataset.skAccN = '1';
+    card.classList.add('sk-notes-card');
+
     var btn = document.createElement('button');
     btn.type      = 'button';
-    btn.className = 'sk-note-summary';
+    btn.className = 'sk-acc-btn-n';
     btn.setAttribute('aria-expanded', 'false');
     btn.innerHTML =
-      '<span class="sk-summary-copy">' +
-        '<span class="sk-note-heading">' +
-          '<span class="sk-note-icon" aria-hidden="true">✎</span>' +
-          '<span class="sk-summary-title">Poznámky</span>' +
-        '</span>' +
-        '<span class="sk-summary-value" id="skNotesCount">0 uložených</span>' +
-        '<span class="sk-summary-meta" id="skNotesPreview">Žádné uložené poznámky</span>' +
+      '<span class="sk-acc-copy">' +
+        '<span class="sk-acc-title">✎ Poznámky</span>' +
+        '<span class="sk-acc-val" id="skNCnt">0 uložených</span>' +
+        '<span class="sk-acc-meta" id="skNPrev">Žádné poznámky</span>' +
       '</span>' +
-      '<span class="sk-summary-chevron" aria-hidden="true">⌄</span>';
+      '<span class="sk-chev" aria-hidden="true">⌄</span>';
     head.replaceWith(btn);
+
     _state.notesList = false;
-    _applyState('notesList');
+    applyState('notesList');
     refreshNotesSummary();
   }
 
-  /* ─── click handler pro accordion ──────────────────────────────
-   * KLÍČOVÁ OPRAVA:
-   * - Klik na summary button → toggle _state → _applyState
-   * - Klik na .tck (checkbox), .tdel, [data-action], [data-note-del]:
-   *   NE stopPropagation na tyto — necháme je probublat normálně
-   *   (index.html má vlastní handler na delegaci).
-   ─────────────────────────────────────────────────────────────── */
-  function installAccordionClick() {
-    if (document.__skAccordionClickInstalled) return;
-    document.__skAccordionClickInstalled = true;
+  /* ── CLICK HANDLER ───────────────────────────────────────────────────
+   * Běží v BUBBLING phase (false).
+   * index.html má capture handler (true) na #taskList — ten dostane
+   * kliky na .tck/.tdel/[data-action] dříve než tento handler.
+   * Tento handler řeší POUZE klik na summary accordion button.
+   ─────────────────────────────────────────────────────────────────── */
+  function installClick() {
+    if (document.__skClickV7) return;
+    document.__skClickV7 = true;
 
-    /* Použij capture phase (true) — stejně jako index.html.
-     * Tím máme jistotu že event dostaneme jako první na všech prohlížečích
-     * včetně iOS Safari. */
-    document.addEventListener('click', function (e) {
+    document.addEventListener('click', function(e) {
       var t = e.target;
       if (!t || !t.closest) return;
 
-      /* Přeskoč všechny interaktivní prvky — nechej je zpracovat index.html */
-      var isInteractive = t.closest(
-        '.tck, .tdel, [data-action], [data-note-del], .n-del,'
-        + ' .tadd, #taskAddBtn, #taskInput, #taskSearch, #taskPriority,'
-        + ' #saveNoteBtn, #noteDraft, #notesSearch, #notesDateFilter,'
-        + ' .ladd, [data-toggle-dd], .link-dd-item, a'
-      );
-      if (isInteractive) return; /* nechej event volně probublat */
+      /* Nikdy nezasahuj do kliků na task akce — nechej je probublat do
+         capture handleru v index.html */
+      if (t.closest('.tck, .tdel, [data-action], [data-note-del], .n-del,' +
+                     ' #taskAddBtn, #taskInput, #taskSearch, #taskPriority,' +
+                     ' #saveNoteBtn, #noteDraft, #notesSearch, #notesDateFilter,' +
+                     ' .ladd, a, [data-toggle-dd]')) {
+        return; /* event volně probublá */
+      }
 
-      /* Klik na summary button → toggle accordion */
-      var summary = t.closest('.sk-task-summary, .sk-note-summary');
-      if (!summary) return;
+      /* Klik na accordion button */
+      var btn = t.closest('.sk-acc-btn, .sk-acc-btn-n');
+      if (!btn) return;
 
-      var card = summary.closest('.card');
+      var card   = btn.closest('.card');
       if (!card) return;
-      var listId = card.classList.contains('sk-task-collapsible') ? 'taskList' : 'notesList';
+      var listId = card.classList.contains('sk-task-card') ? 'taskList' : 'notesList';
+
       _state[listId] = !_state[listId];
-      _applyState(listId);
-      e.preventDefault();
-      e.stopPropagation(); /* zastav jen pro summary — ostatní projdou */
-    }, false); /* bubbling phase — interní handlery v index.html běží dřív (na taskList) */
-  }
-
-  /* ─── MutationObserver — reaguje na renderTasks/renderNotes ───
-   * Po každé mutaci #taskList nebo #notesList znovu aplikujeme
-   * uložený _state. Tím je zaručeno, že CSS nikdy neodporuje _state.
-   ─────────────────────────────────────────────────────────────── */
-  function installObservers() {
-    var taskList = getEl('taskList');
-    if (taskList && !taskList.__skObserver) {
-      taskList.__skObserver = new MutationObserver(function () {
-        /* Vždy obnov CSS stav z _state — nezávisle na obsahu listu */
-        _applyState('taskList');
-        syncCheckmarks(taskList);
-
-        var hasTasks = !!taskList.querySelector('.titem');
-        var hasEmpty = !!taskList.querySelector('.tempty');
-
-        /* Pokud accordion je otevřený ale seznam je prázdný a window.tasks má data
-           → renderTasks byl volán před Firestore → zavolej znovu */
-        if (_state.taskList && hasEmpty && !hasTasks
-            && Array.isArray(window.tasks) && window.tasks.length > 0) {
-          if (typeof window.renderTasks === 'function') window.renderTasks();
-          return;
-        }
-
-        /* Pokud window.tasks je prázdné ale localStorage má data (offline fallback) */
-        if (hasEmpty && !hasTasks
-            && Array.isArray(window.tasks) && window.tasks.length === 0) {
-          try {
-            var local = JSON.parse(localStorage.getItem('zs_tasks_v3') || '[]');
-            if (Array.isArray(local) && local.length > 0) {
-              window.tasks = local;
-              if (typeof window.renderTasks === 'function') window.renderTasks();
-              if (typeof window.calRender === 'function') window.calRender();
-              return;
-            }
-          } catch (e) {}
-        }
-
-        refreshTaskSummary();
-      });
-      taskList.__skObserver.observe(taskList, { childList: true, subtree: true });
-    }
-
-    var notesList = getEl('notesList');
-    if (notesList && !notesList.__skObserver) {
-      notesList.__skObserver = new MutationObserver(function () {
-        _applyState('notesList');
-        refreshNotesSummary();
-      });
-      notesList.__skObserver.observe(notesList, { childList: true, subtree: true });
-    }
-  }
-
-
-  /* ─── hook na window.renderTasks — po každém renderu obnov stav ─────────
-   * Firestore onSnapshot může zavolat renderTasks kdykoli.
-   * Tento hook zajistí že accordion stav (_state) se vždy aplikuje
-   * ihned po renderu, bez čekání na MutationObserver. */
-  function hookRenderTasks() {
-    var orig = window.renderTasks;
-    if (!orig || orig.__skHooked) return;
-    window.renderTasks = function () {
-      orig.apply(this, arguments);
-      /* Obnov stav accordionu po každém renderu */
-      _applyState('taskList');
-      refreshTaskSummary();
-    };
-    window.renderTasks.__skHooked = true;
-  }
-
-  function hookRenderNotes() {
-    var orig = window.renderNotes;
-    if (!orig || orig.__skHooked) return;
-    window.renderNotes = function () {
-      orig.apply(this, arguments);
-      _applyState('notesList');
-      refreshNotesSummary();
-    };
-    window.renderNotes.__skHooked = true;
-  }
-
-  /* ─── mazání poznámek ───────────────────────────────────────── */
-  function installNoteDelete() {
-    var list = getEl('notesList');
-    if (!list || list.__skNoteDelete) return;
-    list.__skNoteDelete = true;
-    list.addEventListener('click', function (e) {
-      var btn = e.target && e.target.closest ? e.target.closest('[data-note-del]') : null;
-      if (!btn || !list.contains(btn)) return;
-      var idx = parseInt(btn.getAttribute('data-note-del'), 10);
-      if (!Number.isInteger(idx) || !Array.isArray(window.notes) || !window.notes[idx]) return;
+      applyState(listId);
       e.preventDefault();
       e.stopPropagation();
-      e.stopImmediatePropagation();
-      var note = window.notes[idx];
-      if (window.fbSyncEnabled && note.id && typeof window.fbDeleteNote === 'function') {
-        window.fbDeleteNote(note.id);
-      } else {
-        window.notes.splice(idx, 1);
-        if (typeof window.saveJSON === 'function') window.saveJSON('zs_notes_list_v1', window.notes);
-        if (typeof window.renderNotes === 'function') window.renderNotes();
-      }
-    }, true);
+    }, false);
   }
 
-  /* ─── CSS ───────────────────────────────────────────────────── */
-  function installStyles() {
-    if (getEl('sk-dashboard-accordion-styles')) return;
+  /* ── CSS ─────────────────────────────────────────────────────────── */
+  function installCSS() {
+    if (getEl('sk-tif-css')) return;
     var s = document.createElement('style');
-    s.id = 'sk-dashboard-accordion-styles';
+    s.id = 'sk-tif-css';
     s.textContent = [
-      /* Summary button */
-      '#page-dashboard .sk-task-summary,#page-dashboard .sk-note-summary{',
-        'position:relative;z-index:20;width:100%;display:flex;align-items:center;',
-        'justify-content:space-between;gap:12px;margin:0 0 1.1rem;padding:0;',
-        'border:0;background:transparent;color:inherit;text-align:left;font:inherit;',
-        'cursor:pointer;pointer-events:auto;',
+      /* Accordion button */
+      '.sk-acc-btn,.sk-acc-btn-n{',
+        'width:100%;display:flex;align-items:center;justify-content:space-between;',
+        'gap:12px;padding:0;margin:0 0 1rem;border:0;background:transparent;',
+        'color:inherit;font:inherit;text-align:left;cursor:pointer;',
         'touch-action:manipulation;-webkit-tap-highlight-color:transparent;',
         'user-select:none;-webkit-user-select:none}',
 
-      '#page-dashboard .sk-summary-copy{display:flex;flex:1;min-width:0;flex-direction:column}',
-      '#page-dashboard .sk-note-heading{display:inline-flex;align-items:center;gap:6px}',
-      '#page-dashboard .sk-note-icon{color:var(--amber);font-size:15px;line-height:1}',
-      '#page-dashboard .sk-summary-title{font-size:13px;font-weight:600;color:var(--ink)}',
-      '#page-dashboard .sk-summary-value{margin-top:2px;font-size:12px;font-weight:600;color:var(--ink2)}',
-      '#page-dashboard .sk-summary-progress{',
-        'width:min(180px,100%);height:5px;margin-top:7px;overflow:hidden;',
-        'border-radius:999px;background:var(--surface3)}',
-      '#page-dashboard .sk-summary-progress>span{',
-        'display:block;height:100%;border-radius:inherit;',
-        'background:var(--primary);transition:width .15s ease}',
-      '#page-dashboard .sk-summary-meta{',
-        'margin-top:5px;overflow:hidden;color:var(--ink3);font-size:11px;',
-        'font-weight:500;text-overflow:ellipsis;white-space:nowrap}',
-      '#page-dashboard .sk-summary-chevron{',
-        'display:grid;width:32px;height:32px;flex:0 0 32px;place-items:center;',
-        'border:1px solid var(--border);border-radius:50%;',
-        'background:var(--surface2);color:var(--ink2);font-size:17px;',
-        'line-height:1;pointer-events:none}',
+      '.sk-acc-copy{display:flex;flex:1;min-width:0;flex-direction:column}',
+      '.sk-acc-title{font-size:13px;font-weight:700;color:var(--ink)}',
+      '.sk-acc-val{font-size:12px;font-weight:600;color:var(--ink2);margin-top:3px}',
 
-      /* Collapsed: skryj obsah */
-      '#page-dashboard .sk-task-collapsible.is-collapsed .toolbar-row,',
-      '#page-dashboard .sk-task-collapsible.is-collapsed .ti-row,',
-      '#page-dashboard .sk-task-collapsible.is-collapsed #taskList{display:none!important}',
+      '.sk-acc-prog{width:min(180px,100%);height:5px;margin-top:6px;',
+        'border-radius:999px;background:var(--surface3,#EDEDF3);overflow:hidden}',
+      '.sk-acc-prog>span{display:block;height:100%;border-radius:inherit;',
+        'background:var(--primary,#6C5CE7);transition:width .2s}',
 
-      '#page-dashboard .sk-note-collapsible.is-collapsed .nrow,',
-      '#page-dashboard .sk-note-collapsible.is-collapsed .sk-notes-tools,',
-      '#page-dashboard .sk-note-collapsible.is-collapsed #notesFilterInfo,',
-      '#page-dashboard .sk-note-collapsible.is-collapsed #notesList{display:none!important}',
+      '.sk-acc-meta{font-size:11px;color:var(--ink3);margin-top:4px;',
+        'white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+
+      '.sk-chev{width:32px;height:32px;flex-shrink:0;display:grid;place-items:center;',
+        'border:1px solid var(--border,#E8E8F0);border-radius:50%;',
+        'background:var(--surface2,#F4F4F8);color:var(--ink2);',
+        'font-size:16px;line-height:1;pointer-events:none}',
+
+      /* Collapsed: skryj obsah pod buttonem */
+      '.sk-task-card.is-collapsed .toolbar-row,',
+      '.sk-task-card.is-collapsed .ti-row,',
+      '.sk-task-card.is-collapsed #taskList{display:none!important}',
+
+      '.sk-notes-card.is-collapsed .nrow,',
+      '.sk-notes-card.is-collapsed #notesFilterInfo,',
+      '.sk-notes-card.is-collapsed #notesList{display:none!important}',
 
       /* Expanded: toolbar viditelný */
-      '#page-dashboard .sk-task-collapsible.is-expanded .toolbar-row{display:flex!important}',
+      '.sk-task-card.is-expanded .toolbar-row{display:flex!important}',
 
-      /* Checkboxy */
-      '#page-dashboard .tck{',
-        'position:relative!important;',
+      /* Checkboxy — iOS fix */
+      '.tck{',
         '-webkit-appearance:none!important;appearance:none!important;',
         'touch-action:manipulation!important;',
         '-webkit-tap-highlight-color:transparent!important;',
-        'cursor:pointer!important;overflow:visible!important}',
-      '#page-dashboard .tck.checked{',
-        'background:var(--primary)!important;border-color:var(--primary)!important;',
+        'cursor:pointer!important;position:relative!important;',
+        'overflow:visible!important}',
+
+      '.tck.checked{',
+        'background:var(--primary,#6C5CE7)!important;',
+        'border-color:var(--primary,#6C5CE7)!important;',
         'color:#fff!important;font-size:12px!important;font-weight:800!important;',
-        'line-height:1!important;text-align:center!important}',
-      '#page-dashboard .tck.checked::after{content:none!important}',
+        'display:flex!important;align-items:center!important;justify-content:center!important}',
 
-      /* Mazání poznámek — větší plocha */
-      '#page-dashboard .n-del{',
-        'min-width:36px!important;min-height:36px!important;padding:7px!important;',
+      '.tck.checked::after{content:none!important}',
+
+      /* Smazání — větší touch target */
+      '.tdel{',
+        'touch-action:manipulation!important;',
+        '-webkit-tap-highlight-color:transparent!important;',
+        'cursor:pointer!important;min-width:36px!important;min-height:36px!important;',
         'display:inline-flex!important;align-items:center!important;',
-        'justify-content:center!important;touch-action:manipulation!important;',
-        'pointer-events:auto!important}',
+        'justify-content:center!important}',
 
-      /* Mobile */
+      /* Mobile scroll při rozbalení */
       '@media(max-width:700px){',
-        '#page-dashboard .sk-task-summary,#page-dashboard .sk-note-summary{min-height:68px;margin-bottom:0}',
-        '#page-dashboard .sk-summary-title{font-size:14px;font-weight:700}',
-        '#page-dashboard .sk-summary-value{font-size:13px}',
-
-        /* Scroll při rozbalení */
-        '#page-dashboard .sk-task-collapsible.is-expanded #taskList{',
-          'max-height:min(42vh,360px)!important;overflow-y:auto!important;',
-          'overflow-x:hidden!important;-webkit-overflow-scrolling:touch!important;',
-          'overscroll-behavior:contain!important;touch-action:pan-y!important;',
-          'padding-right:2px}',
-
-        /* Dotykové cíle pro checkbox a smazání */
-        '#page-dashboard .sk-task-collapsible.is-expanded .tdel{',
-          'opacity:1!important;visibility:visible!important;',
-          'pointer-events:auto!important;position:relative!important;z-index:3!important;',
-          'min-width:44px!important;min-height:44px!important;',
-          'touch-action:manipulation!important;',
-          '-webkit-tap-highlight-color:transparent!important;',
-          'cursor:pointer!important}',
-        '#page-dashboard .sk-task-collapsible.is-expanded .tck{',
-          'position:relative!important;z-index:3!important;',
-          'pointer-events:auto!important;',
-          'min-width:44px!important;min-height:44px!important;',
-          'touch-action:manipulation!important;',
-          '-webkit-tap-highlight-color:transparent!important}',
-        '#page-dashboard .sk-task-collapsible.is-expanded .titem{position:relative;z-index:1}',
-        '#page-dashboard .sk-task-collapsible.is-expanded #taskList button{',
-          'touch-action:manipulation;-webkit-tap-highlight-color:transparent}',
-
-        '#page-dashboard .sk-note-collapsible.is-expanded #notesList{',
-          'max-height:min(42vh,360px)!important;overflow-y:auto!important;',
+        '.sk-task-card.is-expanded #taskList{',
+          'max-height:min(45vh,380px)!important;overflow-y:auto!important;',
+          '-webkit-overflow-scrolling:touch!important;',
+          'overscroll-behavior:contain!important;touch-action:pan-y!important}',
+        '.sk-notes-card.is-expanded #notesList{',
+          'max-height:min(45vh,380px)!important;overflow-y:auto!important;',
           '-webkit-overflow-scrolling:touch!important;',
           'overscroll-behavior:contain!important;touch-action:pan-y!important}',
       '}'
@@ -436,26 +271,25 @@
     document.head.appendChild(s);
   }
 
-  /* ─── inicializace ──────────────────────────────────────────── */
+  /* ── INICIALIZACE ────────────────────────────────────────────────── */
   function init() {
-    installStyles();
+    installCSS();
     makeTaskAccordion();
     makeNotesAccordion();
-    installAccordionClick();
-    installObservers();
-    installNoteDelete();
-    hookRenderTasks();
-    hookRenderNotes();
+    installClick();
+    /* Hook musí být po makeAccordion aby orig funkce existovala */
+    hookRender('renderTasks', 'taskList',  refreshTaskSummary);
+    hookRender('renderNotes', 'notesList', refreshNotesSummary);
     refreshTaskSummary();
     refreshNotesSummary();
-    syncCheckmarks(document);
   }
 
-  window.__SKOLA_DASHBOARD_ACCORDIONS__ = { reapply: init };
+  window.__SKOLA_TASK_FIX_V7__ = { reinit: init };
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init, { once: true });
   } else {
     init();
   }
+
 })();
