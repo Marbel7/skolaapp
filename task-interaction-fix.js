@@ -232,28 +232,35 @@
     var taskList = getEl('taskList');
     if (taskList && !taskList.__skObserver) {
       taskList.__skObserver = new MutationObserver(function () {
-        /* Data se změnila → obnov stav z _state */
+        /* Vždy obnov CSS stav z _state — nezávisle na obsahu listu */
         _applyState('taskList');
         syncCheckmarks(taskList);
-        /* Pokud list obsahuje jen "prázdný stav" ale window.tasks má data,
-           renderTasks() byl volán dřív než Firestore vrátil data.
-           Zavolej ho znovu teď kdy tasks jsou k dispozici. */
-        var isEmpty = taskList.querySelector('.tempty') && !taskList.querySelector('.titem');
-        if (isEmpty && Array.isArray(window.tasks) && !window.tasks.length) {
+
+        var hasTasks = !!taskList.querySelector('.titem');
+        var hasEmpty = !!taskList.querySelector('.tempty');
+
+        /* Pokud accordion je otevřený ale seznam je prázdný a window.tasks má data
+           → renderTasks byl volán před Firestore → zavolej znovu */
+        if (_state.taskList && hasEmpty && !hasTasks
+            && Array.isArray(window.tasks) && window.tasks.length > 0) {
+          if (typeof window.renderTasks === 'function') window.renderTasks();
+          return;
+        }
+
+        /* Pokud window.tasks je prázdné ale localStorage má data (offline fallback) */
+        if (hasEmpty && !hasTasks
+            && Array.isArray(window.tasks) && window.tasks.length === 0) {
           try {
-            var localTasks = JSON.parse(localStorage.getItem('zs_tasks_v3') || '[]');
-            if (Array.isArray(localTasks) && localTasks.length) {
-              window.tasks = localTasks;
+            var local = JSON.parse(localStorage.getItem('zs_tasks_v3') || '[]');
+            if (Array.isArray(local) && local.length > 0) {
+              window.tasks = local;
               if (typeof window.renderTasks === 'function') window.renderTasks();
               if (typeof window.calRender === 'function') window.calRender();
               return;
             }
           } catch (e) {}
         }
-        if (isEmpty && Array.isArray(window.tasks) && window.tasks.length) {
-          if (typeof window.renderTasks === 'function') window.renderTasks();
-          return; /* refreshTaskSummary se zavolá z dalšího MutationObserver triggeru */
-        }
+
         refreshTaskSummary();
       });
       taskList.__skObserver.observe(taskList, { childList: true, subtree: true });
@@ -267,6 +274,34 @@
       });
       notesList.__skObserver.observe(notesList, { childList: true, subtree: true });
     }
+  }
+
+
+  /* ─── hook na window.renderTasks — po každém renderu obnov stav ─────────
+   * Firestore onSnapshot může zavolat renderTasks kdykoli.
+   * Tento hook zajistí že accordion stav (_state) se vždy aplikuje
+   * ihned po renderu, bez čekání na MutationObserver. */
+  function hookRenderTasks() {
+    var orig = window.renderTasks;
+    if (!orig || orig.__skHooked) return;
+    window.renderTasks = function () {
+      orig.apply(this, arguments);
+      /* Obnov stav accordionu po každém renderu */
+      _applyState('taskList');
+      refreshTaskSummary();
+    };
+    window.renderTasks.__skHooked = true;
+  }
+
+  function hookRenderNotes() {
+    var orig = window.renderNotes;
+    if (!orig || orig.__skHooked) return;
+    window.renderNotes = function () {
+      orig.apply(this, arguments);
+      _applyState('notesList');
+      refreshNotesSummary();
+    };
+    window.renderNotes.__skHooked = true;
   }
 
   /* ─── mazání poznámek ───────────────────────────────────────── */
@@ -409,6 +444,8 @@
     installAccordionClick();
     installObservers();
     installNoteDelete();
+    hookRenderTasks();
+    hookRenderNotes();
     refreshTaskSummary();
     refreshNotesSummary();
     syncCheckmarks(document);
