@@ -21,24 +21,14 @@
     return;
   }
 
-  /* ─── stav accordionů ─────────────────────────────────────────
-   * Klíč je ID listu ('taskList' / 'notesList').
-   * true  = expanded (obsah viditelný)
-   * false = collapsed (obsah skrytý)
-   * Výchozí: false (collapsed) dokud uživatel neklikne nebo
-   * dokud nepřijdou data (pak se karta sama neotevírá — jen
-   * _applyState zajistí zobrazení aktuálního stavu).
-   ─────────────────────────────────────────────────────────────── */
   var _state = { taskList: false, notesList: false };
 
-  /* ─── helpers ──────────────────────────────────────────────── */
   function getEl(id) { return document.getElementById(id); }
   function txt(id) {
     var e = getEl(id);
     return e ? String(e.textContent || '').trim() : '';
   }
 
-  /* ─── datové zdroje ────────────────────────────────────────── */
   function taskSource() {
     if (Array.isArray(window.tasks) && window.tasks.length) return window.tasks;
     try { var r = JSON.parse(localStorage.getItem('zs_tasks_v3') || '[]'); return Array.isArray(r) ? r : []; }
@@ -51,10 +41,6 @@
     catch (e) { return []; }
   }
 
-  /* ─── aplikace stavu na DOM ─────────────────────────────────
-   * Tato funkce je JEDINÉ místo, které mění expanded/collapsed CSS třídy.
-   * Volá se: při inicializaci, po každém renderu, po každém kliku.
-   ─────────────────────────────────────────────────────────────── */
   function _applyState(listId) {
     var list = getEl(listId);
     if (!list) return;
@@ -74,7 +60,6 @@
     _applyState('notesList');
   }
 
-  /* ─── shrnutí / summary refresh ────────────────────────────── */
   function refreshTaskSummary() {
     var source = taskSource();
     var done  = source.filter(function (t) { return !!t.done; }).length;
@@ -113,7 +98,6 @@
     }
   }
 
-  /* ─── synchronizace checkboxů ──────────────────────────────── */
   function syncCheckmarks(root) {
     var scope = root || document;
     if (!scope.querySelectorAll) return;
@@ -125,7 +109,6 @@
     });
   }
 
-  /* ─── sestavení accordionů ──────────────────────────────────── */
   function makeTaskAccordion() {
     var list = getEl('taskList');
     var card = list && list.closest('.card');
@@ -147,7 +130,6 @@
       '</span>' +
       '<span class="sk-summary-chevron" aria-hidden="true">⌄</span>';
     head.replaceWith(btn);
-    /* Nastav stav přes _state + _applyState — NE přes přímé classList */
     _state.taskList = false;
     _applyState('taskList');
     refreshTaskSummary();
@@ -183,64 +165,56 @@
     refreshNotesSummary();
   }
 
-  /* ─── click handler pro accordion ──────────────────────────────
-   * KLÍČOVÁ OPRAVA:
-   * - Klik na summary button → toggle _state → _applyState
-   * - Klik na .tck (checkbox), .tdel, [data-action], [data-note-del]:
-   *   NE stopPropagation na tyto — necháme je probublat normálně
-   *   (index.html má vlastní handler na delegaci).
-   ─────────────────────────────────────────────────────────────── */
   function installAccordionClick() {
     if (document.__skAccordionClickInstalled) return;
     document.__skAccordionClickInstalled = true;
 
     document.addEventListener('click', function (e) {
-      /* Ignoruj kliknutí na interaktivní prvky UVNITŘ listu */
       if (e.target && e.target.closest) {
         var skip = e.target.closest('.tck, .tdel, [data-action], [data-note-del], .n-del, .tadd, button:not(.sk-task-summary):not(.sk-note-summary)');
-        if (skip) return; /* nechej event probublat dál normálně */
+        if (skip) return;
       }
 
-      /* Klik na summary header → toggle accordion */
       var summary = e.target && e.target.closest ? e.target.closest('.sk-task-summary, .sk-note-summary') : null;
       if (!summary) return;
 
       var card = summary.closest('.card');
       if (!card) return;
-
-      /* Zjisti listId podle třídy karty */
       var listId = card.classList.contains('sk-task-collapsible') ? 'taskList' : 'notesList';
-
-      /* Toggle stav v _state */
       _state[listId] = !_state[listId];
-
-      /* Aplikuj na DOM */
       _applyState(listId);
-
-      /* Zastav propagaci jen pokud jsme accordion button — ne jiné prvky */
       e.stopPropagation();
-    }, false); /* bubbling phase, ne capture — aby interní handlery v index.html mohly zachytit dřív */
+    }, false);
   }
 
-  /* ─── MutationObserver — reaguje na renderTasks/renderNotes ───
-   * Po každé mutaci #taskList nebo #notesList znovu aplikujeme
-   * uložený _state. Tím je zaručeno, že CSS nikdy neodporuje _state.
-   ─────────────────────────────────────────────────────────────── */
   function installObservers() {
     var taskList = getEl('taskList');
     if (taskList && !taskList.__skObserver) {
       taskList.__skObserver = new MutationObserver(function () {
-        /* Data se změnila → obnov stav z _state */
         _applyState('taskList');
         syncCheckmarks(taskList);
-        /* Pokud list obsahuje jen "prázdný stav" ale window.tasks má data,
-           renderTasks() byl volán dřív než Firestore vrátil data.
-           Zavolej ho znovu teď kdy tasks jsou k dispozici. */
+
+        /*
+         * Firebase může při startu doručit prázdný snapshot dříve,
+         * než doběhne paralelní načtení skutečných úkolů. index.html
+         * pak zavolá renderTasks() s prázdným window.tasks a DOM skončí
+         * v .tempty. Pokud máme lokální kopii, obnov ji do window.tasks
+         * a překresli seznam. Tohle je pouze fallback pro tento závod;
+         * žádná data se nemažou ani nemění.
+         */
         var isEmpty = taskList.querySelector('.tempty') && !taskList.querySelector('.titem');
-        if (isEmpty && Array.isArray(window.tasks) && window.tasks.length) {
-          if (typeof window.renderTasks === 'function') window.renderTasks();
-          return; /* refreshTaskSummary se zavolá z dalšího MutationObserver triggeru */
+        if (isEmpty && Array.isArray(window.tasks) && !window.tasks.length) {
+          try {
+            var localTasks = JSON.parse(localStorage.getItem('zs_tasks_v3') || '[]');
+            if (Array.isArray(localTasks) && localTasks.length) {
+              window.tasks = localTasks;
+              if (typeof window.renderTasks === 'function') window.renderTasks();
+              if (typeof window.calRender === 'function') window.calRender();
+              return;
+            }
+          } catch (e) {}
         }
+
         refreshTaskSummary();
       });
       taskList.__skObserver.observe(taskList, { childList: true, subtree: true });
@@ -256,7 +230,6 @@
     }
   }
 
-  /* ─── mazání poznámek ───────────────────────────────────────── */
   function installNoteDelete() {
     var list = getEl('notesList');
     if (!list || list.__skNoteDelete) return;
@@ -280,105 +253,48 @@
     }, true);
   }
 
-  /* ─── CSS ───────────────────────────────────────────────────── */
   function installStyles() {
     if (getEl('sk-dashboard-accordion-styles')) return;
     var s = document.createElement('style');
     s.id = 'sk-dashboard-accordion-styles';
     s.textContent = [
-      /* Summary button */
       '#page-dashboard .sk-task-summary,#page-dashboard .sk-note-summary{',
         'position:relative;z-index:20;width:100%;display:flex;align-items:center;',
         'justify-content:space-between;gap:12px;margin:0 0 1.1rem;padding:0;',
         'border:0;background:transparent;color:inherit;text-align:left;font:inherit;',
         'cursor:pointer;pointer-events:auto;touch-action:manipulation;',
         '-webkit-tap-highlight-color:transparent}',
-
       '#page-dashboard .sk-summary-copy{display:flex;flex:1;min-width:0;flex-direction:column}',
       '#page-dashboard .sk-note-heading{display:inline-flex;align-items:center;gap:6px}',
       '#page-dashboard .sk-note-icon{color:var(--amber);font-size:15px;line-height:1}',
       '#page-dashboard .sk-summary-title{font-size:13px;font-weight:600;color:var(--ink)}',
       '#page-dashboard .sk-summary-value{margin-top:2px;font-size:12px;font-weight:600;color:var(--ink2)}',
-      '#page-dashboard .sk-summary-progress{',
-        'width:min(180px,100%);height:5px;margin-top:7px;overflow:hidden;',
-        'border-radius:999px;background:var(--surface3)}',
-      '#page-dashboard .sk-summary-progress>span{',
-        'display:block;height:100%;border-radius:inherit;',
-        'background:var(--primary);transition:width .15s ease}',
-      '#page-dashboard .sk-summary-meta{',
-        'margin-top:5px;overflow:hidden;color:var(--ink3);font-size:11px;',
-        'font-weight:500;text-overflow:ellipsis;white-space:nowrap}',
-      '#page-dashboard .sk-summary-chevron{',
-        'display:grid;width:32px;height:32px;flex:0 0 32px;place-items:center;',
-        'border:1px solid var(--border);border-radius:50%;',
-        'background:var(--surface2);color:var(--ink2);font-size:17px;',
-        'line-height:1;pointer-events:none}',
-
-      /* Collapsed: skryj obsah */
-      '#page-dashboard .sk-task-collapsible.is-collapsed .toolbar-row,',
-      '#page-dashboard .sk-task-collapsible.is-collapsed .ti-row,',
-      '#page-dashboard .sk-task-collapsible.is-collapsed #taskList{display:none!important}',
-
-      '#page-dashboard .sk-note-collapsible.is-collapsed .nrow,',
-      '#page-dashboard .sk-note-collapsible.is-collapsed .sk-notes-tools,',
-      '#page-dashboard .sk-note-collapsible.is-collapsed #notesFilterInfo,',
-      '#page-dashboard .sk-note-collapsible.is-collapsed #notesList{display:none!important}',
-
-      /* Expanded: toolbar viditelný */
+      '#page-dashboard .sk-summary-progress{width:min(180px,100%);height:5px;margin-top:7px;overflow:hidden;border-radius:999px;background:var(--surface3)}',
+      '#page-dashboard .sk-summary-progress>span{display:block;height:100%;border-radius:inherit;background:var(--primary);transition:width .15s ease}',
+      '#page-dashboard .sk-summary-meta{margin-top:5px;overflow:hidden;color:var(--ink3);font-size:11px;font-weight:500;text-overflow:ellipsis;white-space:nowrap}',
+      '#page-dashboard .sk-summary-chevron{display:grid;width:32px;height:32px;flex:0 0 32px;place-items:center;border:1px solid var(--border);border-radius:50%;background:var(--surface2);color:var(--ink2);font-size:17px;line-height:1;pointer-events:none}',
+      '#page-dashboard .sk-task-collapsible.is-collapsed .toolbar-row,#page-dashboard .sk-task-collapsible.is-collapsed .ti-row,#page-dashboard .sk-task-collapsible.is-collapsed #taskList{display:none!important}',
+      '#page-dashboard .sk-note-collapsible.is-collapsed .nrow,#page-dashboard .sk-note-collapsible.is-collapsed .sk-notes-tools,#page-dashboard .sk-note-collapsible.is-collapsed #notesFilterInfo,#page-dashboard .sk-note-collapsible.is-collapsed #notesList{display:none!important}',
       '#page-dashboard .sk-task-collapsible.is-expanded .toolbar-row{display:flex!important}',
-
-      /* Checkboxy */
-      '#page-dashboard .tck{',
-        'position:relative!important;overflow:hidden;',
-        '-webkit-appearance:none!important;appearance:none!important}',
-      '#page-dashboard .tck.checked{',
-        'background:var(--primary)!important;border-color:var(--primary)!important;',
-        'color:#fff!important;font-size:12px!important;font-weight:800!important;',
-        'line-height:1!important;text-align:center!important}',
+      '#page-dashboard .tck{position:relative!important;overflow:hidden;-webkit-appearance:none!important;appearance:none!important}',
+      '#page-dashboard .tck.checked{background:var(--primary)!important;border-color:var(--primary)!important;color:#fff!important;font-size:12px!important;font-weight:800!important;line-height:1!important;text-align:center!important}',
       '#page-dashboard .tck.checked::after{content:none!important}',
-
-      /* Mazání poznámek — větší plocha */
-      '#page-dashboard .n-del{',
-        'min-width:36px!important;min-height:36px!important;padding:7px!important;',
-        'display:inline-flex!important;align-items:center!important;',
-        'justify-content:center!important;touch-action:manipulation!important;',
-        'pointer-events:auto!important}',
-
-      /* Mobile */
+      '#page-dashboard .n-del{min-width:36px!important;min-height:36px!important;padding:7px!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;touch-action:manipulation!important;pointer-events:auto!important}',
       '@media(max-width:700px){',
         '#page-dashboard .sk-task-summary,#page-dashboard .sk-note-summary{min-height:68px;margin-bottom:0}',
         '#page-dashboard .sk-summary-title{font-size:14px;font-weight:700}',
         '#page-dashboard .sk-summary-value{font-size:13px}',
-
-        /* Scroll při rozbalení */
-        '#page-dashboard .sk-task-collapsible.is-expanded #taskList{',
-          'max-height:min(42vh,360px)!important;overflow-y:auto!important;',
-          'overflow-x:hidden!important;-webkit-overflow-scrolling:touch!important;',
-          'overscroll-behavior:contain!important;touch-action:pan-y!important;',
-          'padding-right:2px}',
-
-        /* Dotykové cíle pro checkbox a smazání */
-        '#page-dashboard .sk-task-collapsible.is-expanded .tdel{',
-          'opacity:1!important;visibility:visible!important;',
-          'pointer-events:auto!important;position:relative!important;z-index:3!important;',
-          'min-width:30px!important;min-height:30px!important}',
-        '#page-dashboard .sk-task-collapsible.is-expanded .tck{',
-          'position:relative!important;z-index:3!important;',
-          'pointer-events:auto!important;min-width:30px!important;min-height:30px!important}',
+        '#page-dashboard .sk-task-collapsible.is-expanded #taskList{max-height:min(42vh,360px)!important;overflow-y:auto!important;overflow-x:hidden!important;-webkit-overflow-scrolling:touch!important;overscroll-behavior:contain!important;touch-action:pan-y!important;padding-right:2px}',
+        '#page-dashboard .sk-task-collapsible.is-expanded .tdel{opacity:1!important;visibility:visible!important;pointer-events:auto!important;position:relative!important;z-index:3!important;min-width:30px!important;min-height:30px!important}',
+        '#page-dashboard .sk-task-collapsible.is-expanded .tck{position:relative!important;z-index:3!important;pointer-events:auto!important;min-width:30px!important;min-height:30px!important}',
         '#page-dashboard .sk-task-collapsible.is-expanded .titem{position:relative;z-index:1}',
-        '#page-dashboard .sk-task-collapsible.is-expanded #taskList button{',
-          'touch-action:manipulation;-webkit-tap-highlight-color:transparent}',
-
-        '#page-dashboard .sk-note-collapsible.is-expanded #notesList{',
-          'max-height:min(42vh,360px)!important;overflow-y:auto!important;',
-          '-webkit-overflow-scrolling:touch!important;',
-          'overscroll-behavior:contain!important;touch-action:pan-y!important}',
+        '#page-dashboard .sk-task-collapsible.is-expanded #taskList button{touch-action:manipulation;-webkit-tap-highlight-color:transparent}',
+        '#page-dashboard .sk-note-collapsible.is-expanded #notesList{max-height:min(42vh,360px)!important;overflow-y:auto!important;-webkit-overflow-scrolling:touch!important;overscroll-behavior:contain!important;touch-action:pan-y!important}',
       '}'
     ].join('');
     document.head.appendChild(s);
   }
 
-  /* ─── inicializace ──────────────────────────────────────────── */
   function init() {
     installStyles();
     makeTaskAccordion();
