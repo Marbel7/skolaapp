@@ -1439,6 +1439,9 @@ const db   = firebase.firestore();
 auth.getRedirectResult().then(function(result) {
   if (result && result.user) {
     console.log('[AUTH] getRedirectResult: user =', result.user.email);
+    /* Redirect flow: onAuthStateChanged mohl přijít s null dřív než redirect dokončil.
+       Explicitně skryj overlay — onAuthStateChanged(user) přijde vzápětí a nastaví vše. */
+    fbHideLoginOverlay();
   }
 }).catch(function(err) {
   if (err.code !== 'auth/no-current-user') {
@@ -1504,7 +1507,6 @@ auth.onAuthStateChanged(function(user) {
     fbSyncEnabled = true;
 
     fbHideLoginOverlay();
-    if (typeof showToast === 'function') showToast('Auth OK: ' + user.email.slice(0,15));
     if (window.TaskEngine) window.TaskEngine.init(user.uid);
     fbSetupListeners(); /* notes listener */
 
