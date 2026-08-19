@@ -1504,6 +1504,7 @@ auth.onAuthStateChanged(function(user) {
     fbSyncEnabled = true;
 
     fbHideLoginOverlay();
+    if (typeof showToast === 'function') showToast('Auth OK: ' + user.email.slice(0,15));
     if (window.TaskEngine) window.TaskEngine.init(user.uid);
     fbSetupListeners(); /* notes listener */
 
